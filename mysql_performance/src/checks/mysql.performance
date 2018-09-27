@@ -1,0 +1,61 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+# +-----------------------------------------------------------------+
+# |                                                                 |
+# |        (  ___ \     | \    /\|\     /||\     /|( (    /|        |
+# |        | (   ) )    |  \  / /| )   ( || )   ( ||  \  ( |        |
+# |        | (__/ /     |  (_/ / | |   | || (___) ||   \ | |        |
+# |        |  __ (      |   _ (  | |   | ||  ___  || (\ \) |        |
+# |        | (  \ \     |  ( \ \ | |   | || (   ) || | \   |        |
+# |        | )___) )_   |  /  \ \| (___) || )   ( || )  \  |        |
+# |        |/ \___/(_)  |_/    \/(_______)|/     \||/    )_)        |
+# |                                                                 |
+# | Copyright Bastian Kuhn 2018                mail@bastian-kuhn.de |
+# +-----------------------------------------------------------------+
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+def inventory_performance(parsed):
+    for instance, data in parsed.items():
+        if 'Threads_created' in data and 'Connections' in data:
+            yield "Thread Cache "+instance, (80, 90)
+
+def check_performance(item, params, parsed):
+    splitted = item.split()
+    instance = splitted[-1]
+    what = " ".join(splitted[:-1])
+    data = parsed[instance]
+    if what == "Thread Cache":
+        created = float(data['Threads_created'])
+        connections = float(data['Connections'])
+        try:
+            hitrate = round((created / connections) * 100, 4)
+        except ZeroDivisionError:
+            hitrate = 0
+
+        warn, crit = params
+        state = 0
+        if hitrate >= crit:
+            state = 2
+        elif hitrate >= warn:
+            state = 1
+        return state, "Thread Cache Hitrate: %s" % hitrate, [("percent", hitrate)]
+
+
+
+check_info["mysql.performance"] = {
+    'check_function': check_performance,
+    'inventory_function': inventory_performance,
+    'service_description': "MySQL Performance %s",
+    'group' : "mysql_performance",
+    'has_perfdata' : True,
+}
+
