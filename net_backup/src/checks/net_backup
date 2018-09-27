@@ -1,0 +1,74 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+# +-----------------------------------------------------------------+
+# |                                                                 |
+# |        (  ___ \     | \    /\|\     /||\     /|( (    /|        |
+# |        | (   ) )    |  \  / /| )   ( || )   ( ||  \  ( |        |
+# |        | (__/ /     |  (_/ / | |   | || (___) ||   \ | |        |
+# |        |  __ (      |   _ (  | |   | ||  ___  || (\ \) |        |
+# |        | (  \ \     |  ( \ \ | |   | || (   ) || | \   |        |
+# |        | )___) )_   |  /  \ \| (___) || )   ( || )  \  |        |
+# |        |/ \___/(_)  |_/    \/(_______)|/     \||/    )_)        |
+# |                                                                 |
+# | Copyright Bastian Kuhn 2018                mail@bastian-kuhn.de |
+# +-----------------------------------------------------------------+
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+
+def parse_netbackup(info):
+    devices = {}
+    last_device = ""
+    start = False
+    for line in info:
+        if line == ['Host', 'DrivePath', 'Status']:
+            start = True
+            continue
+
+        if start:
+            if len(line) >= 5:
+                last_device = line[0]
+            elif len(line) == 3:
+                devices.setdefault(last_device, [])
+                devices[last_device].append({
+                    'client' : line[0],
+                    'path' : line[1],
+                    'status' : line[2],
+                })
+    return devices
+
+
+def inventory_netbackup(parsed):
+    for device in parsed.keys():
+        yield device, {}
+
+def check_netbackup(item, _no_params, parsed):
+    device = parsed.get(item)
+    if device:
+        messages = []
+        state = 0
+        for sub in device:
+            append = ""
+            if sub['status'] not in ['SCAN-TLD', 'TLD', 'ACTIVE']:
+                state = 2
+                append = " %s(!!)" % sub['status']
+            messages.append("%s (%s)%s" % (sub['client'], sub['path'], append))
+
+        return state,", ".join(messages)
+
+
+
+check_info["net_backup"] = {
+    'check_function': check_netbackup,
+    'inventory_function': inventory_netbackup,
+    'service_description': "Device %s",
+    'parse_function' : parse_netbackup,
+}
