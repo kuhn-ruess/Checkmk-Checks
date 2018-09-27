@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# based upon 'qemu' from
+# 12/2010 Matthias Henze
+# Lizenz: GPL v2
+#
+# updated for libvirtd (virsh) by
+# Jonathan Mills 09/2011
+#
+# updated by
+# Christian Burmeister 05/2015
+#
+# updated formating:
+# Bastian Kuhn 08/2018
+
+if which virsh >/dev/null; then
+    echo '<<<qemu>>>'
+    virsh list | grep -v 'State' | grep -v '^--' | grep -v '^$' | while read L
+    do
+            ID=$(echo $L | awk '{print $1}')
+            NAME=$(echo $L | awk '{print $2}')
+            STATE=$(echo $L | awk '{print $3}')
+            MEM=$(virsh dominfo $NAME | grep 'Used memory' | awk '{print $3}')
+            let MEM=MEM/1024
+            PID=$(ps aux | grep kvm | grep $NAME | awk '{print $2}')
+            if [ $PID -gt 0 ]; then
+                    DATA=$(top -p $PID -n 1 -b | tail -1  | awk -- '{print $9" "$10}')
+            else
+                    DATA=""
+            fi
+            echo $ID" "$NAME" "$STATE" "$MEM" "$DATA
+    done
+fi
+

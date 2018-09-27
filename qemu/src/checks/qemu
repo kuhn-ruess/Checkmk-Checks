@@ -1,0 +1,91 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+# +-----------------------------------------------------------------+
+# |                                                                 |
+# |        (  ___ \     | \    /\|\     /||\     /|( (    /|        |
+# |        | (   ) )    |  \  / /| )   ( || )   ( ||  \  ( |        |
+# |        | (__/ /     |  (_/ / | |   | || (___) ||   \ | |        |
+# |        |  __ (      |   _ (  | |   | ||  ___  || (\ \) |        |
+# |        | (  \ \     |  ( \ \ | |   | || (   ) || | \   |        |
+# |        | )___) )_   |  /  \ \| (___) || )   ( || )  \  |        |
+# |        |/ \___/(_)  |_/    \/(_______)|/     \||/    )_)        |
+# |                                                                 |
+# | Copyright Bastian Kuhn 2018                mail@bastian-kuhn.de |
+# +-----------------------------------------------------------------+
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# Example output from agent:
+# <<<qemu>>>
+# 4 i-4B9008BE running 2048 4.0 2.7
+# 5 i-44F608B6 running 2048 0.0 0.7
+
+
+def qemu_fix_vmname(name):
+    # Reason for this not clear yet
+    if name.startswith("instance"):
+        name.replace("instance", "i")
+    return name
+
+
+def inventory_qemu(info):
+    for line in info:
+        if line[2] == "running":
+            vm = qemu_fix_vmname(line[1])
+            yield vm, {}
+
+def check_qemu(item, params, info):
+    perfdata = []
+    for line in info:
+        vm = qemu_fix_vmname(line[1])
+        if vm == item:
+            status = line[2]
+            assigned_mem = line[3]
+            infotext = ["Status: %s, id: %s" % (status, line[0])]
+            state = 2
+            if status == "running":
+                state = 0
+                current_cpu = int(round(float(line[4])))
+                infotext.append("CPU: %s%%" % (current_cpu))
+
+                current_mem = int(round(float(line[5])))
+                infotext.append("Memory: (assined: %s MB, used: %s%%)" % (assigned_mem, current_mem))
+
+                perfdata.append(("cpu_util", current_cpu))
+                perfdata.append(("memory_usage", current_mem))
+
+                if params:
+                    cpu_state = 0
+                    mem_state = 0
+                    if params.get('cpu'):
+                        cpu_warn, cpu_crit = params['cpu']
+                        if current_cpu >= cpu_crit:
+                            cpu_state = 2
+                        elif current_cpu >= cpu_warn:
+                            cpu_state = 1
+
+                    if params.get('mem'):
+                        mem_warn, mem_crit = params['mem']
+                        if current_mem >= mem_crit:
+                            mem_state = 2
+                        elif current_cpu >= mem_warn:
+                            mem_state = 1
+                    state = max(mem_state, cpu_state)
+
+            return  state, ", ".join(infotext), perfdata
+
+check_info["qemu"] = {
+    "check_function" : check_qemu,
+    "inventory_function" : inventory_qemu,
+    "service_description" : "VM %s",
+    "has_perfdata" : True,
+    "group" : "qemu",
+}
