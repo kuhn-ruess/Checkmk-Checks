@@ -1,0 +1,49 @@
+# Mysql Status 2.0
+
+This Check is based on my mysql status check i created years ago. It now supports the current Check_MK Version
+and not longer needs a plugin since it works no as subcheck for the normal Check_MK Mysql Monitoring.
+
+
+## Monitored Vars:
+ - Aborted_clients
+ - Aborted_connects
+ - Bytes_received
+ - Bytes_sent
+ - Compression
+ - Connections
+ - Created_tmp_disk_tables
+ - Created_tmp_files
+ - Created_tmp_tables
+ - Innodb_buffer_pool_read_requests
+ - Innodb_buffer_pool_reads
+ - Innodb_buffer_pool_write_requests
+ - Innodb_log_waits
+ - Innodb_os_log_written
+ - Innodb_row_lock_time
+ - Innodb_row_lock_waits
+ - Key_read_requests
+ - Key_reads
+ - Key_write_requests
+ - Key_writes
+ - Qcache_hits
+ - Qcache_inserts
+ - Qcache_low_mem_prunes
+ - Qcache_lowmem_prunes
+ - Qcache_not_cached
+ - Queries
+ - Questions
+ - Select_full_join
+ - Select_range_check
+ - Slave_retried_transactions
+ - Slave_running
+ - Slow_launch_threads
+ - Slow_queries
+ - Sort_merge_passes
+ - Table_locks_waited
+ - Innodb_buffer_pool_pages_free
+ - Qcache_free_memory
+ - Qcache_free_blocks
+ - Key_blocks_unused
+ - Threads_cached
+ - Open_tables
+ - Open_files

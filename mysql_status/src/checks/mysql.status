@@ -1,0 +1,155 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+# pylint: disable=undefined-variable
+"""
+Subcheck mysql.status for Check_MK Mysql Checks
+"""
+# +-----------------------------------------------------------------+
+# |                                                                 |
+# |        (  ___ \     | \    /\|\     /||\     /|( (    /|        |
+# |        | (   ) )    |  \  / /| )   ( || )   ( ||  \  ( |        |
+# |        | (__/ /     |  (_/ / | |   | || (___) ||   \ | |        |
+# |        |  __ (      |   _ (  | |   | ||  ___  || (\ \) |        |
+# |        | (  \ \     |  ( \ \ | |   | || (   ) || | \   |        |
+# |        | )___) )_   |  /  \ \| (___) || )   ( || )  \  |        |
+# |        |/ \___/(_)  |_/    \/(_______)|/     \||/    )_)        |
+# |                                                                 |
+# | Copyright Bastian Kuhn 2018                mail@bastian-kuhn.de |
+# +-----------------------------------------------------------------+
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+
+
+# mysql_status_vars = {
+#     "variable name" : ("Gauge|Counter|Voolean"), IS_NEGATIV),
+# }
+
+mysql_status_inventory = { #pylint: disable=invalid-name
+    "Aborted_clients"                   : ("Counter", False),
+    "Aborted_connects"                  : ("Counter", False),
+    "Bytes_received"                    : ("Counter", False),
+    "Bytes_sent"                        : ("Counter", False),
+    "Compression"                       : ("Boolean", False),
+    "Connections"                       : ("Counter", False),
+    "Created_tmp_disk_tables"           : ("Counter", False),
+    "Created_tmp_files"                 : ("Counter", False),
+    "Created_tmp_tables"                : ("Counter", False),
+    "Innodb_buffer_pool_read_requests"  : ("Counter", False),
+    "Innodb_buffer_pool_reads"          : ("Counter", False),
+    "Innodb_buffer_pool_write_requests" : ("Counter", False),
+    "Innodb_log_waits"                  : ("Counter", False),
+    "Innodb_os_log_written"             : ("Counter", False),
+    "Innodb_row_lock_time"              : ("Counter", False),
+    "Innodb_row_lock_waits"             : ("Counter", False),
+    "Key_read_requests"                 : ("Counter", False),
+    "Key_reads"                         : ("Counter", False),
+    "Key_write_requests"                : ("Counter", False),
+    "Key_writes"                        : ("Counter", False),
+    "Qcache_hits"                       : ("Counter", True),
+    "Qcache_inserts"                    : ("Counter", False),
+    "Qcache_low_mem_prunes"             : ("Counter", False),
+    "Qcache_lowmem_prunes"              : ("Counter", False),
+    "Qcache_not_cached"                 : ("Counter", False),
+    "Queries"                           : ("Counter", False),
+    "Questions"                         : ("Counter", False),
+    "Select_full_join"                  : ("Counter", False),
+    "Select_range_check"                : ("Counter", False),
+    "Slave_retried_transactions"        : ("Counter", False),
+    "Slave_running"                     : ("Boolean", False),
+    "Slow_launch_threads"               : ("Counter", False),
+    "Slow_queries"                      : ("Counter", False),
+    "Sort_merge_passes"                 : ("Counter", False),
+    "Table_locks_waited"                : ("Counter", False),
+    "Innodb_buffer_pool_pages_free"     : ("Gauge", True),
+    "Qcache_free_memory"                : ("Gauge", True),
+    "Qcache_free_blocks"                : ("Gauge", True),
+    "Key_blocks_unused"                 : ("Gauge", True),
+    "Threads_cached"                    : ("Gauge", True),
+    "Open_tables"                       : ("Gauge", False),
+    "Open_files"                       : ("Gauge", False),
+}
+
+def inventory_mysql_status(parsed):
+    """
+    Discovery Function
+    """
+    for var in parsed['mysql'].keys():
+        if var in mysql_status_inventory.keys():
+            yield var, {}
+
+
+def check_mysql_status(item, params, parsed):
+    """
+    Check Function
+    """
+    def check_level(val, warn, crit, is_n, params):
+        """
+        Internal Helper to do the Check
+        """
+        state = 0
+        if 'levels' in params:
+            warn, crit = params['levels']
+            if is_n:
+                if val <= crit:
+                    state = 2
+                elif val <= warn:
+                    state = 1
+            else:
+                if val >= crit:
+                    state = 2
+                elif val >= warn:
+                    state = 1
+        return state
+
+    warn, crit = None, None
+    for var, value in parsed['mysql'].items():
+        if item == var:
+            perfdata = []
+            value_type, is_negativ = mysql_status_inventory[item]
+
+            if value_type == "Counter":
+                per_sec = get_rate("mysql_status." + item, time.time(), value)
+
+                perfdata.append((item, "%d" % per_sec, warn, crit))
+                message = "rate is %d/s" % (per_sec)
+
+                state = check_level(per_sec, warn, crit, is_negativ, params)
+
+            elif value_type == "Boolean":
+                state = 0
+                message = "%s is %s" % (item, value)
+                if 'target_state' in params:
+                    target_state = params['target_state']
+                    if value != target_state:
+                        state = 2
+                    message += " but should be %s" % target_state
+
+            elif value_type == "Gauge":
+                perfdata.append((item, "%d" % value, warn, crit))
+                message = "Current %d" % value
+
+                state = check_level(value, warn, crit, is_negativ, params)
+
+            if state != 0 and value_type != "Boolean":
+                warn, crit = params['levels']
+                message += ", Levels at (%s/ %s)" % (warn, crit)
+
+            return state, message, perfdata
+
+
+check_info['mysql.status'] = {
+    "check_function"          : check_mysql_status,
+    "inventory_function"      : inventory_mysql_status,
+    "service_description"     : "MySQL Status %s",
+    "has_perfdata"            : True,
+    "group"                   : "mysql_status"
+}
