@@ -1,0 +1,12 @@
+{'author': u'Bastian Kuhn',
+ 'description': u'',
+ 'download_url': 'https://bastian-kuhn.de/en/check_mk-treasures/',
+ 'files': {'agents': ['bakery/bacula', 'plugins/bacula.sh'],
+           'checks': ['bacula_jobs'],
+           'web': ['plugins/wato/bacula.py']},
+ 'name': 'Bacula_Jobs',
+ 'num_files': 4,
+ 'title': u'Bacula Jobs Monitoring',
+ 'version': '1.0',
+ 'version.min_required': '1.2.8',
+ 'version.packaged': '1.5.0p9'}

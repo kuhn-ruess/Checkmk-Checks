@@ -1,0 +1,79 @@
+#!/usr/bin/env python
+
+def parse_bacula_jobs(info):
+    latest_state = {}
+    for job_id, name, status, endtime  in info[1:]:
+        end_date = time.strptime(endtime, "%Y-%m-%d %H:%M:%S")
+        latest_state.setdefault(name, {"last_backup" : end_date, 'state' : status })
+        if end_date > latest_state[name]['last_backup']:
+            latest_state[name] = {
+                "last_backup" : end_date,
+                "state" : status,
+            }
+
+    return latest_state
+
+factory_settings['bacula_jobs_params'] = {
+    "ok_states" : ['T', 'R'],
+    "crit_states" : ['E', 'f'],
+    "max_age" : False,
+}
+
+def inventory_bacula_jobs(parsed):
+    for job in parsed.keys():
+        yield job, {}
+
+def check_bacula_jobs(item, params, parsed):
+    if item not in parsed:
+        yield 3, "Job not found"
+        return
+    data = parsed[item]
+    states = {
+        'A' : "Canceled by user",
+        'B' : "Blocked",
+        'C' : "Created, but not running",
+        'c' : "Waiting for client resource",
+        'D' : "Verify differences",
+        'd' : "Waiting for maximum jobs",
+        'E' : "Terminated in error",
+        'e' : "Non-fatal error",
+        'f' : "fatal error",
+        'F' : "Waiting on File Daemon",
+        'j' : "Waiting for job resource",
+        'M' : "Waiting for mount",
+        'm' : "Waiting for new media",
+        'p' : "Waiting for higher priority jobs to finish",
+        'R' : "Running",
+        'S' : "Scan",
+        's' : "Waiting for storage resource",
+        'T' : "Terminated normally",
+        't' : "Waiting for start time",
+    }
+    state = 1
+    message = "Current State: %s" % states.get(data['state'], data['state'])
+    if data['state'] in params['crit_states']:
+        state = 2
+    elif data['state'] in params['ok_states']:
+        state = 0
+    yield state, message
+
+    state = 0
+    message = "Last Backup: %s" % time.strftime("%Y-%m-%d %H:%M", data['last_backup'])
+    if params['max_age']:
+        now = time.time()
+        age = now - time.mktime(data['last_backup'])
+        warn, crit = params['max_age']
+        if age >= crit:
+            state = 2
+        elif age >= warn:
+            state = 1
+    yield state, message
+
+check_info['bacula_jobs'] = {
+    "inventory_function" : inventory_bacula_jobs,
+    "check_function" : check_bacula_jobs,
+    "service_description" : "Job %s",
+    "parse_function" : parse_bacula_jobs,
+    "default_levels_variable" : "bacula_jobs_params",
+    "group" : 'bacula_jobs',
+}
