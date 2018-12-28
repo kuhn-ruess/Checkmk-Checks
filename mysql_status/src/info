@@ -1,6 +1,6 @@
 {'author': u'Bastian Kuhn',
  'description': u'Mysql Status Check.\nFull configuration via Wato. \nWorks as Subcheck for the normal check_mk mysql monitoring, so that plugin has to be set up first in order to make this check work. \n\n',
- 'download_url': 'https://github.com/Bastian-Kuhn/Check_MK-Treasures',
+ 'download_url': 'https://bastian-kuhn.de/en/check_mk-treasures/',
  'files': {'checkman': ['mysql.status'],
            'checks': ['mysql.status'],
            'web': ['plugins/perfometer/mysql_status.py',

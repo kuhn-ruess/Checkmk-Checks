@@ -1,6 +1,6 @@
 {'author': u'Bastian Kuhn',
  'description': u'',
- 'download_url': 'https://github.com/Bastian-Kuhn/Check_MK-Treasures',
+ 'download_url': 'https://bastian-kuhn.de/en/check_mk-treasures/',
  'files': {'agents': ['special/agent_exasol'],
            'checks': ['agent_exasol',
                       'exasol_database',

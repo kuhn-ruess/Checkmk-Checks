@@ -1,6 +1,6 @@
 {'author': u'Bastian Kuhn',
  'description': u'Check Qemu/ KVM',
- 'download_url': 'https://github.com/Bastian-Kuhn/Check_MK-Treasures',
+ 'download_url': 'https://bastian-kuhn.de/en/check_mk-treasures/',
  'files': {'agents': ['bakery/qemu', 'plugins/qemu'],
            'checks': ['qemu'],
            'web': ['plugins/wato/qemu.py']},
