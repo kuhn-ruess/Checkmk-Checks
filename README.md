@@ -8,3 +8,5 @@ has a good quality and is usefull.
 You will find MKP Files whenever possible, so all stuff can easily added or removed to/from your System.
 
 Feel free to start mege requests with fixes and improvments.
+
+You can reach me also on my website: https://bastian-kuhn.de 
