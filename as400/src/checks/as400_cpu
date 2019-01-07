@@ -1,0 +1,25 @@
+#!/usr/bin/python
+
+def inventory_as400_cpu(info):
+  return [('', None)]
+
+def check_as400_cpu(item, params, info):
+  pct_usage = savefloat(info[0][0]) / 100.00
+  return check_cpu_util(pct_usage,params)
+
+check_info["as400_cpu"] = {
+    "check_function"          : check_as400_cpu,
+    "inventory_function"      : inventory_as400_cpu,
+    "service_description"     : "CPU AVG",
+    "has_perfdata"            : True,
+    "group"                   : "as400_cpu",
+    "default_levels_variable" : "as400_cpu_defaults",
+    "includes"                : ["as400.include","cpu_util.include"]
+}
+
+# OID is SNMPv2-SMI::enterprises.2.6.4.5.1.0 - AS/400 proprietary OID
+snmp_info["as400_cpu"] = ( ".1.3.6.1.4.1.2.6.4.5.1",["0"])
+
+# Apply the check only if SNMP sysDescr starts with "IBM OS/400"
+snmp_scan_functions['snmp_as400_cpu'] = \
+    lambda oid: oid(".1.3.6.1.2.1.1.1.0").startswith("IBM OS/400")
