@@ -13,6 +13,9 @@
 # updated formating:
 # Bastian Kuhn 08/2018
 
+# updated by
+# MinhKMA 06/2019
+
 if which virsh >/dev/null; then
     echo '<<<qemu>>>'
     virsh list | grep -v 'State' | grep -v '^--' | grep -v '^$' | while read L
@@ -20,15 +23,19 @@ if which virsh >/dev/null; then
             ID=$(echo $L | awk '{print $1}')
             NAME=$(echo $L | awk '{print $2}')
             STATE=$(echo $L | awk '{print $3}')
+            NUM_VCPU=$(virsh dominfo $NAME | grep 'CPU(s)' | awk '{print $2}')
             MEM=$(virsh dominfo $NAME | grep 'Used memory' | awk '{print $3}')
             let MEM=MEM/1024
             PID=$(ps aux | grep kvm | grep $NAME | awk '{print $2}')
             if [ $PID -gt 0 ]; then
-                    DATA=$(top -p $PID -n 1 -b | tail -1  | awk -- '{print $9" "$10}')
+                    CPU=$(top -p $PID -n 1 -b | tail -1  | awk -- '{print $9}')
+                    AVG_CPU=$(awk -v CPU=$CPU -v NUM_VCPU=$NUM_VCPU 'BEGIN { print  ( CPU / NUM_VCPU ) }')
+                    RAM=$(top -p $PID -n 1 -b | tail -1  | awk -- '{print $10}')
             else
-                    DATA=""
+                    AVG_CPU=""
+                    RAM=""
             fi
-            echo $ID" "$NAME" "$STATE" "$MEM" "$DATA
+            echo $ID" "$NAME" "$STATE" "$AVG_CPU" "$RAM
     done
 fi
 
