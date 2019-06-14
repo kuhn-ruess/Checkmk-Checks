@@ -35,7 +35,7 @@ if which virsh >/dev/null; then
                     AVG_CPU=""
                     RAM=""
             fi
-            echo $ID" "$NAME" "$STATE" "$AVG_CPU" "$RAM
+            echo $ID" "$NAME" "$STATE" "$MEM" "$AVG_CPU" "$RAM
     done
 fi
 
