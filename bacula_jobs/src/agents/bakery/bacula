@@ -3,7 +3,11 @@
 
 
 def bake_bacula(opsys, conf, conf_dir, plugins_dir):
-    shutil.copy2(cmk.paths.local_agents_dir + "/plugins/bacula.sh", plugins_dir + "/bacula.sh")
+    try:
+       shutil.copy2(cmk.paths.local_agents_dir + "/plugins/bacula.sh", plugins_dir + "/bacula.sh")
+    except:
+       # in CheckMK v 1.6 cmk.paths is changed to cmk.utils.paths
+       shutil.copy2(cmk.utils.paths.local_agents_dir + "/plugins/bacula.sh", plugins_dir + "/bacula.sh")
 
 bakery_info["bacula"] = {
     "bake_function" : bake_bacula,
