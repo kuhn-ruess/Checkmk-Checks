@@ -9,5 +9,5 @@
  'num_files': 5,
  'title': u'Check of MySQL Status Variables with Instance Support',
  'version': '3.0.0',
- 'version.min_required': '1.6.0',
+ 'version.min_required': '1.5.0',
  'version.packaged': '1.6.0'}
