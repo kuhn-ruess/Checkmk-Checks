@@ -22,7 +22,7 @@ if which virsh >/dev/null; then
             STATE=$(echo $L | awk '{print $3}')
             MEM=$(virsh dominfo $NAME | grep 'Used memory' | awk '{print $3}')
             let MEM=MEM/1024
-            PID=$(ps aux | grep kvm | grep $NAME | awk '{print $2}')
+            PID=$(ps aux | grep kvm | grep $NAME | grep -v grep | awk '{print $2}')
             if [ $PID -gt 0 ]; then
                     DATA=$(top -p $PID -n 1 -b | tail -1  | awk -- '{print $9" "$10}')
             else
