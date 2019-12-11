@@ -1,0 +1,11 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+
+def bake_postgres_replication(opsys, conf, conf_dir, plugins_dir):
+    shutil.copy2(cmk.utils.paths.local_agents_dir + "/plugins/postgres_replication.sh", plugins_dir + "/postgres_replication.sh")
+
+bakery_info["postgres_replication"] = {
+    "bake_function" : bake_postgres_replication,
+    "os"            : [ "linux" ],
+}
