@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 factory_settings['postgres_replication_default_levels'] = {
-    'levels' : (30, 60)
+    'levels' : (31457280, 62914560)
 }
 
 def inventory_postgres_replication(info):
@@ -14,6 +14,8 @@ def check_postgres_replication(item, params, info):
         if slot_name == item:
             yield 0, "Slot Type: " + slot_type
             yield 0, "LSN " + slot_lsn
+            if active != 't':
+                yield 2, "Status inactive"
             if unit == 'bytes':
                 yield check_levels(
                     int(delta_pretty),

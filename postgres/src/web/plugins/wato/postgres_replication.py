@@ -14,7 +14,7 @@ register_rule(group,
 register_check_parameters(
     subgroup_applications,
     "postgres_replication",
-    _("PostgreSQL Replicatoin"),
+    _("PostgreSQL Replication"),
     Dictionary(
         elements = [
             ( "levels",
