@@ -10,7 +10,7 @@ def inventory_postgres_replication(info):
 
 def check_postgres_replication(item, params, info):
     for line in info:
-        slot_name, slot_type, slot_lsn, active, delta, delta_pretty, unit = line
+        slot_name, slot_type, slot_lsn, delta, active,  delta_pretty, unit = line
         if slot_name == item:
             yield 0, "Slot Type: " + slot_type
             yield 0, "LSN " + slot_lsn
@@ -31,4 +31,5 @@ check_info['postgres_replication'] = {
   'service_description': "PostgreSQL Replication %s",
   'default_levels_variable' : 'postgres_replication_default_levels',
   'group' : 'postgres_replication',
+  'has_perfdata' : True,
 }
