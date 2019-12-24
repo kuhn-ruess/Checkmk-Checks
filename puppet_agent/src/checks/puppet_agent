@@ -1,0 +1,53 @@
+#!/usr/bin/env python
+
+#    {
+#     u'events_failure': 0,
+#     u'events_noop': 1,
+#     u'events_success': 0,
+#     u'last_run': 1576841032,
+#     u'resources_changed': 0,
+#     u'resources_failed': 0,
+#     u'resources_failed_to_restart': 0,
+#     u'resources_out_of_sync': 1,
+#     u'resources_restarted': 0,
+#     u'resources_scheduled': 0,
+#     u'resources_skipped': 0,
+#     u'resources_total': 1111
+#    }
+
+factory_settings['puppet_agent_default_levels'] = {
+    'last_run' : (1600, 3200)
+}
+
+def inventory_puppet_agent(info):
+    if info[0][0].startswith('last_run'):
+        yield None, {}
+
+def check_puppet_agent(_no_item, params, info):
+    #Parse here since itemless
+    parsed = {}
+    for line in info:
+        if len(line) == 2:
+            parsed[line[0][:-1]] = int(line[1])
+
+    last_run_state = 0
+    if 'last_run' in params:
+        ourtime = int(time.time())
+        offset = parsed['last_run'] - ourtime
+        offset *= -1
+        warn, crit = params['last_run']
+        if offset >= crit:
+            last_run_state = 2
+        elif offset >= warn:
+            last_run_state = 1
+    yield last_run_state, "Last run: {} ".format(get_timestamp_human_readable(parsed['last_run']))
+
+
+check_info['puppet_agent'] = {
+  'inventory_function': inventory_puppet_agent,
+  'check_function' : check_puppet_agent,
+  'service_description': "Puppet Agent",
+  'default_levels_variable' : 'puppet_agent_default_levels',
+  'group' : 'puppet_agent',
+  'has_perfdata' : True,
+}

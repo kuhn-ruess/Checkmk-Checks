@@ -1,0 +1,20 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+
+def bake_puppet_agent(opsys, conf, conf_dir, plugins_dir):
+    source = cmk.utils.paths.local_agents_dir
+    if opsys == 'linux':
+        source += '/plugins/linux/puppet_agent.sh'
+        target = plugins + "/puppet_agent.sh"
+    elif opsys == 'windows':
+        source += '/plugins/windows/puppet_agent.ps1'
+        target = plugins + "/puppet_agent.ps1"
+    else:
+        raise ValueError("Invalid OS")
+    shutil.copy2(source, target)
+
+bakery_info["puppet_agent"] = {
+    "bake_function" : bake_puppet_agent,
+    "os"            : ["linux", "windows"],
+}

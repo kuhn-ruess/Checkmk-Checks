@@ -1,0 +1,12 @@
+{'author': u'Bastian Kuhn',
+ 'description': u'Monitor installed Puppet Agent',
+ 'download_url': 'https://bastian-kuhn.de/en/check_mk-treasures/',
+ 'files': {'agents': ['bakery/puppet_agent', 'plugins/linux/puppet_agent.sh', 'plugins/windows/puppet_agent.ps1'],
+           'checks': ['puppet_agent'],
+           'web': ['plugins/wato/puppet_agent.py']},
+ 'name': 'puppet_agent',
+ 'num_files': 5,
+ 'title': u'Puppet Agent Monitor',
+ 'version': '0.0.1',
+ 'version.min_required': '1.6.0',
+ 'version.packaged': '1.6.0'}
