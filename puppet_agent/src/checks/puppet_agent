@@ -16,7 +16,15 @@
 #    }
 
 factory_settings['puppet_agent_default_levels'] = {
-    'last_run' : (1600, 3200)
+    'last_run' : (1600, 3200),
+    'events_failure' : (10, 15),
+    'resources_changed': (10, 15),
+    'resources_failed': (10, 15),
+    'resources_failed_to_restart': (10, 15),
+    'resources_out_of_sync': (10, 15),
+    'resources_restarted': (10, 15),
+    'resources_scheduled': (10, 15),
+    'resources_skipped': (10, 15),
 }
 
 def inventory_puppet_agent(info):
@@ -42,12 +50,31 @@ def check_puppet_agent(_no_item, params, info):
             last_run_state = 1
     yield last_run_state, "Last run: {} ".format(get_timestamp_human_readable(parsed['last_run']))
 
+    checks = [ # key, infoname, unit
+      ('events_failure', 'Events Failure', 'Failures'),
+      ('resources_changed', 'Resources Changed', 'Resources'),
+      ('resources_failed', 'Resources Failed', 'Failures'),
+      ('resources_failed_to_restart', 'Resources Failed to Restart', 'Resources'),
+      ('resources_out_of_sync', 'Resources Out of Sync', 'Resources'),
+      ('resources_restarted', 'Resources Restarted', 'Resources'),
+      ('resources_scheduled', 'Resources Scheduled', 'Resources'),
+      ('resources_skipped', 'Resources Skipped', 'Resources'),
+    ]
+
+    for key, infoname, unit in checks:
+        yield check_levels(
+            parsed[key],
+            key,
+            params[key],
+            unit=unit,
+            infoname=infoname,
+        )
 
 check_info['puppet_agent'] = {
-  'inventory_function': inventory_puppet_agent,
-  'check_function' : check_puppet_agent,
-  'service_description': "Puppet Agent",
-  'default_levels_variable' : 'puppet_agent_default_levels',
-  'group' : 'puppet_agent',
-  'has_perfdata' : True,
+    'inventory_function': inventory_puppet_agent,
+    'check_function' : check_puppet_agent,
+    'service_description': "Puppet Agent",
+    'default_levels_variable' : 'puppet_agent_default_levels',
+    'group' : 'puppet_agent',
+    'has_perfdata' : True,
 }
