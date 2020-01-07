@@ -1,6 +1,8 @@
 #!/bin/bash
 
 LASTRUN="/var/lib/puppet/state/last_run_summary.yaml"
+#LASTRUN="/opt/puppetlabs/puppet/cache/state/last_run_summary.yaml"
+
 if [ -e "${LASTRUN}" ]; then
   OUT="$(cat ${LASTRUN} | sed 's/[[:space:]]\{2,\}//g')"
   echo "<<<puppet_agent>>>"
