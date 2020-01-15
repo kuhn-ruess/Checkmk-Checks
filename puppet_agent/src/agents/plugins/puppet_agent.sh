@@ -1,7 +1,13 @@
 #!/bin/bash
 
-LASTRUN="/var/lib/puppet/state/last_run_summary.yaml"
-#LASTRUN="/opt/puppetlabs/puppet/cache/state/last_run_summary.yaml"
+SUMMARY_1="/var/lib/puppet/state/last_run_summary.yaml"
+SUMMARY_2="/opt/puppetlabs/puppet/cache/state/last_run_summary.yaml"
+
+if [ -f $SUMMARY_1 ]; then
+    LASTRUN=$SUMMARY_1
+else
+    LASTRUN=$SUMMARY_2
+fi
 
 if [ -e "${LASTRUN}" ]; then
   OUT="$(cat ${LASTRUN} | sed 's/[[:space:]]\{2,\}//g')"
