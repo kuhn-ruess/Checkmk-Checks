@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
+#pylint: disable=undefined-variable, missing-docstring
 # +-----------------------------------------------------------------+
 # |                                                                 |
 # |        (  ___ \     | \    /\|\     /||\     /|( (    /|        |
@@ -49,7 +50,6 @@ factory_settings['puppet_agent_default_levels'] = {
     'resources_out_of_sync': (10, 15),
     'resources_restarted': (10, 15),
     'resources_scheduled': (10, 15),
-    'resources_skipped': (10, 15),
 }
 
 def inventory_puppet_agent(info):
@@ -66,8 +66,7 @@ def check_puppet_agent(_no_item, params, info):
     last_run_state = 0
     if 'last_run' in params:
         ourtime = int(time.time())
-        offset = parsed['last_run'] - ourtime
-        offset *= -1
+        offset = ourtime - parsed['last_run']
         warn, crit = params['last_run']
         if offset >= crit:
             last_run_state = 2
@@ -76,14 +75,13 @@ def check_puppet_agent(_no_item, params, info):
     yield last_run_state, "Last run: {} ".format(get_timestamp_human_readable(parsed['last_run']))
 
     checks = [ # key, infoname, unit
-      ('events_failure', 'Events Failure', 'Failures'),
-      ('resources_changed', 'Resources Changed', 'Resources'),
-      ('resources_failed', 'Resources Failed', 'Failures'),
-      ('resources_failed_to_restart', 'Resources Failed to Restart', 'Resources'),
-      ('resources_out_of_sync', 'Resources Out of Sync', 'Resources'),
-      ('resources_restarted', 'Resources Restarted', 'Resources'),
-      ('resources_scheduled', 'Resources Scheduled', 'Resources'),
-      ('resources_skipped', 'Resources Skipped', 'Resources'),
+        ('events_failure', 'Events Failure', 'Failures'),
+        ('resources_changed', 'Resources Changed', 'Resources'),
+        ('resources_failed', 'Resources Failed', 'Failures'),
+        ('resources_failed_to_restart', 'Resources Failed to Restart', 'Resources'),
+        ('resources_out_of_sync', 'Resources Out of Sync', 'Resources'),
+        ('resources_restarted', 'Resources Restarted', 'Resources'),
+        ('resources_scheduled', 'Resources Scheduled', 'Resources'),
     ]
 
     for key, infoname, unit in checks:

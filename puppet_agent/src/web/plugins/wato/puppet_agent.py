@@ -91,13 +91,7 @@ register_check_parameters(
                     title = _("Resources Scheduled"),
                     default_value = (10, 15),
                 ),
-            ),
-            ( "resources_skipped",
-                Levels(
-                    title = _("Resources Skipped"),
-                    default_value = (10, 15),
-                ),
-            ),
+            )
         ],
     ),
     None,
