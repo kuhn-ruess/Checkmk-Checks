@@ -1,0 +1,60 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+
+def inventory_huawei_wlc(info):
+    for line in info:
+        yield line[0], {}
+
+def check_huawei_wlc(item, _params, info):
+    state_names = {
+        1: "idle",
+        2: "autofind",
+        3: "typeNotMatch",
+        4: "fault", 
+        5: "config",
+        6: "configFailed",
+        7: "download",
+        8: "normal",
+        9: "committing",
+        10: "commitFailed",
+        11: "standby",
+        12: "verMismatch",
+        13: "nameConflicted",
+        14: "invalid",
+    }
+    crit_states = [4, 6, 10, 13, 14]
+    warn_states = [12, 11]
+    for line in info:
+        ip_address = line[2]
+        up_traffic = int(line[3])
+        down_traffic = int(line[4])
+        if line[0] == item:
+            device_state = int(line[1])
+            state = 0
+            if device_state in warn_states:
+                state = 1
+            elif device_state in crit_states:
+                state = 2
+            return state, "State: {}, IP: {}, Traffic up/down {}/{}".format(state_names[device_state],
+                                                                            ip_address,
+                                                                            get_bytes_human_readable(up_traffic),
+                                                                            get_bytes_human_readable(down_traffic)
+                                                                           )
+
+check_info["huawei_wlc"] = {
+    "inventory_function": inventory_huawei_wlc,
+    "check_function": check_huawei_wlc,
+    "service_description": "AP %s",
+    "has_perfdata": False,
+    "snmp_scan_function": lambda oid: oid('.1.3.6.1.2.1.1.2.0') in [
+        ".1.3.6.1.4.1.2011.2.240.6",
+    ],
+    "snmp_info": (".1.3.6.1.4.1.2011.6.139.13.3.3.1", [
+        "4", #hwWlanApName
+        "6", #hwWlanApRunState
+        "13", #hwWlanApIpAddress
+        "58", #hwWlanApAirportUpTraffic
+        "59", #hwWlanApAirportDwTraffic
+    ]),
+}
