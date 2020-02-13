@@ -2,7 +2,7 @@
  'description': u'Custom SNMP Based Tridium Checks.\n',
  'download_url': 'https://bastian-kuhn.de/en/check_mk-treasures/',
  'files': {'checks': ['tridium_station'], 'web': ['plugins/wato/tridium.py']},
- 'name': 'tridium_station',
+ 'name': 'TRIDIUM',
  'num_files': 2,
  'title': u'Tridium Station Monitoring',
  'version': '1.1',
