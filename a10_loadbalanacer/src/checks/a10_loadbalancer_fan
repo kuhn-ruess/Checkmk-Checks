@@ -1,0 +1,42 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+# https://mibs.observium.org/mib/A10-AX-MIB/
+
+
+def inventory_a10_loadbalancer_fan(info):
+    for line in info:
+        item = line[0].replace("Fan ","")
+        yield item, {}
+
+def check_a10_loadbalancer_fan(item, _params, info):
+    states = {
+        '0': 'Failed',
+        '4': 'OK-fixed/high',
+        '5': 'OK-low/med',
+        '6': 'OK-med/med',
+        '7': 'OK-med/high',
+        '-2': 'not ready',
+        '-1': 'unknown'
+    }
+    for line in info:
+        device_name, device_state, device_speed = line
+        if device_name.replace("Fan ", "")  == item:
+            if device_state in ['4', '5', '6', '7']:
+                state = 0
+            else:
+                state = 2
+            return 0, "State: {}, Speed: {} RPM".format(states[device_state], device_speed)
+
+check_info["a10_loadbalancer_fan"] = {
+    "inventory_function": inventory_a10_loadbalancer_fan,
+    "check_function": check_a10_loadbalancer_fan,
+    "service_description": "Fan %s",
+    "snmp_scan_function": lambda oid: oid('.1.3.6.1.2.1.1.2.0') in [
+        ".1.3.6.1.4.1.22610.1.3.22",
+    ],
+    "snmp_info": (".1.3.6.1.4.1.22610.2.4.1.5.9.1", [
+        "2", #axFanName
+        "3", #axFanStatus
+        "4", #axFanSpeed
+    ])
+}

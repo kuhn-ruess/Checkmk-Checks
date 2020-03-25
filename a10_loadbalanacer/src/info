@@ -1,0 +1,13 @@
+{'author': u'Bastian Kuhn',
+ 'description': u'Checks for:\nTemperature, Fan and Power Supplies\n',
+ 'download_url': 'https://bastian-kuhn.de/en/check_mk-treasures/',
+ 'files': {'checks': ['a10_loadbalancer_fan',
+                      'a10_loadbalancer_power',
+                      'a10_loadbalancer_temp']},
+ 'name': 'a10_loadbalancer',
+ 'num_files': 3,
+ 'title': u'A10 Loadbalancer Checks',
+ 'version': '1.0',
+ 'version.min_required': '1.5.0',
+ 'version.packaged': '1.6.0-2020.02.06',
+ 'version.usable_until': None}
