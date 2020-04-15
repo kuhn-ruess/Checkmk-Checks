@@ -1,0 +1,180 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+#
+# Copyright (C) 2017  Frank Fegert (fra.nospam.nk@gmx.de)
+# Updates and refactoring 2020 by Bastian Kuhn (mail@bastian-kuhn.de)
+#
+# Check_MK check script to determine various statistics values of Open-
+# iSCSI sessions. This check currently only works for iSCSI sessions via
+# a software or a "dependent" hardware initiator (e.g. bnx2i). Hardware
+# initiators like the QLogic qla4xxx do currently not provide session
+# based statistic. Please see the check open-iscsi_host_stats for global
+# host statistics on those hardware initiators.
+#
+# Example output of the agent:
+#   <<<open-iscsi_session_stats>>>
+#   [session stats d0:43:1e:51:98:c8 iqn.2001-05.com.equallogic:0-fe83b6-6a4bb57cc-782004ecbf25784d]
+#   txdata_octets: 337207169024
+#   rxdata_octets: 881317587
+#   noptx_pdus: 0
+#   scsicmd_pdus: 14375996
+#   tmfcmd_pdus: 0
+#   login_pdus: 0
+#   text_pdus: 0
+#   dataout_pdus: 0
+#   logout_pdus: 0
+#   snack_pdus: 0
+#   noprx_pdus: 0
+#   scsirsp_pdus: 14375996
+#   tmfrsp_pdus: 0
+#   textrsp_pdus: 0
+#   datain_pdus: 215462
+#   logoutrsp_pdus: 0
+#   r2t_pdus: 0
+#   async_pdus: 0
+#   rjt_pdus: 0
+#   digest_err: 0
+#   timeout_err: 0
+#
+#   [session stats d0:43:1e:51:a0:75 iqn.2001-05.com.equallogic:0-fe83b6-6a4bb57cc-782004ecbf25784d]
+#   txdata_octets: 337163624448
+#   rxdata_octets: 884461528
+#   [...]
+#
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301, USA.
+#
+
+# Default warning and critical values
+factory_settings["open_iscsi_session_stats_default_levels"] = {
+    'txdata_octets':  (0, 0),
+    'rxdata_octets':  (0, 0),
+    'noptx_pdus':     (0, 0),
+    'scsicmd_pdus':   (0, 0),
+    'tmfcmd_pdus':    (0, 0),
+    'login_pdus':     (0, 0),
+    'text_pdus':      (0, 0),
+    'dataout_pdus':   (0, 0),
+    'logout_pdus':    (0, 0),
+    'snack_pdus':     (0, 0),
+    'noprx_pdus':     (0, 0),
+    'scsirsp_pdus':   (0, 0),
+    'tmfrsp_pdus':    (0, 0),
+    'textrsp_pdus':   (0, 0),
+    'datain_pdus':    (0, 0),
+    'logoutrsp_pdus': (0, 0),
+    'r2t_pdus':       (0, 0),
+    'async_pdus':     (0, 0),
+    'rjt_pdus':       (0, 0),
+    'digest_err':     (0, 0),
+    'timeout_err':    (0, 0),
+}
+
+def parse_open_iscsi_session_stats(info):
+    sessions = {}
+    for line in info:
+        if line[0] == "[session" and line[1] == "stats":
+            mac_target = " ".join(line[2:4])[:-1]
+            sessions[mac_target] = {}
+        elif len(line) == 2:
+            counter = line[0].replace(":", "")
+            value = line[1]
+            sessions[mac_target][counter] = value
+
+    return sessions
+
+def inventory_open_iscsi_session_stats(parsed):
+    for session, values in parsed.items():
+        yield session, "open_iscsi_session_stats_default_levels"
+
+def check_open_iscsi_session_stats(item, params, parsed):
+    message_prefix = "Session Stats: "
+    message_line_counters = set(['rxdata_octets', 'txdata_octets'])
+    error_counters = set(['digest_err', 'timeout_err'])
+
+    counters = parsed[item]
+    perfdata = []
+    session_id = item.replace(" ", "_")
+    message = ""
+    status = 0
+    this_time = time.time()
+
+    # Protocol data unit (PDU) stats. See https://www.ietf.org/rfc/rfc3720.txt for details.
+    sum_errors = 0
+    for descr, counter in [
+        ('In',                                    'rxdata_octets'),
+        ('Out',                                   'txdata_octets'),
+        ('TX NOP',                                'noptx_pdus'),
+        ('TX SCSI Command Request',               'scsicmd_pdus'),
+        ('TX Task Management Function Command',   'tmfcmd_pdus'),
+        ('TX Login Request',                      'login_pdus'),
+        ('TX Text Request',                       'text_pdus'),
+        ('TX Data Out',                           'dataout_pdus'),
+        ('TX Logout Request',                     'logout_pdus'),
+        ('TX Single Negative ACK',                'snack_pdus'),
+        ('RX NOP',                                'noprx_pdus'),
+        ('RX SCSI Command Response',              'scsirsp_pdus'),
+        ('RX Task Management Function Response',  'tmfrsp_pdus'),
+        ('RX Text Response',                      'textrsp_pdus'),
+        ('RX Data In',                            'datain_pdus'),
+        ('RX Logout Response',                    'logoutrsp_pdus'),
+        ('RX Ready To Transfer',                  'r2t_pdus'),
+        ('RX Asynchronous Message',               'async_pdus'),
+        ('RX Reject',                             'rjt_pdus'),
+        ('Error CRC',                             'digest_err'),
+        ('Error Timeout',                         'timeout_err'),
+    ]:
+        t_value = int(counters[counter])
+        value_rate = get_rate("open_iscsi_session_stats.%s.%s" % (counter, session_id), this_time, t_value)
+
+        # Show octets/sec receive and transmit in the message line in addition to reporting performance data
+        if counter in message_line_counters:
+            if message != '':
+                message += ", "
+            message += "%s: %s/s" % (descr, get_bytes_human_readable(value_rate))
+
+        # Check counters against threshold values
+        if params[counter] and params[counter][1] > 0 and value_rate >= params[counter][1]:
+            message += ", %s: %s/s (!!)" % (descr, value_rate)
+            status = max(status, 2)
+        elif params[counter] and params[counter][0] > 0 and value_rate >= params[counter][0]:
+            message += ", %s: %s/s (!)" % (descr, value_rate)
+            status = max(status, 1)
+        # Show error counters in the message line only if they have a value > 0
+        elif counter in error_counters:
+            sum_errors += value_rate
+            if value_rate > 0:
+                 message += ", %s: %s/s" % (descr, value_rate)
+
+
+        # Report performance data for all values
+        perfdata.append((counter, value_rate))
+
+    if sum_errors == 0:
+        message += ", no protocol errors"
+    message = message_prefix + message
+
+    return status, message, perfdata
+
+check_info['open-iscsi_session_stats'] = {
+    "check_function"          : check_open_iscsi_session_stats,
+    "inventory_function"      : inventory_open_iscsi_session_stats,
+    "parse_function"          : parse_open_iscsi_session_stats,
+    "service_description"     : "iSCSI Session Stats %s",
+    "has_perfdata"            : True,
+    "default_levels_variable" : "open_iscsi_session_stats_default_levels",
+    "group"                   : "open_iscsi_session_stats",
+}

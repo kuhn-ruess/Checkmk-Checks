@@ -1,0 +1,37 @@
+title: Open-iSCSI Session Status
+catalog: os/storage
+agents: linux
+author: Frank Fegert <fra.nospam.nk@gmx.de>
+license: GPL
+distribution: https://github.com/frank-fegert/check_mk
+description:
+ This check determines the current status of Open-iSCSI sessions on a
+ system. The currently active iSCSI sessions are compared to a list of
+ sessions discovered at inventory time. If sessions are missing {CRIT}
+ is returned and an alarm is raised.
+
+ For iSCSI sessions via a "dependent" hardware, a hardware or a software
+ initiator the session state is checked and {CRIT} is returned if the
+ session is not in the {LOGGED_IN} state.
+
+ For iSCSI sessions via a software or a "dependent" hardware initiator,
+ the connection status and the internal status of each iSCSI session is
+ also evaluated. A {CRIT} is returned if the connection state is not
+ {LOGGED_IN} or the internal state is not {NO_CHANGE}.
+
+item:
+ A pair consisting of the iSCSI network interface name and the IQN of
+ the iSCSI target volume.
+
+inventory:
+ The inventory creates a single service check for each pair of iSCSI
+ network interface name and target volume IQN.
+
+examples:
+ None.
+
+perfdata:
+ None.
+
+parameters:
+ None.

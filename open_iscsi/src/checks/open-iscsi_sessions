@@ -1,0 +1,102 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+#
+# Copyright (C) 2017  Frank Fegert (fra.nospam.nk@gmx.de)
+# Updates and refactoring 2020 by Bastian Kuhn (mail@bastian-kuhn.de)
+#
+# Check_MK check script to determine the current status of Open-iSCSI
+# sessions. The currently active iSCSI sessions are compared to a list
+# of sessions discovered at inventory time. For iSCSI sessions via a
+# software or dependent hardware initiator, the internal status of each
+# iSCSI session is also evaluated.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301, USA.
+#
+# Example output of the agent:
+#   <<<open-iscsi_sessions>>>
+#   qla4xxx 10.0.0.4:3260,1 iqn.2001-05.com.equallogic:0-fe83b6-15c24d5c0-dc2004ed84956580 qla4xxx.84:8f:69:35:fc:70.ipv4.0 none 10.0.0.52 LOGGED_IN Unknown Unknown
+#   qla4xxx 10.0.0.4:3260,1 iqn.2001-05.com.equallogic:0-fe83b6-15c24d5c0-dc2004ed84956580 qla4xxx.84:8f:69:35:fc:71.ipv4.0 none 10.0.0.53 LOGGED_IN Unknown Unknown
+# or:
+#   bnx2i 10.0.1.2:3260,1 iqn.2001-05.com.equallogic:0-fe83b6-6a4bb57cc-782004ecbf25784d bnx2i.d0:43:1e:51:98:c8 eth2 10.0.1.64 LOGGED_IN LOGGED_IN NO_CHANGE
+#   bnx2i 10.0.1.2:3260,1 iqn.2001-05.com.equallogic:0-fe83b6-6a4bb57cc-782004ecbf25784d bnx2i.d0:43:1e:51:a0:75 eth3 10.0.1.65 LOGGED_IN LOGGED_IN NO_CHANGE
+#
+# Possible values for the three session states are defined in the file
+# usr/session_info.c and kernel/libiscsi.h of the open-iscsi sources.
+#
+#   connection_state
+#     FREE
+#     TRANSPORT WAIT
+#     IN LOGIN
+#     LOGGED IN
+#     IN LOGOUT
+#     LOGOUT REQUESTED
+#     CLEANUP WAIT
+#
+#   session_state
+#     ISCSI_STATE_FREE
+#     ISCSI_STATE_LOGGED_IN
+#     ISCSI_STATE_FAILED
+#     ISCSI_STATE_TERMINATE
+#     ISCSI_STATE_IN_RECOVERY
+#     ISCSI_STATE_RECOVERY_FAILED
+#     ISCSI_STATE_LOGGING_OUT
+#
+#   internal_state
+#     NO CHANGE
+#     CLEANUP
+#     REOPEN
+#     REDIRECT
+#
+
+def inventory_open_iscsi_sessions(info):
+    for line in info:
+        if len(line) == 9:
+            continue
+        transport, portal, target, ifname, ifnetdev, ifip, isessstate, iconnstate, iintstate = line[:9]
+        params = {}
+        if isessstate:
+            params["session_state"] = isessstate
+        if iconnstate:
+            params["connection_state"] = iconnstate
+        if iintstate:
+            params["internal_state"] = iintstate
+
+        item = "%s / %s" % (ifname, target)
+        yield item, params
+
+def check_open_iscsi_sessions(item, params, info):
+    for line in info:
+        if len(line) != 9:
+            continue
+        transport, portal, target, ifname, ifnetdev, ifip, isessstate, iconnstate, iintstate = line[:9]
+        curr_item = "%s / %s" % (ifname, target)
+        if curr_item == item:
+            if iconnstate == "Unknown" or iintstate == "Unknown":
+                if isessstate == "LOGGED_IN":
+                    return 0, "Session is in status %s" % isessstate
+                return 2, "Session is in status %s. Expected status LOGGED_IN" % isessstate
+            else:
+                if isessstate == "LOGGED_IN" and iconnstate == "LOGGED_IN" and iintstate == "NO_CHANGE":
+                    return 0, "Session is in status %s/%s/%s." % (isessstate, iconnstate, iintstate)
+                return 2, "Session is in status %s/%s/%s. Expected status LOGGED_IN/LOGGED_IN/NO_CHANGE" % (isessstate, iconnstate, iintstate)
+
+    return 2, "Session is missing. Check iSCSI logins or rerun inventory if target has been removed permanently"
+
+check_info['open-iscsi_sessions'] = {
+    "check_function"          : check_open_iscsi_sessions,
+    "inventory_function"      : inventory_open_iscsi_sessions,
+    "service_description"     : "iSCSI Session Status %s",
+}

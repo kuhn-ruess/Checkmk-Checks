@@ -1,0 +1,126 @@
+title: Open-iSCSI iSOE Host Statistics
+catalog: os/storage
+agents: linux
+author: Frank Fegert <fra.nospam.nk@gmx.de>
+license: GPL
+distribution: https://github.com/frank-fegert/check_mk
+description:
+
+ This check determines various statistics values of iSOE hosts. This
+ check currently only works for QLogic qla4xxx based hardware initiators.
+ Unfortunately, hardware initiators like the QLogic qla4xxx do currently
+ {not} provide any session based statistics. There are currently only
+ global host statistics available on those hardware initiators.
+
+ {WARN} or {CRIT} is returned, if - depending on the specific statistics
+ counter - the number of bytes, MAC frames, IP or IPv6 packets, TCP seg-
+ ments, iSCSI PDUs or errors per second on a pair of MAC address and iSOE
+ host name is higher than the given thresholds. {OK} is returned other-
+ wise.
+
+ Alarms are only generated if either a {WARN} or {CRIT} threshold for a
+ specific statistics counter is set to a value other than zero. Otherwise
+ only performance data is reported for a particular counter by the check.
+
+item:
+ A pair consisting of the MAC address and the iSOE host name of the iSOE
+ hardware initiator.
+
+inventory:
+ The inventory creates a single service check for each pair of MAC address
+ and iSOE host name of the iSOE hardware initiator.
+
+examples:
+ # Setting the warning and critical threshold values for the number of
+ # ECC error corrections 1 and 5 correction events per second, for the
+ # number of MAC CRC errors to 5 and 10 errors per second and for the
+ # number of iSCSI header digest (CRC) errors to 3 and 7 errors per
+ # second.
+ open_iscsi_host_stats_default_levels {
+    'ecc_error_correction':   (1, 5),
+    'mac_crc_error':          (5, 10),
+    'iscsi_hdr_digest_error': (3, 7),
+ }
+
+perfdata:
+ The number of received and transmitted bytes per second on the MAC, IP,
+ TCP and iSCSI layer. Various received and transmitted protocol specific
+ units (MAC frames, IP and IPv6 packets, TCP segments and iSCSI PDUs) in
+ protocol units per second. Various protocol specific error statistics on
+ the MAC, IP, TCP and iSCSI layer in protocol units or errors per second.
+
+[parameters]
+parameters (dict): This check works with dictionary based parameters. The
+ following keys are allowed:
+
+  {"macrx_bytes", "mactx_bytes", "iprx_bytes", "iptx_bytes", "ipv6rx_bytes",
+   "ipv6tx_bytes", "tcprx_byte", "tcptx_bytes", "iscsi_data_bytes_rx",
+   "iscsi_data_bytes_tx"}: A pair of warning / critical levels, given as
+   integer values, for the number of received or transmitted bytes/sec.
+   The default values are 0 (warning) and 0 (critical) bytes/sec.
+
+  {"macrx_frames", "mactx_frames", "iprx_packets", "iptx_packets",
+   "ipv6rx_packets", "ipv6tx_packets", "tcprx_segments", "tcptx_segments",
+   "iscsi_pdu_rx", "iscsi_pdu_tx"}: A pair of warning / critical levels,
+   given as integer values, for the number of received or transmitted
+   protocol units per second. The default values are 0 (warning) and 0
+   (critical) protocol units per second.
+
+  {"mactx_deferral", "mactx_excess_deferral", "mactx_late_collision",
+   "mactx_abort", "mactx_single_collision", "mactx_multiple_collision",
+   "mactx_collision", "macrx_dribble", "macrx_frame_length_error",
+   "macrx_jabber", "macrx_carrier_sense_error", "mac_crc_error",
+   "mac_encoding_error", "macrx_length_error_large",
+   "macrx_length_error_small"}: A pair of warning / critical levels,
+   given as integer values, for the number of MAC protocol errors per
+   second. The default values are 0 (warning) and 0 (critical) MAC
+   protocol errors per second.
+
+  {"macrx_multicast_frames", "mactx_multicast_frames", "macrx_broadcast_frames",
+   "mactx_broadcast_frames", "macrx_pause_frames", "mactx_pause_frames",
+   "macrx_control_frames", "mactx_control_frames", "macrx_frames_dropped",
+   "mactx_frames_dropped", "mactx_jumbo_frames", "macrx_unknown_control_frames",
+   "macrx_frame_discarded"}: A pair of warning / critical levels, given
+   as integer values, for the number of received or transmitted MAC
+   frames per second. The default values are 0 (warning) and 0 (critical)
+   MAC frames per second.
+
+  {"iprx_fragments", "iptx_fragments", "ipv6rx_fragments",
+   "ipv6tx_fragments"}: A pair of warning / critical levels, given
+   as integer values, for the number of received or transmitted IP
+   or IPv6 fragments per second. The default values are 0 (warning)
+   and 0 (critical) IP/IPv6 fragments per second.
+
+  {"ip_datagram_reassembly", "ip_invalid_address_error",
+   "ip_error_packets", "ip_fragrx_overlap", "ip_fragrx_outoforder",
+   "ip_datagram_reassembly_timeout"}: A pair of warning / critical
+   levels, given as integer values, for the number of IP protocol
+   errors per second. The default values are 0 (warning) and 0
+   (critical) IP protocol errors per second.
+
+  {"ipv6_datagram_reassembly", "ipv6_invalid_address_error",
+   "ipv6_error_packets", "ipv6_fragrx_overlap", "ipv6_fragrx_outoforder",
+   "ipv6_datagram_reassembly_timeout"}: A pair of warning / critical
+   levels, given as integer values, for the number of IPv6 protocol
+   errors per second. The default values are 0 (warning) and 0
+   (critical) IPv6 protocol errors per second.
+
+  {"tcp_duplicate_ack_retx", "tcp_retx_timer_expired", "tcprx_duplicate_ack",
+   "tcprx_pure_ackr", "tcptx_delayed_ack", "tcptx_pure_ack", "tcprx_segment_error",
+   "tcprx_segment_outoforder", "tcprx_window_probe", "tcprx_window_update",
+   "tcptx_window_probe_persist"}: A pair of warning / critical levels, given
+   as integer values, for the number of TCP protocol errors per second. The
+   default values are 0 (warning) and 0 (critical) TCP protocol errors per
+   second.
+
+  {"iscsi_io_completed", "iscsi_unexpected_io_rx", "iscsi_format_error",
+   "iscsi_hdr_digest_error", "iscsi_data_digest_error", "iscsi_sequence_error"}:
+   A pair of warning / critical levels, given as integer values, for the
+   number of iSCSI protocol errors per second. The default values are 0
+   (warning) and 0 (critical) iSCSI protocol errors per second.
+
+  {"ecc_error_correction"}: A pair of warning / critical levels, given
+   as integer values, for the number of ECC error correction events per
+   second on the iSOE. The default values are 0 (warning) and 0 (critical)
+   ECC error correction events per second.
+

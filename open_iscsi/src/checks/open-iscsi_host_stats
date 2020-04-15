@@ -1,0 +1,304 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+#
+# Copyright (C) 2017  Frank Fegert (fra.nospam.nk@gmx.de)
+# Updates and refactoring 2020 by Bastian Kuhn (mail@bastian-kuhn.de)
+#
+# Check_MK check script to determine various statistics values of iSOE
+# hosts. This check currently only works for QLogic qla4xxx based hard-
+# ware initiators. Hardware initiators like the QLogic qla4xxx do cur-
+# rently not provide more granular iSCSI session based statistics.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301, USA.
+#
+# Example output of the agent:
+#   <<<open-iscsi_host_stats>>>
+#   [host stats 84:8f:69:35:fc:70 iqn.2000-04.com.qlogic:isp8214.000e1e37da2c.4]
+#   mactx_frames: 2920663232
+#   mactx_bytes: 16009348359436
+#   mactx_multicast_frames: 72955552
+#   mactx_broadcast_frames: 0
+#   mactx_pause_frames: 0
+#   mactx_control_frames: 0
+#   mactx_deferral: 0
+#   mactx_excess_deferral: 0
+# ....
+#   ecc_error_correction: 0
+#   iscsi_pdu_tx: 249342
+#   iscsi_data_bytes_tx: 16937
+#   iscsi_pdu_rx: 249344
+#   iscsi_data_bytes_rx: 204451387
+#   iscsi_io_completed: 100
+#   iscsi_unexpected_io_rx: 0
+#   iscsi_format_error: 0
+#   iscsi_hdr_digest_error: 0
+#   iscsi_data_digest_error: 0
+#   iscsi_sequence_error: 0
+#
+#   [host stats 84:8f:69:35:fc:71 iqn.2000-04.com.qlogic:isp8214.000e1e37da2d.5]
+#   mactx_frames: 3015262732
+#   [...]
+#
+
+
+# Default warning and critical values
+factory_settings["open_iscsi_host_stats_default_levels"] = {
+    'mactx_frames':                     (0, 0),
+    'mactx_bytes':                      (0, 0),
+    'mactx_multicast_frames':           (0, 0),
+    'mactx_broadcast_frames':           (0, 0),
+    'mactx_pause_frames':               (0, 0),
+    'mactx_control_frames':             (0, 0),
+    'mactx_deferral':                   (0, 0),
+    'mactx_excess_deferral':            (0, 0),
+    'mactx_late_collision':             (0, 0),
+    'mactx_abort':                      (0, 0),
+    'mactx_single_collision':           (0, 0),
+    'mactx_multiple_collision':         (0, 0),
+    'mactx_collision':                  (0, 0),
+    'mactx_frames_dropped':             (0, 0),
+    'mactx_jumbo_frames':               (0, 0),
+    'macrx_frames':                     (0, 0),
+    'macrx_bytes':                      (0, 0),
+    'macrx_unknown_control_frames':     (0, 0),
+    'macrx_pause_frames':               (0, 0),
+    'macrx_control_frames':             (0, 0),
+    'macrx_dribble':                    (0, 0),
+    'macrx_frame_length_error':         (0, 0),
+    'macrx_jabber':                     (0, 0),
+    'macrx_carrier_sense_error':        (0, 0),
+    'macrx_frame_discarded':            (0, 0),
+    'macrx_frames_dropped':             (0, 0),
+    'mac_crc_error':                    (0, 0),
+    'mac_encoding_error':               (0, 0),
+    'macrx_length_error_large':         (0, 0),
+    'macrx_length_error_small':         (0, 0),
+    'macrx_multicast_frames':           (0, 0),
+    'macrx_broadcast_frames':           (0, 0),
+    'iptx_packets':                     (0, 0),
+    'iptx_bytes':                       (0, 0),
+    'iptx_fragments':                   (0, 0),
+    'iprx_packets':                     (0, 0),
+    'iprx_bytes':                       (0, 0),
+    'iprx_fragments':                   (0, 0),
+    'ip_datagram_reassembly':           (0, 0),
+    'ip_invalid_address_error':         (0, 0),
+    'ip_error_packets':                 (0, 0),
+    'ip_fragrx_overlap':                (0, 0),
+    'ip_fragrx_outoforder':             (0, 0),
+    'ip_datagram_reassembly_timeout':   (0, 0),
+    'ipv6tx_packets':                   (0, 0),
+    'ipv6tx_bytes':                     (0, 0),
+    'ipv6tx_fragments':                 (0, 0),
+    'ipv6rx_packets':                   (0, 0),
+    'ipv6rx_bytes':                     (0, 0),
+    'ipv6rx_fragments':                 (0, 0),
+    'ipv6_datagram_reassembly':         (0, 0),
+    'ipv6_invalid_address_error':       (0, 0),
+    'ipv6_error_packets':               (0, 0),
+    'ipv6_fragrx_overlap':              (0, 0),
+    'ipv6_fragrx_outoforder':           (0, 0),
+    'ipv6_datagram_reassembly_timeout': (0, 0),
+    'tcptx_segments':                   (0, 0),
+    'tcptx_bytes':                      (0, 0),
+    'tcprx_segments':                   (0, 0),
+    'tcprx_byte':                       (0, 0),
+    'tcp_duplicate_ack_retx':           (0, 0),
+    'tcp_retx_timer_expired':           (0, 0),
+    'tcprx_duplicate_ack':              (0, 0),
+    'tcprx_pure_ackr':                  (0, 0),
+    'tcptx_delayed_ack':                (0, 0),
+    'tcptx_pure_ack':                   (0, 0),
+    'tcprx_segment_error':              (0, 0),
+    'tcprx_segment_outoforder':         (0, 0),
+    'tcprx_window_probe':               (0, 0),
+    'tcprx_window_update':              (0, 0),
+    'tcptx_window_probe_persist':       (0, 0),
+    'ecc_error_correction':             (0, 0),
+    'iscsi_pdu_tx':                     (0, 0),
+    'iscsi_data_bytes_tx':              (0, 0),
+    'iscsi_pdu_rx':                     (0, 0),
+    'iscsi_data_bytes_rx':              (0, 0),
+    'iscsi_io_completed':               (0, 0),
+    'iscsi_unexpected_io_rx':           (0, 0),
+    'iscsi_format_error':               (0, 0),
+    'iscsi_hdr_digest_error':           (0, 0),
+    'iscsi_data_digest_error':          (0, 0),
+    'iscsi_sequence_error':             (0, 0),
+}
+
+def parse_open_iscsi_host_stats(info):
+    hosts = {}
+    for line in info:
+        if line[0] == "[host" and line[1] == "stats":
+            mac_host = " ".join(line[2:4])[:-1]
+            hosts[mac_host] = counters
+        elif len(line) == 2:
+            counter = line[0].replace(":", "")
+            value = line[1]
+            hosts[mac_host][counter] = value
+    return hosts
+
+def inventory_open_iscsi_host_stats(parsed):
+    for host, values in parsed.items():
+        yield host, "open_iscsi_host_stats_default_levels"
+
+def check_open_iscsi_host_stats(item, params, parsed):
+    message_prefix = "Host Stats: "
+    message_line_counters = set(['mactx_bytes', 'macrx_bytes', 'iptx_bytes', 'iprx_bytes', 'ipv6tx_bytes', 'ipv6rx_bytes',
+        'tcptx_bytes', 'tcprx_byte', 'iscsi_data_bytes_tx', 'iscsi_data_bytes_rx'])
+    error_counters = set(['mactx_collision', 'mactx_frames_dropped', 'macrx_frame_length_error', 'macrx_carrier_sense_error',
+        'macrx_frame_discarded', 'macrx_frames_dropped', 'mac_crc_error', 'mac_encoding_error', 'macrx_length_error_large',
+        'macrx_length_error_small', 'ip_invalid_address_error', 'ip_error_packets', 'ip_fragrx_overlap', 'ip_fragrx_outoforder',
+        'ip_datagram_reassembly_timeout', 'ipv6_invalid_address_error', 'ipv6_error_packets', 'ipv6_fragrx_overlap',
+        'ipv6_fragrx_outoforder', 'ipv6_datagram_reassembly_timeout', 'tcp_duplicate_ack_retx', 'tcp_retx_timer_expired',
+        'tcprx_segment_error', 'tcprx_segment_outoforder', 'ecc_error_correction', 'iscsi_format_error', 'iscsi_hdr_digest_error',
+        'iscsi_data_digest_error', 'iscsi_sequence_error'])
+
+    counter = parsed[item]
+    perfdata = []
+    host_id = item.replace(" ", "_")
+    message = ""
+    status = 0
+    this_time = time.time()
+
+    # Offload host statistics. Include statistics for MAC, IP, TCP & iSCSI.
+    sum_errors = 0
+    for descr, counter in [
+        ('MAC TX Frames',                       'mactx_frames'),
+        ('MAC TX Bytes',                        'mactx_bytes'),
+        ('MAC TX Multicast Frames',             'mactx_multicast_frames'),
+        ('MAC TX Broadcast Frames',             'mactx_broadcast_frames'),
+        ('MAC TX Pause Frames',                 'mactx_pause_frames'),
+        ('MAC TX Control Frames',               'mactx_control_frames'),
+        ('MAC TX Deferral',                     'mactx_deferral'),
+        ('MAC TX Excess Deferral',              'mactx_excess_deferral'),
+        ('MAC TX Late Collision',               'mactx_late_collision'),
+        ('MAC TX Abort',                        'mactx_abort'),
+        ('MAC TX Single Collision',             'mactx_single_collision'),
+        ('MAC TX Multiple Collision',           'mactx_multiple_collision'),
+        ('MAC TX Collision',                    'mactx_collision'),
+        ('MAC TX Dropped Frames',               'mactx_frames_dropped'),
+        ('MAC TX Jumbo Frames',                 'mactx_jumbo_frames'),
+        ('MAC RX Frames',                       'macrx_frames'),
+        ('MAC RX Bytes',                        'macrx_bytes'),
+        ('MAC RX Unknown Control Frames',       'macrx_unknown_control_frames'),
+        ('MAC RX Pause Frames',                 'macrx_pause_frames'),
+        ('MAC RX Control Frames',               'macrx_control_frames'),
+        ('MAC RX Dribble',                      'macrx_dribble'),
+        ('MAC RX Frame Length Error',           'macrx_frame_length_error'),
+        ('MAC RX Jabber',                       'macrx_jabber'),
+        ('MAC RX Carrier Sense Error',          'macrx_carrier_sense_error'),
+        ('MAC RX Discarded Frames',             'macrx_frame_discarded'),
+        ('MAC RX Dropped Frames',               'macrx_frames_dropped'),
+        ('MAC CRC Error',                       'mac_crc_error'),
+        ('MAC Encoding Error',                  'mac_encoding_error'),
+        ('MAC RX Length Error Large',           'macrx_length_error_large'),
+        ('MAC RX Length Error Small',           'macrx_length_error_small'),
+        ('MAC RX Multicast Frames',             'macrx_multicast_frames'),
+        ('MAC RX Broadcast Frames',             'macrx_broadcast_frames'),
+        ('IP TX Packets',                       'iptx_packets'),
+        ('IP TX Bytes',                         'iptx_bytes'),
+        ('IP TX Fragments',                     'iptx_fragments'),
+        ('IP RX Packets',                       'iprx_packets'),
+        ('IP RX Bytes',                         'iprx_bytes'),
+        ('IP RX Fragments',                     'iprx_fragments'),
+        ('IP Datagram Assy',                    'ip_datagram_reassembly'),
+        ('IP Address Error',                    'ip_invalid_address_error'),
+        ('IP Error Packets',                    'ip_error_packets'),
+        ('IP Fragmentation Overlap',            'ip_fragrx_overlap'),
+        ('IP Fragmentation Out-of-order',       'ip_fragrx_outoforder'),
+        ('IP Datagram Reassembly Timeout',      'ip_datagram_reassembly_timeout'),
+        ('IPv6 TX Packets',                     'ipv6tx_packets'),
+        ('IPv6 TX Bytes',                       'ipv6tx_bytes'),
+        ('IPv6 TX Fragments',                   'ipv6tx_fragments'),
+        ('IPv6 RX Packets',                     'ipv6rx_packets'),
+        ('IPv6 RX Bytes',                       'ipv6rx_bytes'),
+        ('IPv6 RX Fragments',                   'ipv6rx_fragments'),
+        ('IPv6 Datagram Assy',                  'ipv6_datagram_reassembly'),
+        ('IPv6 Address Error',                  'ipv6_invalid_address_error'),
+        ('IPv6 Error Packets',                  'ipv6_error_packets'),
+        ('IPv6 Fragmentation Overlap',          'ipv6_fragrx_overlap'),
+        ('IPv6 Fragmentation Out-of-order',     'ipv6_fragrx_outoforder'),
+        ('IPv6 Datagram Reassembly Timeout',    'ipv6_datagram_reassembly_timeout'),
+        ('TCP TX Segments',                     'tcptx_segments'),
+        ('TCP TX Bytes',                        'tcptx_bytes'),
+        ('TCP RX Segments',                     'tcprx_segments'),
+        ('TCP RX Bytes',                        'tcprx_byte'),
+        ('TCP Duplicate ACK Retransmit',        'tcp_duplicate_ack_retx'),
+        ('TCP Retransmit Timer Expired',        'tcp_retx_timer_expired'),
+        ('TCP RX Duplicate ACK',                'tcprx_duplicate_ack'),
+        ('TCP RX Pure ACK',                     'tcprx_pure_ackr'),
+        ('TCP TX Delayed ACK',                  'tcptx_delayed_ack'),
+        ('TCP TX Pure ACK',                     'tcptx_pure_ack'),
+        ('TCP RX Segment Error',                'tcprx_segment_error'),
+        ('TCP RX Segment Out-of-order',         'tcprx_segment_outoforder'),
+        ('TCP RX Window Probe',                 'tcprx_window_probe'),
+        ('TCP RX Window Update',                'tcprx_window_update'),
+        ('TCP TX Window Probe Persist',         'tcptx_window_probe_persist'),
+        ('ECC Error Correction',                'ecc_error_correction'),
+        ('iSCSI TX PDU',                        'iscsi_pdu_tx'),
+        ('iSCSI TX Bytes',                      'iscsi_data_bytes_tx'),
+        ('iSCSI RX PDU',                        'iscsi_pdu_rx'),
+        ('iSCSI RX Bytes',                      'iscsi_data_bytes_rx'),
+        ('iSCSI I/O Completed',                 'iscsi_io_completed'),
+        ('iSCSI I/O Unexpected',                'iscsi_unexpected_io_rx'),
+        ('iSCSI Format Error',                  'iscsi_format_error'),
+        ('iSCSI Header Digest (CRC) Error',     'iscsi_hdr_digest_error'),
+        ('iSCSI Data Digest (CRC) Error',       'iscsi_data_digest_error'),
+        ('iSCSI Sequence Error',                'iscsi_sequence_error'),
+    ]:
+        t_value = int(counters[counter])
+        value_rate = get_rate("open_iscsi_host_stats.%s.%s" % (counter, host_id), this_time, t_value)
+
+        # Show MAC-, IP-, TCP-Layer and iSCSI bytes/sec receive and transmit in the message line in
+        # addition to reporting performance data
+        if counter in message_line_counters:
+            if message != '':
+                message += ", "
+            message += "%s: %s/s" % (descr, get_bytes_human_readable(value_rate))
+
+        # Check counters against threshold values
+        if params[counter] and params[counter][1] > 0 and value_rate >= params[counter][1]:
+            message += ", %s: %s/s (!!)" % (descr, value_rate)
+            status = max(status, 2)
+        elif params[counter] and params[counter][0] > 0 and value_rate >= params[counter][0]:
+            message += ", %s: %s/s (!)" % (descr, value_rate)
+            status = max(status, 1)
+        # Show error counters in the message line only if they have a value > 0 
+        elif counter in error_counters:
+            sum_errors += value_rate
+            if value_rate > 0:
+                 message += ", %s: %s/s" % (descr, value_rate)
+
+        # Report performance data for all values
+        perfdata.append((counter, value_rate))
+
+    if sum_errors == 0:
+        message += ", no protocol errors"
+    message = message_prefix + message
+
+    return status, message, perfdata
+
+check_info['open-iscsi_host_stats'] = {
+    "check_function"          : check_open_iscsi_host_stats,
+    "inventory_function"      : inventory_open_iscsi_host_stats,
+    "parse_function"          : parse_open_iscsi_host_stats,
+    "service_description"     : "iSCSI Host Stats %s",
+    "has_perfdata"            : True,
+    "default_levels_variable" : "open_iscsi_host_stats_default_levels",
+    "group"                   : "open_iscsi_host_stats",
+}

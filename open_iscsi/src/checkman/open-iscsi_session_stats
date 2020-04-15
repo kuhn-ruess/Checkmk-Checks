@@ -1,0 +1,135 @@
+title: Open-iSCSI Session Statistics
+catalog: os/storage
+agents: linux
+author: Frank Fegert <fra.nospam.nk@gmx.de>
+license: GPL
+distribution: https://github.com/frank-fegert/check_mk
+description:
+ This check determines various statistics values of Open-iSCSI sessions.
+ This check currently only works for iSCSI sessions via a software or a
+ "dependent" hardware initiator (e.g. bnx2i). Hardware initiators like
+ the QLogic qla4xxx do currently {not} provide session based statistics.
+ Please instead see the check open-iscsi_host_stats for global host
+ statistics on those hardware initiators.
+
+ {WARN} or {CRIT} is returned, if - depending on the specific statistics
+ counter - the number of bytes, iSCSI PDUs or errors per second on a pair
+ of MAC address and IQN of the iSCSI target volume is higher than the
+ given thresholds. {OK} is returned otherwise.
+ 
+ Alarms are only generated if either a {WARN} or {CRIT} threshold for a
+ specific statistics counter is set to a value other than zero. Otherwise
+ only performance data is reported for a particular counter by the check.
+
+item:
+ A pair consisting of the MAC address of the iSCSI network interface name
+ and the IQN of the iSCSI target volume.
+
+inventory:
+ The inventory creates a single service check for each pair of MAC address
+ of the iSCSI network interface name and target volume IQN.
+
+examples:
+ # Setting the warning and critical threshold values for reject PDUs to
+ # 1 and 5 PDUs per second for digest(CRC) errors to 5 and 10 errors per
+ # second.
+ open_iscsi_session_stats_default_levels {
+    'rjt_pdus':   (1, 5),
+    'digest_err': (5, 10),
+ }
+
+perfdata:
+ The number of received and transmitted bytes per second, various received
+ and transmitted iSCSI PDUs per second and the number of digest (CRC) and
+ timeout errors per second.
+
+[parameters]
+parameters (dict): This check works with dictionary based parameters. The
+ following keys are allowed:
+
+  {"rxdata_octets"}: A pair of warning / critical levels, given as integer
+  values, for the number of received bytes/sec. The default values are 0
+  (warning) and 0 (critical) bytes/sec.
+
+  {"txdata_octets"}: A pair of warning / critical levels, given as integer
+  values, for the number of transmitted bytes/sec. The default values are
+  0 (warning) and 0 (critical) bytes/sec.
+
+  {"noprx_pdus"}: A pair of warning / critical levels, given as integer
+  values, for the number of received NOP PDUs per second. The default
+  values are 0 (warning) and 0 (critical) NOP PDUs per second.
+
+  {"noptx_pdus"}: A pair of warning / critical levels, given as integer
+  values, for the number of transmitted NOP PDUs per second. The default
+  values are 0 (warning) and 0 (critical) NOP PDUs per second.
+
+  {"scsirsp_pdus"}: A pair of warning / critical levels, given as integer
+  values, for the number of received SCSI command PDUs per second. The
+  default values are 0 (warning) and 0 (critical) SCSI command PDUs per
+  second.
+
+  {"scsicmd_pdus"}: A pair of warning / critical levels, given as integer
+  values, for the number of transmitted SCSI command PDUs per second. The
+  default values are 0 (warning) and 0 (critical) SCSI command PDUs per
+  second.
+
+  {"tmfrsp_pdus"}: A pair of warning / critical levels, given as integer
+  values, for the number of received TMF PDUs per second. The default
+  values are 0 (warning) and 0 (critical) TMF PDUs per second.
+
+  {"tmfcmd_pdus"}: A pair of warning / critical levels, given as integer
+  values, for the number of transmitted TMF PDUs per second. The default
+  values are 0 (warning) and 0 (critical) TMF PDUs per second.
+
+  {"textrsp_pdus"}: A pair of warning / critical levels, given as integer
+  values, for the number of received Text PDUs per second. The default
+  values are 0 (warning) and 0 (critical) Text PDUs per second.
+
+  {"text_pdus"}: A pair of warning / critical levels, given as integer
+  values, for the number of transmitted Text PDUs per second. The default
+  values are 0 (warning) and 0 (critical) Text PDUs per second.
+
+  {"datain_pdus"}: A pair of warning / critical levels, given as integer
+  values, for the number of received Data PDUs per second. The default
+  values are 0 (warning) and 0 (critical) Data PDUs per second.
+
+  {"dataout_pdus"}: A pair of warning / critical levels, given as integer
+  values, for the number of transmitted Data PDUs per second. The default
+  values are 0 (warning) and 0 (critical) Data PDUs per second.
+
+  {"login_pdus"}: A pair of warning / critical levels, given as integer
+  values, for the number of transmitted Login PDUs per second. The default
+  values are 0 (warning) and 0 (critical) Login PDUs per second.
+
+  {"logoutrsp_pdus"}: A pair of warning / critical levels, given as integer
+  values, for the number of received Logout PDUs per second. The default
+  values are 0 (warning) and 0 (critical) Logout PDUs per second.
+
+  {"logout_pdus"}: A pair of warning / critical levels, given as integer
+  values, for the number of transmitted Logout PDUs per second. The default
+  values are 0 (warning) and 0 (critical) Logout PDUs per second.
+
+  {"r2t_pdus"}: A pair of warning / critical levels, given as integer
+  values, for the number of received R2T PDUs per second. The default
+  values are 0 (warning) and 0 (critical) R2T PDUs per second.
+
+  {"async_pdus"}: A pair of warning / critical levels, given as integer
+  values, for the number of received Async PDUs per second. The default
+  values are 0 (warning) and 0 (critical) Async PDUs per second.
+
+  {"rjt_pdus"}: A pair of warning / critical levels, given as integer
+  values, for the number of received Reject PDUs per second. The default
+  values are 0 (warning) and 0 (critical) Reject PDUs per second.
+
+  {"snack_pdus"}: A pair of warning / critical levels, given as integer
+  values, for the number of transmitted SNACK PDUs per second. The default
+  values are 0 (warning) and 0 (critical) SNACK PDUs per second.
+
+  {"digest_err"}: A pair of warning / critical levels, given as integer
+  values, for the number of digest (CRC) errors per second. The default
+  values are 0 (warning) and 0 (critical) digest (CRC) errors per second.
+
+  {"timeout_err"}: A pair of warning / critical levels, given as integer
+  values, for the number of timeout errors per second. The default values
+  are 0 (warning) and 0 (critical) timeout errors per second.
+

@@ -1,0 +1,177 @@
+#!/bin/bash
+#set -x
+#
+# Copyright (C) 2017  Frank Fegert (fra.nospam.nk@gmx.de)
+#
+# Check_MK check script to determine the currently active iSCSI sessions
+# and their status. For software initiator sessions and iSOE sessions via
+# e.g. the BCM577xx and BCM578xx adapters, statistics for each session are
+# gathered. For iSOE ("flashnode") based sessions there are currently no
+# by-session statistics available via the iscsiadm command. For these iSOEs,
+# aggregated host statistics are gathered instead.
+#
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.#
+#
+
+GREP="/bin/egrep"
+ISCSIADM="/usr/bin/iscsiadm"
+SED="/bin/sed"
+TR="/usr/bin/tr"
+
+if [[ -x ${ISCSIADM} && -x ${GREP} && -x ${SED} && -x ${TR} ]]; then
+    echo "<<<open-iscsi_sessions>>>"
+
+    # Gather information on all currently active iSCSI sessions
+    #echo "[sessions]"
+    OFS=$IFS
+    IFS=':'
+    SESSIONS=""
+    while read KEY VAL; do
+        NVAL="${VAL%% (*}"
+        NVAL="${NVAL#* }"
+        case ${KEY} in
+            "")
+                # The next interface is reached. Print the session information and only the interface specific variables.
+                if [[ "${VAL}" == "" ]]; then
+                    echo "${TRANSPORT} ${PORTAL} ${TARGET} ${IFNAME} ${IFNETDEV} ${IFIP} ${ISESSSTATE} ${ICONNSTATE} ${IINTSTATE}"
+
+                    # iSOE ("flashnode") based sessions currently show no session statistics
+                    if [[ ${FLASH} -ne 1 ]]; then
+                        [[ -n "${SESSIONS}" ]] && SESSIONS="${SESSIONS};"
+                        SESSIONS="${SESSIONS}${SID} ${IFMAC} ${TARGET}"
+                    fi
+                fi
+                ICONNSTATE="none"
+                IINTSTATE="none"
+                ISESSSTATE="none"
+                IFIP="none"
+                IFMAC="none"
+                IFNAME="none"
+                SID="none"
+                IFNETDEV="none"
+                TRANSPORT="none"
+                ;;
+            "Target")
+                # iSOE ("flashnode") based sessions currently show no session statistics
+                if [[ "${VAL}" != "${VAL%% (flash)}" ]]; then
+                    FLASH=1
+                else
+                    FLASH=0
+                fi
+
+                # The next target entry is reached. Print the session information and reset all variables.
+                if [[ -n "${TARGET}" ]]; then
+                    echo "${TRANSPORT} ${PORTAL} ${TARGET} ${IFNAME} ${IFNETDEV} ${IFIP} ${ISESSSTATE} ${ICONNSTATE} ${IINTSTATE}"
+
+                    # iSOE ("flashnode") based sessions currently show no session statistics
+                    if [[ ${FLASH} -ne 1 ]]; then
+                        [[ -n "${SESSIONS}" ]] && SESSIONS="${SESSIONS};"
+                        SESSIONS="${SESSIONS}${SID} ${IFMAC} ${TARGET}"
+                    fi
+                fi
+                ICONNSTATE="none"
+                IINTSTATE="none"
+                ISESSSTATE="none"
+                IFIP="none"
+                IFMAC="none"
+                IFNAME="none"
+                IFNETDEV="none"
+                SID="none"
+                PORTAL="none"
+                TARGET="${NVAL}"
+                TRANSPORT="none"
+
+                ;;
+            *"Iface Transport")
+                TRANSPORT="${NVAL}"
+                ;;
+            *"Persistent Portal")
+                PORTAL="${NVAL}"
+                ;;
+            *"Iface Name")
+                IFNAME="${NVAL}"
+                ;;
+            *"Iface IPaddress")
+                IFIP="${NVAL}"
+                ;;
+            *"Iface HWaddress")
+                IFMAC="${NVAL}"
+                ;;
+            *"Iface Netdev")
+                if [[ "${NVAL}" == "<empty>" ]]; then
+                    IFNETDEV="none"
+                else
+                    IFNETDEV="${NVAL}"
+                fi
+                ;;
+            *"SID")
+                SID="${NVAL}"
+                ;;
+            *"iSCSI Connection State")
+                ICONNSTATE="${NVAL// /_}"
+                ;;
+            *"iSCSI Session State")
+                ISESSSTATE="${NVAL// /_}"
+                ;;
+            *"Internal iscsid Session State")
+                IINTSTATE="${NVAL// /_}"
+                ;;
+        esac
+    done < <(${ISCSIADM} -m session -P 1 2>&1 | ${GREP} -v "^iscsiadm: No active sessions.$|\*\*\*\*\*\*\*\*\*\*$|Interface:$"; echo)   # echoing an empty target line is important in order to trigger the output of the last session line
+
+    # Gather statistics on all currently active iSCSI sessions. iSOE ("flashnode")
+    # based sessions currently show no session statistics and are therefor excluded.
+    IFS=${OFS}
+    unset SID
+    unset IFMAC
+    unset TARGET
+    if [[ -n "${SESSIONS}" ]]; then
+        echo ""
+        echo "<<<open-iscsi_session_stats>>>"
+        while read SID IFMAC TARGET; do
+            if [[ -n "${SID}" ]]; then
+                echo "[session stats ${IFMAC} ${TARGET}]"
+                ${ISCSIADM} -m session -r ${SID} -s | ${GREP} -v "^(Stats for session |iSCSI SNMP:)" | ${SED} -e 's/^[ \t][ \t]*//'
+                echo ""
+            fi
+        done < <(echo "${SESSIONS}" | ${TR} ';' '\n')
+    fi
+
+    # Gather statistics on all iSOE ("flashnode") hosts
+    HEADER_WRITTEN=0
+    ${ISCSIADM} -m host | ${GREP} "^qla4xxx: " | while read PREFIX HST TRANSPORT IQN; do
+        if [[ ${HEADER_WRITTEN} -eq 0 ]]; then
+            echo ""
+            echo "<<<open-iscsi_host_stats>>>"
+            HEADER_WRITTEN=1
+        fi
+        HST="${HST#[}"
+        HST="${HST%]}"
+
+        MAC="${TRANSPORT#*,[}"
+        MAC="${MAC%],*}"
+
+        if [[ -n "${MAC}" && -n "${IQN}" ]]; then
+            echo "[host stats ${MAC} ${IQN}]"
+            if [[ -n "${HST}" ]]; then
+                ${ISCSIADM} -m host -H ${HST} -C stats | ${GREP} -v "^Host Statistics:" | ${SED} -e 's/^[ \t][ \t]*//'
+                echo ""
+            fi
+        fi
+    done
+else
+    exit 0
+fi
