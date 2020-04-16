@@ -153,7 +153,7 @@ def parse_open_iscsi_host_stats(info):
     return hosts
 
 def inventory_open_iscsi_host_stats(parsed):
-    for host, values in parsed.items():
+    for host, _values in parsed.items():
         yield host, "open_iscsi_host_stats_default_levels"
 
 def check_open_iscsi_host_stats(item, params, parsed):
@@ -168,7 +168,9 @@ def check_open_iscsi_host_stats(item, params, parsed):
         'tcprx_segment_error', 'tcprx_segment_outoforder', 'ecc_error_correction', 'iscsi_format_error', 'iscsi_hdr_digest_error',
         'iscsi_data_digest_error', 'iscsi_sequence_error'])
 
-    counter = parsed[item]
+    if item not in parsed:
+        return 2, "Host Information not found"
+    counters = parsed[item]
     perfdata = []
     host_id = item.replace(" ", "_")
     message = ""

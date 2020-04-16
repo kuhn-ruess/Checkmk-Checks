@@ -105,6 +105,8 @@ def check_open_iscsi_session_stats(item, params, parsed):
     message_line_counters = set(['rxdata_octets', 'txdata_octets'])
     error_counters = set(['digest_err', 'timeout_err'])
 
+    if item not in parsed:
+        return 2, "Session Information not found"
     counters = parsed[item]
     perfdata = []
     session_id = item.replace(" ", "_")
