@@ -23,13 +23,13 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-def bake_open_isci(opsys, conf, conf_dir, plugins_dir):
+def bake_open_iscsi(opsys, conf, conf_dir, plugins_dir):
     source = cmk.utils.paths.local_agents_dir
-    source += '/plugins/open-isci'
-    target = plugins_dir + "/open-isci"
+    source += '/plugins/open-iscsi'
+    target = plugins_dir + "/open-iscsi"
     shutil.copy2(source, target)
 
-bakery_info["open_isci"] = {
-    "bake_function" : bake_open_isci,
+bakery_info["open_iscsi"] = {
+    "bake_function" : bake_open_iscsi,
     "os"            : ["linux"],
 }
