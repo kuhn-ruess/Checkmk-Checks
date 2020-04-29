@@ -25,14 +25,13 @@
 def perfometer_check_mk_open_iscsi_host_stats(row, check_command, perf_data):
     # Uncomment and restart Apache to debug:
     #return repr(perf_data), ''
-    # Data sample:  
+    # Data sample:
     # [
     #    ...
     #    (u'macrx_bytes', u'204.7'),
     #    (u'mactx_bytes', u'0'),
     #    ...
     # ]
-    text = ""
     for perf_item in perf_data:
         metric = perf_item[0]
         value = perf_item[1]
@@ -43,7 +42,4 @@ def perfometer_check_mk_open_iscsi_host_stats(row, check_command, perf_data):
 
     return perfometer_bandwidth(in_traffic, out_traffic, 0, 0)
 
-perfometers["check_mk-open-iscsi_host_stats"] = perfometer_check_mk_open_iscsi_host_stats
-
-#
-# EOF
+#perfometers["check_mk-open-iscsi_host_stats"] = perfometer_check_mk_open_iscsi_host_stats
