@@ -1,0 +1,116 @@
+#!/usr/bin/env python3
+# pylint: disable=invalid-name
+"""
+Rename for Checkmk RRD Files
+"""
+import sys
+import os
+import getopt
+import ast
+
+short_options = 'hH:s:t:c:vp:'
+long_options = [
+    'source=', 'target=', 'host=', 'path=',
+    'config=', 'host=', 'help', 'verbose',
+]
+
+def usage():
+    """
+    Print Usage
+    """
+    sys.stdout.write("""Usage: rrd_renamer -H HOSTNAME -c config.py / -s source -t target
+
+This program renames RRD files.
+
+* Rename a single file:
+ ./rrd_renamer -H HOSTNAME -s old_name -t new_name
+
+* Rename multiple files:
+ Create a config file:
+ [('old_name', 'new_name')...]
+ ./rrd_rename -H HOSTNAME -c config.py
+
+Options:
+
+  -v, --verbose     Verbose mode
+  -h, --help        Print Usage
+  -s, --source      Source Name
+  -t, --target      Target Name
+  -c, --config      Config File
+  -p, --path        Optional RRD Path
+""")
+
+# Helpers
+def verbose(msg):
+    """
+    Print Verbose
+    """
+    if opt_verbose:
+        sys.stdout.write(msg + "\n")
+
+def copy(hostname, old_sn, new_sn, path):
+    """
+    Copy Files
+    """
+    old_path = "{}/{}/{}".format(path, hostname, old_sn)
+    new_path = "{}/{}/{}".format(path, hostname, new_sn)
+    verbose("Move {} to {}".format(old_path, new_path))
+
+    for ftype in ['rrd', 'info']:
+        os.rename(old_path+"."+ftype, new_path+"."+ftype)
+    new_data = open(new_path+".info").read().replace("SERVICE "+old_sn, "SERVICE "+new_sn)
+    open(new_path+".info", "w").write(new_data)
+
+
+opt_host = ""
+opt_target = ""
+opt_source = ""
+opt_config = ""
+opt_path = 'var/check_mk/rrd/'
+opt_verbose = False
+
+try:
+    opts, args = getopt.getopt(sys.argv[1:], short_options, long_options)
+except getopt.GetoptError as err:
+    sys.stderr.write("%s\n\n" % err)
+    usage()
+    sys.exit(1)
+
+for o, a in opts:
+    if o in ['-h', '--help']:
+        usage()
+        sys.exit(0)
+
+    elif o in ['-v', '--verbose']:
+        opt_verbose = True
+    elif o in ['-s', '--source']:
+        opt_source = a
+    elif o in ['-t', '--target']:
+        opt_target = a
+    elif o in ['-H', '--host']:
+        opt_host = a
+    elif o in ['-c', '--config']:
+        opt_config = a
+    elif o in ['p', '--path']:
+        opt_path = a
+
+if not opt_host:
+    usage()
+    sys.exit(1)
+
+if (opt_target and opt_source) and opt_config:
+    usage()
+    sys.exit(1)
+
+if not opt_host or (not opt_source and not opt_config):
+    usage()
+    sys.exit(1)
+
+
+if opt_config:
+    config = ast.literal_eval(open(opt_config).read())
+    for source, target in config:
+        copy(opt_host, source, target, opt_path)
+
+else:
+    copy(opt_host, opt_source, opt_target, opt_path)
