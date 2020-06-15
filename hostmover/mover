@@ -2,7 +2,7 @@
 """
 Host Mover
 """
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name, broad-except
 import getopt
 import sys
 import os
@@ -28,17 +28,20 @@ Options:
   -a, --all         Copy all Data
   -u, --uid         UID for chown
   -g, --gid         GID for chown
+  -d, --debug       Output Debug Messages
 
 """)
 
 
-short_options = 'vs:t:hH:aLPu:g:A'
+short_options = 'vs:t:hH:aLPu:g:Ad'
 long_options = [
     'verbose', 'source=', 'target=', 'host=', 'help', 'all',
     'logfiles', 'perfdata', 'uid=', 'guid=', 'autochecks',
+    'debug',
 ]
 
 opt_verbose = False
+opt_debug = False
 opt_source = ""
 opt_target = ""
 opt_host = ""
@@ -96,6 +99,13 @@ def verbose(msg):
     if opt_verbose:
         sys.stdout.write(msg + "\n")
 
+def debug(msg):
+    """
+    Debug Messages
+    """
+    if opt_debug or opt_verbose:
+        sys.stderr.write(msg + "\n")
+
 def find_loglines(path, searchhost):
     """
     Find all to Host related lines for a host
@@ -110,21 +120,25 @@ def find_loglines(path, searchhost):
         with open(path+logfile) as data:
             verbose("... Parse: " + path+logfile)
             for line in data.readlines():
-                splited = line.split()
-                if splited[1] not in ["INITAL", "SERVICE", "HOST"]:
-                    continue
+                try:
+                    splited = line.split()
+                    if splited[1] not in ["INITAL", "SERVICE", "HOST"]:
+                        continue
 
-                message = line.split(":")[1].strip().split(';')
-                if splited[2].startswith('NOTIFICATION'):
-                    hostname = message[1]
-                else:
-                    hostname = message[0]
+                    message = line.split(":")[1].strip().split(';')
+                    if splited[2].startswith('NOTIFICATION'):
+                        hostname = message[1]
+                    else:
+                        hostname = message[0]
 
-                if searchhost != hostname:
-                    continue
+                    if searchhost != hostname:
+                        continue
 
-                found_lines.setdefault(logfile, [])
-                found_lines[logfile].append(line)
+                    found_lines.setdefault(logfile, [])
+                    found_lines[logfile].append(line)
+                except Exception as error:
+                    info = " -- Error Parsing line: '{}'".format(line)
+                    debug(str(error)+info)
     return found_lines
 
 
@@ -157,23 +171,36 @@ if opt_logfiles:
 
 if opt_perfdata:
     verbose("Start Perfdata")
-    perfdata_path = 'var/check_mk/rrd'
-    perf_source = source_site+perfdata_path+"/"+opt_host
-    perf_target = target_site+perfdata_path+"/"+opt_host
-    rmtree(perf_target)
-    copytree(perf_source, perf_target)
-    if opt_uid and opt_gid:
-        verbose("... Set UID")
-        os.chown(perf_target, opt_uid, opt_gid)
-    verbose("... Copied {} to {}".format(perf_source, perf_target))
+    try:
+        perfdata_path = 'var/check_mk/rrd'
+        perf_source = source_site+perfdata_path+"/"+opt_host
+        perf_target = target_site+perfdata_path+"/"+opt_host
+        try:
+            rmtree(perf_target)
+        except FileNotFoundError:
+            pass
+        copytree(perf_source, perf_target)
+        if opt_uid and opt_gid:
+            verbose("... Set UID")
+            os.chown(perf_target, opt_uid, opt_gid)
+    except Exception as error:
+        debug("Perfdata Problem: {}, Source: {}, Target {}".format(error, perf_source, perf_target))
+    else:
+        verbose("... Copied {} to {}".format(perf_source, perf_target))
 
 if opt_autochecks:
     verbose("Start Autochecks")
-    autocheck_path = 'var/check_mk/autochecks'
-    autochecks_source = source_site+autocheck_path+"/"+opt_host+".mk"
-    autochecks_target = target_site+autocheck_path+"/"+opt_host+".mk"
-    copyfile(autochecks_source, autochecks_target)
-    if opt_uid and opt_gid:
-        verbose("... Set UID")
-        os.chown(autochecks_target, opt_uid, opt_gid)
-    verbose("... Copied {} to {}".format(autochecks_source, autochecks_target))
+    try:
+        autocheck_path = 'var/check_mk/autochecks'
+        autochecks_source = source_site+autocheck_path+"/"+opt_host+".mk"
+        autochecks_target = target_site+autocheck_path+"/"+opt_host+".mk"
+        copyfile(autochecks_source, autochecks_target)
+        if opt_uid and opt_gid:
+            verbose("... Set UID")
+            os.chown(autochecks_target, opt_uid, opt_gid)
+    except Exception as error:
+        debug("Autochecks Problem: {}, Source: {}, Target {}".format(error,
+                                                                     autochecks_source,
+                                                                     autochecks_target))
+    else:
+        verbose("... Copied {} to {}".format(autochecks_source, autochecks_target))

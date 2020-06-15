@@ -8,7 +8,7 @@ import os
 def main(hostname, old_sn, new_sn, path):
     old_path = "{}/{}/{}".format(path, hostname, old_sn)
     new_path = "{}/{}/{}".format(path, hostname, new_sn)
-    
+
     for ftype in ['rrd', 'info']:
         os.rename(old_path+"."+ftype, new_path+"."+ftype)
     new_data = open(new_path+".info").read().replace("SERVICE "+old_sn, "SERVICE "+new_sn)
