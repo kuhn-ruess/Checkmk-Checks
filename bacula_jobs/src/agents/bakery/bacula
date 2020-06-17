@@ -4,10 +4,24 @@
 
 def bake_bacula(opsys, conf, conf_dir, plugins_dir):
     try:
-       shutil.copy2(cmk.paths.local_agents_dir + "/plugins/bacula.sh", plugins_dir + "/bacula.sh")
+       shutil.copy2(local_agents_dir + "/plugins/bacula_jobs", plugins_dir + "/bacula_jobs")
     except:
        # in CheckMK v 1.6 cmk.paths is changed to cmk.utils.paths
-       shutil.copy2(cmk.utils.paths.local_agents_dir + "/plugins/bacula.sh", plugins_dir + "/bacula.sh")
+       shutil.copy2(cmk.utils.paths.local_agents_dir + "/plugins/bacula_jobs", plugins_dir + "/bacula_jobs")
+
+    # Create the agent configuration file bacula.cfg
+    # Wato conf is currently a Tuple. 1st element is deploy, 2nd element is config
+    cfg_content = ''
+    if "backend_type" in conf[1]:
+        cfg_content += "# WARNING! DO NOT EDIT MANUALLY!. Agent bakery will overwrite this file.\n\n"
+        cfg_content += "# Config file for bacula_jobs CMK plugin extension.\n"
+        cfg_content += "backend_type=%s\n" % conf[1]['backend_type']
+        cfg_content += "dbname=%s\n" % conf[1]['dbname']
+        cfg_content += "dbuser=%s\n" % conf[1]['dbuser']
+        cfg_content += "dbhost=%s\n\n" % conf[1]['dbhost']
+
+    cfg_file = conf_dir + "/bacula.cfg"
+    file(cfg_file, "w").write(cfg_content)
 
 bakery_info["bacula"] = {
     "bake_function" : bake_bacula,
