@@ -12,7 +12,7 @@ def usage():
     """
     Print Usage
     """
-    sys.stdout.write("""Usage: mover -s SOURCE_SITE -t TARGET_SITE -H HOSTNAME
+    sys.stdout.write("""Usage: host_mover -s SOURCE_SITE -t TARGET_SITE -H HOSTNAME
 
 This program moves hosts in between sites.
 
@@ -113,6 +113,18 @@ def debug(msg):
     if opt_debug:
         sys.stderr.write(msg + "\n")
 
+source_site = opt_omd_base+opt_source+"/"
+target_site = opt_omd_base+opt_target+"/"
+
+def prepare_host_url(var_part, appendix=""):
+    """
+    Return Source and Target url of an object
+    """
+    return (
+        source_site + var_part + opt_host + appendix,
+        target_site + var_part + opt_host + appendix,
+    )
+
 def find_loglines(path, searchhost):
     """
     Find all to Host related lines for a host
@@ -134,9 +146,11 @@ def find_loglines(path, searchhost):
                     if splited[1] not in ["INITAL", "SERVICE", "HOST"]:
                         continue
 
-                    message = line.split(":")[1].strip().split(';')
+                    message = line.split(":", 1)[1].strip().split(';')
+                    if len(message) > 3:
+                        continue
                     if splited[2].startswith('NOTIFICATION'):
-                        hostname = message[1]
+                        hostname = message[0].split(':')[1].strip()
                     else:
                         hostname = message[0]
 
@@ -168,8 +182,6 @@ def write_logfiles(path, hostname, config):
         if opt_uid and opt_gid:
             os.chown(path+outfilename, opt_uid, opt_gid)
 
-source_site = opt_omd_base+opt_source+"/"
-target_site = opt_omd_base+opt_target+"/"
 
 if opt_logfiles:
     verbose("Start Logfiles for {}...".format(opt_host))
@@ -183,8 +195,7 @@ if opt_perfdata:
     verbose("Start Perfdata for {}...".format(opt_host))
     try:
         perfdata_path = 'var/check_mk/rrd'
-        perf_source = source_site+perfdata_path+"/"+opt_host
-        perf_target = target_site+perfdata_path+"/"+opt_host
+        perf_source, perf_target = prepare_host_url(perfdata_path)
         try:
             rmtree(perf_target)
         except FileNotFoundError:
@@ -206,19 +217,17 @@ copy_file_list = []
 
 if opt_inventory:
     verbose("Prepare Inventory data for {}...".format(opt_host))
-    inventory_path = 'var/check_mk/inventory'
-    inventory_source = source_site.inventory_path+"/"+opt_host
-    inventory_target = target_site.inventory_path+"/"+opt_host
-    copy_file_list.append((inventory_source, inventory_target))
-    copy_file_list.append((inventory_source+'.gz', inventory_target+'.gz'))
+    inventory_path = 'var/check_mk/inventory/'
+    source, target = prepare_host_url(inventory_path)
+    copy_file_list.append((source, target))
+    copy_file_list.append((source+'.gz', target+'.gz'))
     verbose("...done")
 
 if opt_autochecks:
     verbose("Prepare Autochecks for {}...".format(opt_host))
-    autocheck_path = 'var/check_mk/autochecks'
-    autochecks_source = source_site+autocheck_path+"/"+opt_host+".mk"
-    autochecks_target = target_site+autocheck_path+"/"+opt_host+".mk"
-    copy_file_list.append((autochecks_source, autochecks_target))
+    autochecks_path = 'var/check_mk/autochecks/'
+    source, target = prepare_host_url(autochecks_path, '.mk')
+    copy_file_list.append((source, target))
     verbose("...done")
 
 if copy_file_list:
