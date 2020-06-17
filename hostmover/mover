@@ -25,6 +25,7 @@ Options:
   -L, --logfiles    Handle Logfiles
   -P, --perfdata    Handle Perfdata
   -A, --autochecks  Handle Autocheck files
+  -I, --inventory   Handle Inventory Data
   -a, --all         Copy all Data
   -u, --uid         UID for chown
   -g, --gid         GID for chown
@@ -47,6 +48,7 @@ opt_target = ""
 opt_host = ""
 opt_logfiles = False
 opt_perfdata = False
+opt_inventory = False
 opt_omd_base = '/opt/omd/sites/'
 opt_uid = 0
 opt_gid = 0
@@ -66,6 +68,8 @@ for o, a in opts:
 
     elif o in ['-v', '--verbose']:
         opt_verbose = True
+    elif o in ['-d', '--debug']:
+        opt_debug = True
     elif o in ['-s', '--source']:
         opt_source = a
     elif o in ['-t', '--target']:
@@ -76,6 +80,9 @@ for o, a in opts:
         opt_logfiles = True
         opt_perfdata = True
         opt_autochecks = True
+        opt_inventory = True
+    elif o in ['-I', '--inventory']:
+        opt_inventory = True
     elif o in ['-L', '--logfiles']:
         opt_logfiles = True
     elif o in ['-P', '--perfdata']:
@@ -103,7 +110,7 @@ def debug(msg):
     """
     Debug Messages
     """
-    if opt_debug or opt_verbose:
+    if opt_debug:
         sys.stderr.write(msg + "\n")
 
 def find_loglines(path, searchhost):
@@ -122,6 +129,8 @@ def find_loglines(path, searchhost):
             for line in data.readlines():
                 try:
                     splited = line.split()
+                    if len(splited) <= 2:
+                        continue
                     if splited[1] not in ["INITAL", "SERVICE", "HOST"]:
                         continue
 
@@ -163,14 +172,15 @@ source_site = opt_omd_base+opt_source+"/"
 target_site = opt_omd_base+opt_target+"/"
 
 if opt_logfiles:
-    verbose("Start Logfiles")
+    verbose("Start Logfiles for {}...".format(opt_host))
     logfile_path = 'var/check_mk/core/archive/'
 
     logfile_data = find_loglines(source_site+logfile_path, opt_host)
     write_logfiles(target_site+logfile_path, opt_host, logfile_data)
+    verbose("...done")
 
 if opt_perfdata:
-    verbose("Start Perfdata")
+    verbose("Start Perfdata for {}...".format(opt_host))
     try:
         perfdata_path = 'var/check_mk/rrd'
         perf_source = source_site+perfdata_path+"/"+opt_host
@@ -183,24 +193,44 @@ if opt_perfdata:
         if opt_uid and opt_gid:
             verbose("... Set UID")
             os.chown(perf_target, opt_uid, opt_gid)
+            for root, _dirs, files in os.walk(perf_target):
+                for perf_file in files:
+                    perf_file_path = os.path.join(root, perf_file)
+                    os.chown(perf_file_path, opt_uid, opt_gid)
     except Exception as error:
         debug("Perfdata Problem: {}, Source: {}, Target {}".format(error, perf_source, perf_target))
     else:
         verbose("... Copied {} to {}".format(perf_source, perf_target))
 
+copy_file_list = []
+
+if opt_inventory:
+    verbose("Prepare Inventory data for {}...".format(opt_host))
+    inventory_path = 'var/check_mk/inventory'
+    inventory_source = source_site.inventory_path+"/"+opt_host
+    inventory_target = target_site.inventory_path+"/"+opt_host
+    copy_file_list.append((inventory_source, inventory_target))
+    copy_file_list.append((inventory_source+'.gz', inventory_target+'.gz'))
+    verbose("...done")
+
 if opt_autochecks:
-    verbose("Start Autochecks")
-    try:
-        autocheck_path = 'var/check_mk/autochecks'
-        autochecks_source = source_site+autocheck_path+"/"+opt_host+".mk"
-        autochecks_target = target_site+autocheck_path+"/"+opt_host+".mk"
-        copyfile(autochecks_source, autochecks_target)
-        if opt_uid and opt_gid:
-            verbose("... Set UID")
-            os.chown(autochecks_target, opt_uid, opt_gid)
-    except Exception as error:
-        debug("Autochecks Problem: {}, Source: {}, Target {}".format(error,
-                                                                     autochecks_source,
-                                                                     autochecks_target))
-    else:
-        verbose("... Copied {} to {}".format(autochecks_source, autochecks_target))
+    verbose("Prepare Autochecks for {}...".format(opt_host))
+    autocheck_path = 'var/check_mk/autochecks'
+    autochecks_source = source_site+autocheck_path+"/"+opt_host+".mk"
+    autochecks_target = target_site+autocheck_path+"/"+opt_host+".mk"
+    copy_file_list.append((autochecks_source, autochecks_target))
+    verbose("...done")
+
+if copy_file_list:
+    verbose("Staring Copy Jobs for {}... ".format(opt_host))
+    if opt_uid and opt_gid:
+        verbose("... Set UID enabled")
+    for source, target in copy_file_list:
+        try:
+            copyfile(source, target)
+            verbose("...> Copied {} to {}".format(source, target))
+            if opt_uid and opt_gid:
+                os.chown(target, opt_uid, opt_gid)
+        except FileNotFoundError as error:
+            debug("Error: {} with {}".format(error, target))
+    verbose("...done")
