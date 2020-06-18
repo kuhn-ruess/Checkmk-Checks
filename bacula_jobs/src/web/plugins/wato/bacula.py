@@ -92,7 +92,7 @@ register_check_parameters(
         elements = [
             ( "max_age",
                 Tuple(
-                    title = _("Age of last Backup. Default: 5days / 7days"),
+                    title = _("Age of last Backup"),
                     elements = [
                         Age(title=_("Warning at"), default_value=86400 * 5),
                         Age(title=_("Critical at"), default_value=86400 * 7),
