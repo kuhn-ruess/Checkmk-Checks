@@ -1,0 +1,40 @@
+title: Check Job Status Of Bacula / Bareos Backup System
+agents: Agent Plugins
+author: Bastian Kuhn
+license: GPL
+distribution: none
+description:
+ This check monitors the status of Bacula / Bareos Backup Systems.
+
+ It uses database queries to obtain the status.
+
+ Prerequisites:
+
+  - MySQL: mysql binary available. Credentials in /root/.my.cnf
+
+  - PostgreSQL: psql binary available, ident auth in pg_hba.conf for the Bacula / Bareos user
+
+ By default, the plugin uses MySQL. Create a bacula.cfg on the agent host
+ in the MK_CONFDIR (typically /etc/check_mk) to configure the plugin.
+ If you use the Agent Bakery, the config file is generated automatically.
+ If you do not use the Agent bakery, copy the plugins/bacula_jobs file to the agents check_mk_agent/plugins dir
+
+ bacula.cfg options:
+
+  - backend_type=mysql # MySQL / MariaDB (default)
+
+  - backend_type=pgsql # PostgreSQL
+
+  - dbname=bacula      # Database name
+
+  - dbuser=bacula      # In case of PostgreSQL, this is also the local user
+
+  - dbhost=localhost   # DB host to connect to
+
+
+
+item:
+ Job <Name of the job>
+
+inventory:
+ One check for each job is created by the inventory.

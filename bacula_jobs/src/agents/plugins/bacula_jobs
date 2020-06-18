@@ -1,0 +1,44 @@
+#!/bin/sh
+
+# This plugin needs a configuration file 'bacula.cfg' in your MK_CONFDIR.
+# This is /etc/check_mk in most cases.
+# If you use the CMK Agent Bakery, the config file is created automatically.
+
+echo "<<<bacula_jobs:sep(9)>>>"
+
+# defaults
+DB_HOST_OPT=""
+backend_type=mysql
+dbhost="localhost"
+dbname="bacula"
+dbuser="bacula"
+
+# MK_CONFDIR="${MK_CONFDIR:-/etc/check_mk}"
+MK_CONFDIR="/etc/check_mk"
+
+if [ -e $MK_CONFDIR/bacula.cfg ] ; then
+    . "$MK_CONFDIR"/bacula.cfg
+fi
+
+if [ "$dbhost" ]; then
+    DB_HOST_OPT="--host=$dbhost"
+fi
+
+
+if [ "$backend_type" = "pgsql" ]; then
+    psql_bin=$(which psql)
+    if [ ! "$psql_bin" ]; then
+        echo "psql executable cannot be found!" >&2
+        exit 1
+    fi
+    echo "Select JobId, Name, JobStatus, EndTime FROM Job WHERE EndTime BETWEEN NOW() - interval '30 days' AND NOW();" | sudo "$DB_HOST_OPT" -u "$dbuser" "$psql_bin" --tuples-only -AF $'\t'  "$dbname" "$dbuser"
+else
+    # default: MySQL / MariaDB
+    mysql_bin=$(which mysql)
+    if [ ! "$mysql_bin" ]; then
+        echo "mysql executable cannot be found!" >&2
+        exit 1
+    fi
+
+    $mysql_bin "$DB_HOST_OPT" --defaults-file=/root/.my.cnf $dbname -B -e "Select JobId, Name, JobStatus, EndTime FROM Job WHERE EndTime BETWEEN CURDATE() - INTERVAL 30 DAY AND CURDATE();"
+fi

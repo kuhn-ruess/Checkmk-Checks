@@ -3,12 +3,61 @@
 group = "agents/" + _("Agent Plugins")
 register_rule(group,
     "agent_config:bacula",
-    DropdownChoice(
-        title = _("Bacula Jobs (Linux)"),
-        help = _("The plugin <tt>cula.sh</tt> allows monitoring of Bacula Jobs"),
-        choices = [
-            ( {},   _("Deploy plugin") ),
-            ( None, _("Do not deploy plugin") ),
+    Tuple(
+        title =  ("Bacula Jobs (Linux)"),
+        help = _("The plugin <tt>bacula_jobs</tt> allows monitoring of Bacula / Bareos Jobs."),
+        elements = [
+            DropdownChoice(
+                title = _("Bacula Jobs (Linux)"),
+                help = _("Whether to deploy the plugin or not."),
+                choices = [
+                    ( {},   _("Deploy plugin") ),
+                    ( None, _("Do not deploy plugin") ),
+                ]
+            ),
+            Dictionary(
+                help = _("Here you can override the default parameters for the Bacula / Bareos database."
+                         " Carefully change the values as needed."),
+                title = ("Optional parameters"),
+                elements = [
+                    ("backend_type",
+                         DropdownChoice(
+                             title = _("Backend Type"),
+                             help = _("The type of the database backend"),
+                             choices = [
+                                 ( "mysql",   _("MySQL database") ),
+                                 ( "pgsql", _("PostgreSQL database") ),
+                             ],
+                             default_value = "mysql"
+                         )
+                     ),
+                    ( "dbname",
+                        TextAscii(
+                            title = _("Database name"),
+                            help = _("The name of the backend database. <tt>bacula</tt> is default."),
+                            allow_empty = False,
+                            size = 30,
+                            default_value = ("bacula")
+                        )
+                    ),
+                    ( "dbuser",
+                        TextAscii(
+                            title = _("Database user"),
+                            help = _("The database username. <tt>bacula</tt> is default."),
+                            size = 30,
+                            default_value = ("bacula")
+                        )
+                    ),
+                    ( "dbhost",
+                        TextAscii(
+                            title = _("Database host"),
+                            help = _("The database host <tt>localhost<tt> is default."),
+                            size = 30,
+                            default_value = ("localhost")
+                        )
+                    ),
+                ]
+            ),
         ]
     )
 )
