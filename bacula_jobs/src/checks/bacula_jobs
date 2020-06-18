@@ -16,7 +16,7 @@ def parse_bacula_jobs(info):
 factory_settings['bacula_jobs_params'] = {
     "ok_states" : ['T', 'R'],
     "crit_states" : ['E', 'f'],
-    "max_age" : False,
+    "max_age" : (86400 * 5, 86400 * 7),
 }
 
 def inventory_bacula_jobs(parsed):

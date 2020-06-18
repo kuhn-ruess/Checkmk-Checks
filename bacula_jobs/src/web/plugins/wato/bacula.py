@@ -92,11 +92,11 @@ register_check_parameters(
         elements = [
             ( "max_age",
                 Tuple(
-                    title = _("Age of last Backup"),
+                    title = _("Age of last Backup. Default: 5days / 7days"),
                     elements = [
-                        Age(title=_("Warning at")),
-                        Age(title=_("Critical at")),
-                    ]
+                        Age(title=_("Warning at"), default_value=86400 * 5),
+                        Age(title=_("Critical at"), default_value=86400 * 7),
+                    ],
                 ),
             ),
             ( "ok_states",
@@ -111,7 +111,7 @@ register_check_parameters(
                     title = _("States which result in Critical"),
                     choices = bacula_job_states,
                     default_value = ['E', 'f']
-                    )
+                )
             ),
         ]
     ),
