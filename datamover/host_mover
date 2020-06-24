@@ -12,16 +12,23 @@ def usage():
     """
     Print Usage
     """
-    sys.stdout.write("""Usage: host_mover -s SOURCE_SITE -t TARGET_SITE -H HOSTNAME
+    sys.stdout.write("""Usage:
+
+    host_mover -s SOURCE_SITE -t TARGET_SITE -H HOSTNAME
+
+or:
+
+    host_mover -s SOURCE_SITE -t TARGET_SITE -H "HOST1, HOST2, HOST3"
 
 This program moves hosts in between sites.
+You can include varios addional Data
 
 Options:
 
   -v, --verbose     Verbose mode
   -s, --source      Source OMD Site
   -t, --target      Target OMD Site
-  -H, --host        Hostname
+  -H, --host        Hostname or comma seperated list
   -L, --logfiles    Handle Logfiles
   -P, --perfdata    Handle Perfdata
   -A, --autochecks  Handle Autocheck files
@@ -98,6 +105,9 @@ if not opt_host or not opt_target or not opt_source:
     usage()
     sys.exit(1)
 
+source_site = opt_omd_base+opt_source+"/"
+target_site = opt_omd_base+opt_target+"/"
+
 # Helpers
 def verbose(msg):
     """
@@ -113,16 +123,14 @@ def debug(msg):
     if opt_debug:
         sys.stderr.write(msg + "\n")
 
-source_site = opt_omd_base+opt_source+"/"
-target_site = opt_omd_base+opt_target+"/"
 
-def prepare_host_url(var_part, appendix=""):
+def prepare_host_url(hostname, var_part, appendix=""):
     """
     Return Source and Target url of an object
     """
     return (
-        source_site + var_part + opt_host + appendix,
-        target_site + var_part + opt_host + appendix,
+        source_site + var_part + hostname + appendix,
+        target_site + var_part + hostname + appendix,
     )
 
 def find_loglines(path, searchhost):
@@ -134,7 +142,7 @@ def find_loglines(path, searchhost):
     except IndexError:
         sys.stderr.write("Path not found or empty: {}".format(path))
     found_lines = {}
-    verbose("+++Start Parsing+++")
+    verbose(".. Start Parsing")
     for logfile in logfiles:
         with open(path+logfile) as data:
             verbose("... Parse: " + path+logfile)
@@ -169,7 +177,7 @@ def write_logfiles(path, hostname, config):
     """
     Write new logfiles
     """
-    verbose("+++Start Writing+++")
+    verbose(".. Start Writing")
     for logfile, lines in config.items():
         outfilename = logfile+'-'+hostname
         if logfile.endswith('-'+hostname):
@@ -183,63 +191,92 @@ def write_logfiles(path, hostname, config):
             os.chown(path+outfilename, opt_uid, opt_gid)
 
 
-if opt_logfiles:
-    verbose("Start Logfiles for {}...".format(opt_host))
-    logfile_path = 'var/check_mk/core/archive/'
-
-    logfile_data = find_loglines(source_site+logfile_path, opt_host)
-    write_logfiles(target_site+logfile_path, opt_host, logfile_data)
-    verbose("...done")
-
-if opt_perfdata:
-    verbose("Start Perfdata for {}...".format(opt_host))
-    try:
-        perfdata_path = 'var/check_mk/rrd'
-        perf_source, perf_target = prepare_host_url(perfdata_path)
-        try:
-            rmtree(perf_target)
-        except FileNotFoundError:
-            pass
-        copytree(perf_source, perf_target)
-        if opt_uid and opt_gid:
-            verbose("... Set UID")
-            os.chown(perf_target, opt_uid, opt_gid)
-            for root, _dirs, files in os.walk(perf_target):
-                for perf_file in files:
-                    perf_file_path = os.path.join(root, perf_file)
-                    os.chown(perf_file_path, opt_uid, opt_gid)
-    except Exception as error:
-        debug("Perfdata Problem: {}, Source: {}, Target {}".format(error, perf_source, perf_target))
-    else:
-        verbose("... Copied {} to {}".format(perf_source, perf_target))
-
-copy_file_list = []
-
-if opt_inventory:
-    verbose("Prepare Inventory data for {}...".format(opt_host))
-    inventory_path = 'var/check_mk/inventory/'
-    source, target = prepare_host_url(inventory_path)
-    copy_file_list.append((source, target))
-    copy_file_list.append((source+'.gz', target+'.gz'))
-    verbose("...done")
-
-if opt_autochecks:
-    verbose("Prepare Autochecks for {}...".format(opt_host))
-    autochecks_path = 'var/check_mk/autochecks/'
-    source, target = prepare_host_url(autochecks_path, '.mk')
-    copy_file_list.append((source, target))
-    verbose("...done")
-
-if copy_file_list:
-    verbose("Staring Copy Jobs for {}... ".format(opt_host))
+def handle_host(hostname): #pylint: disable=too-many-branches, too-many-statements
+    """
+    Handle Jobs for one Host
+    """
+    copy_file_list = []
+    copy_folder_list = []
     if opt_uid and opt_gid:
         verbose("... Set UID enabled")
+
+    if opt_logfiles:
+        verbose("Start Logfiles for {}...".format(hostname))
+        path = 'var/check_mk/core/archive/'
+
+        logfile_data = find_loglines(source_site+path, hostname)
+        write_logfiles(target_site+path, hostname, logfile_data)
+        verbose("...done")
+
+
+    if opt_perfdata:
+        verbose("Prepare Perfdata for {}...".format(hostname))
+        path = 'var/check_mk/rrd/'
+        source, target = prepare_host_url(hostname, path)
+        copy_folder_list.append((source, target))
+        verbose("...done")
+
+    if opt_inventory:
+        verbose("Prepare Inventory data for {}...".format(hostname))
+        path = 'var/check_mk/inventory/'
+        source, target = prepare_host_url(hostname, path)
+        copy_file_list.append((source, target))
+        copy_file_list.append((source+'.gz', target+'.gz'))
+        verbose("...done")
+
+        verbose("Prepare Inventory History data for {}...".format(hostname))
+        path = 'var/check_mk/inventory_archive/'
+        source, target = prepare_host_url(hostname, path)
+        copy_folder_list.append((source, target))
+        verbose("...done")
+
+    if opt_autochecks:
+        verbose("Prepare Autochecks for {}...".format(hostname))
+        autochecks_path = 'var/check_mk/autochecks/'
+        source, target = prepare_host_url(hostname, autochecks_path, '.mk')
+        copy_file_list.append((source, target))
+        verbose("...done")
+
+    verbose("Staring Copy Folder Jobs for {}... ".format(hostname))
+    for source, target in copy_folder_list:
+        try:
+            rmtree(target)
+        except FileNotFoundError:
+            pass
+        try:
+            copytree(source, target)
+            if opt_uid and opt_gid:
+                os.chown(target, opt_uid, opt_gid)
+                for root, _dirs, files in os.walk(target):
+                    for sub_file in files:
+                        sub_file_path = os.path.join(root, sub_file)
+                        os.chown(sub_file_path, opt_uid, opt_gid)
+        except FileNotFoundError as error:
+            debug("--> Not Found: {}".format(error))
+        except Exception as error_obj:
+            debug("--> Error while Copy Folder: {}, {}->{}".format(error_obj, source, target))
+        else:
+            verbose("...> Copied Folder {} to {}".format(source, target))
+    verbose("...done")
+
+
+    verbose("Staring Copy File Jobs for {}... ".format(hostname))
     for source, target in copy_file_list:
         try:
             copyfile(source, target)
-            verbose("...> Copied {} to {}".format(source, target))
             if opt_uid and opt_gid:
                 os.chown(target, opt_uid, opt_gid)
         except FileNotFoundError as error:
-            debug("Error: {} with {}".format(error, target))
+            raise
+            debug("--> Not Found: {}".format(error))
+        except Exception as error:
+            debug("--> Error while Copy File: {}, {}->{}".format(error, source, target))
+        else:
+            verbose("...> Copied File {} to {}".format(source, target))
     verbose("...done")
+
+# Start Jobs
+for host in [x.strip() for x in opt_host.split(',')]:
+    verbose("#################\n# {}\n#################".format(host))
+    handle_host(host)
+    verbose("\n\n")
