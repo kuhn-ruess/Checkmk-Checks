@@ -31,6 +31,8 @@ def inventory_arista_temp(parsed):
     for key, value in parsed.items():
         if value['unit'] != 'Celsius':
             continue
+        if key.startswith('PhyAlaska'):
+            continue
         if value.get("value"):
             yield key, None
 
@@ -63,7 +65,7 @@ check_info["arista"] = {
 
 factory_settings["arista_fan_default_levels"] = {
     "lower": (2000, 1000),
-    "upper": (8000, 8400),
+    "upper": (9000, 9500),
 }
 
 def inventory_arista_fan(parsed):
@@ -97,7 +99,7 @@ check_info["arista.fan"] = {
     "default_levels_variable": "arista_fan_default_levels",
 }
 
-arista_voltage_levels = (210, 180)
+arista_voltage_levels = (50, 50)
 
 def inventory_arista_voltage(parsed):
     for key, value in parsed.items():
