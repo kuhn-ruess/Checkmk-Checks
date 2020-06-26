@@ -7,6 +7,7 @@ import getopt
 import sys
 import os
 from shutil import copytree, copyfile, rmtree
+from pwd import getpwnam
 
 def usage():
     """
@@ -20,8 +21,14 @@ or:
 
     host_mover -s SOURCE_SITE -t TARGET_SITE -H "HOST1, HOST2, HOST3"
 
-This program moves hosts in between sites.
-You can include varios addional Data
+This program moves hosts between sites.
+You can choice which data you want to be moved.
+
+Even logfiles (history) will be handled. Note
+that new files in format history-timestamp-hostname will
+be created for the moved data. So you can do a easy cleanup
+
+When copying files to the target site, uid and gid will be autodetected.
 
 Options:
 
@@ -34,18 +41,15 @@ Options:
   -A, --autochecks  Handle Autocheck files
   -I, --inventory   Handle Inventory Data
   -a, --all         Copy all Data
-  -u, --uid         UID for chown
-  -g, --gid         GID for chown
   -d, --debug       Output Debug Messages
 
 """)
 
 
-short_options = 'vs:t:hH:aLPu:g:Ad'
+short_options = 'vs:t:hH:aLPAd'
 long_options = [
     'verbose', 'source=', 'target=', 'host=', 'help', 'all',
-    'logfiles', 'perfdata', 'uid=', 'guid=', 'autochecks',
-    'debug',
+    'logfiles', 'perfdata',  'autochecks', 'debug',
 ]
 
 opt_verbose = False
@@ -57,8 +61,6 @@ opt_logfiles = False
 opt_perfdata = False
 opt_inventory = False
 opt_omd_base = '/opt/omd/sites/'
-opt_uid = 0
-opt_gid = 0
 opt_autochecks = False
 
 try:
@@ -105,8 +107,7 @@ if not opt_host or not opt_target or not opt_source:
     usage()
     sys.exit(1)
 
-source_site = opt_omd_base+opt_source+"/"
-target_site = opt_omd_base+opt_target+"/"
+
 
 # Helpers
 def verbose(msg):
@@ -123,6 +124,15 @@ def debug(msg):
     if opt_debug:
         sys.stderr.write(msg + "\n")
 
+ids = getpwnam(opt_target)
+
+opt_uid = ids.pw_uid
+opt_gid = ids.pw_gid
+verbose("Target Site: {} UID: {}, GID: {}".format(opt_target, opt_uid, opt_gid))
+
+source_site = opt_omd_base+opt_source+"/"
+target_site = opt_omd_base+opt_target+"/"
+verbose("Source Path: {}, Target Path: {}".format(source_site, target_site))
 
 def prepare_host_url(hostname, var_part, appendix=""):
     """
@@ -187,8 +197,7 @@ def write_logfiles(path, hostname, config):
             for line in lines:
                 outfile.write(line)
 
-        if opt_uid and opt_gid:
-            os.chown(path+outfilename, opt_uid, opt_gid)
+        os.chown(path+outfilename, opt_uid, opt_gid)
 
 
 def handle_host(hostname): #pylint: disable=too-many-branches, too-many-statements
@@ -197,8 +206,6 @@ def handle_host(hostname): #pylint: disable=too-many-branches, too-many-statemen
     """
     copy_file_list = []
     copy_folder_list = []
-    if opt_uid and opt_gid:
-        verbose("... Set UID enabled")
 
     if opt_logfiles:
         verbose("Start Logfiles for {}...".format(hostname))
@@ -245,12 +252,11 @@ def handle_host(hostname): #pylint: disable=too-many-branches, too-many-statemen
             pass
         try:
             copytree(source, target)
-            if opt_uid and opt_gid:
-                os.chown(target, opt_uid, opt_gid)
-                for root, _dirs, files in os.walk(target):
-                    for sub_file in files:
-                        sub_file_path = os.path.join(root, sub_file)
-                        os.chown(sub_file_path, opt_uid, opt_gid)
+            os.chown(target, opt_uid, opt_gid)
+            for root, _dirs, files in os.walk(target):
+                for sub_file in files:
+                    sub_file_path = os.path.join(root, sub_file)
+                    os.chown(sub_file_path, opt_uid, opt_gid)
         except FileNotFoundError as error:
             debug("--> Not Found: {}".format(error))
         except Exception as error_obj:
@@ -264,8 +270,7 @@ def handle_host(hostname): #pylint: disable=too-many-branches, too-many-statemen
     for source, target in copy_file_list:
         try:
             copyfile(source, target)
-            if opt_uid and opt_gid:
-                os.chown(target, opt_uid, opt_gid)
+            os.chown(target, opt_uid, opt_gid)
         except FileNotFoundError as error:
             raise
             debug("--> Not Found: {}".format(error))
