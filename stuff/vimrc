@@ -1,0 +1,130 @@
+" Suchen ohne Gross/Klein
+filetype off                  " required
+
+set ignorecase
+
+" Die just-one-space Funktion von Emacs, direkt auf der Leertaste :-)
+nmap <space> :s/[[:space:]]\+\%#[[:space:]]\+/ /e<CR>
+
+syntax on
+set background=light
+colorscheme scheakur
+" colorscheme darkblue
+"colorscheme torte
+" colorscheme slate
+" colorscheme morning
+
+
+" Einruecken von Python
+" set cindent
+set smartindent cinwords=if,elif,else,for,while,try,except,finally,def,class
+inoremap # X<BS>#
+
+set cino=g0
+map \ :wa<CR>:make -j 8 -z 2>/dev/null ; f12<CR>
+map <F12> :wa<CR>:make -j 8 -z 2>/dev/null ; f12<CR>
+imap <F12> <ESC>:wa<CR>:make -j 8 -z 2>/dev/null ; f12<CR>
+
+set fileencodings=ucs-bom,utf-8,latin1
+set ls=2
+set ruler
+set showmode
+set nocompatible
+set sidescroll=1
+set sidescrolloff=10
+set nolinebreak
+set nobackup
+
+set incsearch
+set hlsearch
+set tabstop=8
+set softtabstop=4
+set shiftwidth=4
+set expandtab
+set autoindent
+set ignorecase
+
+" Absatz auf ___ Spalten umbrechen
+" nmap <C-j> }!{fmt -80 -u<CR>
+
+map! <C-k> <C-o>d$
+map! <C-e> <C-o>dw
+
+" Check_MK-Dateien erkennen
+autocmd BufRead *.mk set syntax=python filetype=python
+autocmd BufRead *.wsgi set syntax=python filetype=python
+autocmd BufRead *.twig set syntax=html filetype=html
+autocmd BufRead *.lektion set syntax=tex filetype=tex
+
+" Statusbar
+set laststatus=2
+set statusline=
+set statusline+=%-3.3n\                      " buffer number
+set statusline+=%f\                          " file name
+set statusline+=%h%m%r%w                     " flags
+set statusline+=\[%{strlen(&ft)?&ft:'none'}, " filetype
+set statusline+=%{&encoding},                " encoding
+set statusline+=%{&fileformat}]              " file format
+set statusline+=%=                           " right align
+set statusline+=0x%-8B\                      " current char
+set statusline+=%-10.(%l,%c%V%)\ %<%P        " offset
+
+" Trailing Spaces hervorheben
+highlight ExtraWhitespace ctermbg=cyan
+
+highlight IncSearch ctermbg=green guibg=green
+highlight Search ctermbg=red ctermfg=white term=bold
+
+" The following alternative may be less obtrusive.
+" Show trailing whitespace:
+autocmd BufWinEnter * match ExtraWhitespace /\s\+$/
+
+" Show trailing whitespace and spaces before a tab:
+match ExtraWhitespace /\s\+$\| \+\ze\t/
+
+
+" Faltung von wato.py
+set foldenable
+" map <F7> :set foldlevel=0<CR>
+" map <F8> :set foldlevel=1<CR>
+" set foldmethod=marker
+" set foldmarker=#\ \ \ .,#.
+map <F7> :set foldlevel=0<CR>
+map <F8> :set foldlevel=1<CR>
+" set foldmethod=expr
+" set foldexpr=GetPotionFold(v:lnum)
+
+
+" Zeile vom letzten mal merken
+autocmd BufReadPost *
+ \ if line("'\"") > 0 && line("'\"") <= line("$") |
+ \   exe "normal g`\"" |
+ \ endif
+
+
+" Markieren langer zeilen
+highlight ColorColumn ctermbg=magenta
+call matchadd('ColorColumn', '\%101v', 80)
+
+com! FormatJSON %!python -m json.tool
+"set listchars=eol:¬,tab:>·,trail:~,extends:>,precedes:<,space:␣
+set listchars=tab:>·,extends:>,precedes:<
+set list
+
+let g:netrw_banner = 0
+let g:netrw_liststyle = 3
+let g:netrw_browse_split = 4
+let g:netrw_altv = 1
+let g:netrw_winsize = 15
+
+" Plugins
+execute pathogen#infect()
+set statusline+=%#warningmsg#
+set statusline+=%{SyntasticStatuslineFlag()}
+set statusline+=%*
+
+nnoremap  <c-j> /<++><CR><Esc>cf>
+noremap <Up> <Nop>
+noremap <Down> <Nop>
+noremap <Left> <Nop>
+noremap <Right> <Nop>
