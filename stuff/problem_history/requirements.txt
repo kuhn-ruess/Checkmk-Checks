@@ -1,0 +1,2 @@
+pkg-resources==0.0.0
+python-mk-livestatus==0.4
