@@ -7,8 +7,12 @@ sockets = [
 
 num_services = 0
 num_hosts = 0
+extra_headers = [
+    'ResponseHeader: fixed16',
+    'KeepAlive: on',
+]
 for socket in sockets:
-    ls = Socket(socket)
+    ls = Socket(socket, extra_headers)
     num_hosts += len(ls.hosts.columns('name').filter('state = 2').call())
     num_services += len(ls.services.columns('description').filter('state = 2').call())
 
