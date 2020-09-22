@@ -1,2 +1,1 @@
-pkg-resources==0.0.0
-python-mk-livestatus==0.4
+-e git+https://github.com/Bastian-Kuhn/python-mk-livestatus.git@a984ab3d10803e74d55304c61b538f077aaf9508#egg=python_mk_livestatus
