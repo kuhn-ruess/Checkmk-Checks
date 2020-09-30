@@ -65,8 +65,8 @@ num_hosts = 0
 for peer in sockets:
     services = call(peer, prepare_request(filter_services))
     num_services += len(services)
-    
+
     hosts = call(peer, prepare_request(filter_hosts))
     num_hosts += len(hosts)
 
-print("0 dashboard services={0};hosts={1} Found Errors on {1} Hosts and {0} Services".format(num_services, num_hosts))
+print("0 dashboard services={0}|hosts={1} Found Errors on {1} Hosts and {0} Services".format(num_services, num_hosts))
