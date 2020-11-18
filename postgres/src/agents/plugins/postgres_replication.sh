@@ -1,13 +1,12 @@
-if su - postgres -c 'psql -V' | grep '(PostgreSQL) 10'; then
-    DIFF=pg_wal_lsn_diff
-    LAST_LOC=pg_last_wal_receive_lsn
-    CURRENT_LOC=pg_current_wal_lsn
-fi
-
-if su - postgres -c 'psql -V' | grep '(PostgreSQL) 9'; then
+psql_version=$(su - postgres -c 'psql -V' | cut -d " " -f3)
+if [ ${psql_version%\.*} -eq 9 ]; then
     DIFF=pg_xlog_location_diff
     LAST_LOC=pg_last_xlog_receive_location
     CURRENT_LOC=pg_current_xlog_location
+else
+    DIFF=pg_wal_lsn_diff
+    LAST_LOC=pg_last_wal_receive_lsn
+    CURRENT_LOC=pg_current_wal_lsn
 fi
 
 echo "<<<postgres_replication>>>"
