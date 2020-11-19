@@ -7,6 +7,6 @@
  'name': 'postgres_replication',
  'num_files': 4,
  'title': u'PostgreSQL Replication',
- 'version': '1.1.0',
+ 'version': '1.2.0',
  'version.min_required': '1.6.0',
  'version.packaged': '1.6.0'}
