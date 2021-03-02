@@ -26,7 +26,6 @@ register_check_parameters(
             ( "average",
                 Integer(
                     title = _("Averaging on:"),
-                    label = _("Averaging on"),
                     maxvalue = 144,
                     unit = "minutes",
                     default_value = 15
@@ -46,7 +45,6 @@ register_check_parameters(
             ("jobs_levels",
                 Tuple(
                     title = _("Levels for Jobs"),
-                    label = _("Levels for Jobs"),
                     elements = [
                         Integer(title = _("Warning at:" ), maxvalue = 1000000),
                         Integer(title = _("Critical at:"), maxvalue = 1000000),
@@ -67,7 +65,6 @@ register_check_parameters(
             ("users_levels",
                 Tuple(
                     title = _("Levels for Users"),
-                    label = _("Levels for Users"),
                     elements = [
                         Integer(title = _("Warning at:" ), maxvalue = 1000000),
                         Integer(title = _("Critical at:"), maxvalue = 1000000),
@@ -88,7 +85,6 @@ register_check_parameters(
             ("tcp_connections_levels",
                 Tuple(
                     title = _("Levels for tcp_connections"),
-                    label = _("Levels for tcp_connections"),
                     elements = [
                         Integer(title = _("Warning at:" ), maxvalue = 100000000),
                         Integer(title = _("Critical at:"), maxvalue = 100000000),

@@ -10,6 +10,6 @@
  'name': 'AS400',
  'num_files': 6,
  'title': u'AS/400 Checks',
- 'version': '2.0',
- 'version.min_required': '1.2.8',
- 'version.packaged': '1.5.0p3'}
+ 'version': '2.1',
+ 'version.min_required': '2.0.0',
+ 'version.packaged': '2.0.0'}

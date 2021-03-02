@@ -44,7 +44,7 @@ def usage():
     print()
     print("OPERATIONS:")
     print(" - pack (Create MKP File)")
-    print(" - unpack (Get MKP Source")
+    #print(" - unpack (Get MKP Source")
     print()
     print("PACKAGENAME:")
     print(" - e.g. namexy is  ./namexy/src")
