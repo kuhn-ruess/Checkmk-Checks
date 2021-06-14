@@ -1,0 +1,129 @@
+#!/usr/bin/env python3
+"""
+Cohesity Checks
+"""
+import sys
+import datetime
+import json
+import requests
+import urllib3
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+def usage():
+    """
+    Print Usage
+    """
+    print("Cohesity Special Agent for Checkmk")
+    print("./agent_cohesity.py <VIP> <USERNAME> <PASSWORD>")
+    sys.exit(0)
+
+# Simple Argparse does the job
+if len(sys.argv) != 4:
+    usage()
+
+CLUSTER_VIP = sys.argv[1]
+USERNAME = sys.argv[2]
+PASSWORD = sys.argv[3]
+API_URL = f'https://{CLUSTER_VIP}/irisservices/api/v1'
+
+
+def get_header():
+    """
+    Cluster Status
+    """
+
+    creds = json.dumps({
+        "password": PASSWORD,
+        "username": USERNAME
+    })
+
+    header = {
+        'accept': 'application/json',
+        'content-type': 'application/json'}
+
+    url = API_URL + '/public/accessTokens'
+
+    # Login
+    try:
+        response = requests.post(
+            url, data=creds, headers=header, verify=False)
+    except APIException as exp:
+        print(f"POST Request Error {exp}")
+        sys.exit(1)
+
+    if response != '' and response.status_code == 201:
+        access_token = response.json()['accessToken']
+        token_type = response.json()['tokenType']
+        header['authorization'] = token_type + ' ' + access_token
+        return header
+    else:
+        print("Cannot get Token {}".format(response.json()))
+        sys.exit(1)
+
+HEADER = get_header()
+
+def get_url(url):
+    # Get Cluster Status
+    try:
+        response = requests.get(
+            API_URL + url,
+            headers=HEADER,
+            verify=False)
+    except APIException as exp:
+        print(f"Cannot get Clusterstatus {exp}")
+        sys.exit(1)
+    return response.json()
+
+def get_cluster_status():
+    response_json = get_url('/nexus/cluster/status')
+    print("<<<cohesity_node_status>>>")
+    for node in response_json['nodeStatus']:
+        failed_services = []
+        ok_services = []
+        if node['serviceStatus']:
+            for service in node['serviceStatus']:
+                service_name = service['name']
+                if len(service['processIds']) > 1:
+                    ok_services.append(service_name)
+                else:
+                    failed_services.append(service_name)
+        print("{} failed {}".format(node['hostname'], ",".join(failed_services)))
+        print("{} ok {}".format(node['hostname'], ",".join(ok_services)))
+
+def get_storage():
+    """
+    Get Storage Information
+    """
+    print("<<<cohesity_storage_usage>>>")
+    for key, value in get_url('/public/stats/storage').items():
+        print(f"{key} {value}")
+
+def get_alerts():
+    """
+    Query API Alerts
+    """
+    time_to = int(datetime.datetime.utcnow().timestamp())
+    time_from = time_to - 86400
+    url = f"/public/stats/alerts?startTimeUsecs={time_from}&endTimeUsecs={time_to}"
+    print("<<<cohesity_alerts>>>")
+    for key, value in get_url(url).items():
+        print(f"{key} {value}")
+
+def get_unprotected_objects():
+    """
+    Get Unproteced Objects
+    """
+    url = "/public/stats/protectionSummary"
+    print("<<<cohesity_unprotected>>>")
+    for key, value in get_url(url).items():
+        if key == 'statsByEnv':
+            continue
+        print(f"{key} {value}")
+
+
+if __name__ == '__main__':
+    get_cluster_status()
+    get_storage()
+    get_alerts()
+    get_unprotected_objects()
