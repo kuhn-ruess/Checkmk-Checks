@@ -4,7 +4,7 @@ This check is an agent based check, which can do monitoring for base services on
 
 ## Supported checks
 
-1) Alertsy<br>
+1) Alerts<br>
 It will show critical for services with existing alerts. No wato configuration available.
 
 2) Node status<br>
