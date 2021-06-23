@@ -57,7 +57,7 @@ def check_qemu(item, params, info):
                 infotext.append("CPU: %s%%" % (current_cpu))
 
                 current_mem = int(round(float(line[5])))
-                infotext.append("Memory: (assined: %s MB, used: %s%%)" % (assigned_mem, current_mem))
+                infotext.append("Memory: (assigned: %s MB, used: %s%%)" % (assigned_mem, current_mem))
 
                 perfdata.append(("cpu_util", current_cpu))
                 perfdata.append(("memory_usage", current_mem))
