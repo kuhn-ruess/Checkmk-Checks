@@ -1,5 +1,4 @@
-# 2021 Created by Sven Rueß, sritd.de
-
+# 2021 created by Sven Rueß, sritd.de
 
 from .agent_based_api.v1 import (
     register,
@@ -65,3 +64,4 @@ register.check_plugin(
     check_default_parameters={},
     check_ruleset_name="cohesity_node_status",
 )
+

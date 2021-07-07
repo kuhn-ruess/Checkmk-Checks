@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# 2021 created by Bastian Kuhn, bastian-kuhn.de
+# 2021 reworked by Sven Rueß, sritd.de
 """
 Cohesity Checks
 """
@@ -18,7 +20,6 @@ def usage():
     print("./agent_cohesity.py <VIP> <USERNAME> <PASSWORD>")
     sys.exit(0)
 
-# Simple Argparse does the job
 if len(sys.argv) != 4:
     usage()
 
@@ -26,7 +27,6 @@ CLUSTER_VIP = sys.argv[1]
 USERNAME = sys.argv[2]
 PASSWORD = sys.argv[3]
 API_URL = f'https://{CLUSTER_VIP}/irisservices/api/v1'
-
 
 def get_header():
     """
@@ -48,8 +48,8 @@ def get_header():
     try:
         response = requests.post(
             url, data=creds, headers=header, verify=False)
-    except APIException as exp:
-        print(f"POST Request Error {exp}")
+    except OSError:
+        print(f"Connection error to {url}")
         sys.exit(1)
 
     if response != '' and response.status_code == 201:
@@ -70,8 +70,8 @@ def get_url(url):
             API_URL + url,
             headers=HEADER,
             verify=False)
-    except APIException as exp:
-        print(f"Cannot get Clusterstatus {exp}")
+    except OSError:
+        print(f"Cannot get Clusterstatus from {API_URL}{url}")
         sys.exit(1)
     return response.json()
 
@@ -127,3 +127,4 @@ if __name__ == '__main__':
     get_storage()
     get_alerts()
     get_unprotected_objects()
+
