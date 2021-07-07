@@ -1,0 +1,121 @@
+#!/usr/bin/env python3
+# 2021 created by Bastian Kuhn, bastian-kuhn.de
+# 2021 reworked by Sven Rueß, sritd.de
+"""
+Pure Checks
+"""
+import sys
+import urllib3
+import purestorage
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+def usage():
+    """
+    Print Usage
+    """
+    print("Pure Special Agent for Checkmk")
+    print("./agent_pure.py <HOSTNAME> <TOKEN>")
+    sys.exit(0)
+
+if len(sys.argv) != 3:
+    usage()
+
+HOSTNAME = sys.argv[1]
+API_TOKEN = sys.argv[2]
+
+try:
+    FA = purestorage.FlashArray(HOSTNAME, api_token=API_TOKEN)
+except OSError:
+    print(f"Connection error to host {HOSTNAME}")
+    sys.exit(1)
+except ValueError:
+    print(f"unknown internal error")
+    sys.exit(1)
+except purestorage.purestorage.PureError:
+    print(f"purestorge module error")
+    sys.exit(1)
+
+def get_alerts():
+    """"
+    Get alerts
+    """
+    print("<<<pure_fa_errors>>>")
+    crit = 0
+    warn = 0
+    info = 0
+    error = ''
+
+    try:
+        for alert in FA.list_messages(open=True):
+            if "current_severity" in alert.keys():
+                if alert["current_severity"] == "critical":
+                    crit += 1
+                elif alert["current_severity"] == "warning":
+                    warn += 1
+                elif alert["current_severity"] == "info":
+                    info += 1
+                else:
+                    error += f"New severity found: {alert['current_severit']}, "
+
+        print(f"critical {crit}")
+        print(f"warning {warn}")
+        print(f"info {info}")
+        print(f"error {error}")
+    except OSError:
+        print(f"Could not get alerts")
+        sys.exit(1)
+
+def get_hardware():
+    """
+    Get Hardware Infos
+    """
+    print("<<<pure_hardware>>>")
+    # {'details': None,
+    #  'identify': 'off',
+    #  'index': 0,
+    #  'model': 'DFSC1',
+    #  'name': 'SH9.SC0',
+    #  'serial': 'PSMFxxxxxx15',
+    #  'slot': None,
+    #  'speed': None,
+    #  'status': 'ok',
+    #  'temperature': 32,
+    #  'voltage': None},
+
+    try:
+        for comp in FA.list_hardware():
+            if comp['status'] == 'not_installed':
+                continue
+            print(f"{comp['name']} {comp['status']} {comp['serial']}")
+    except OSError:
+        print(f"Could not get hardware")
+        sys.exit(1)
+
+def get_drives():
+    print("<<<pure_drives>>>")
+    #{'status': 'healthy',
+    # 'protocol': 'NVMe',
+    # 'name': 'SH9.BAY13',
+    # 'last_evac_completed':
+    # '1970-01-01T00:00:00Z',
+    # 'details': None,
+    # 'capacity': 1041902862336,
+    # 'type': 'SSD',
+    # 'last_failure': 
+    # '1970-01-01T00:00:00Z'}
+
+    try:
+        for drive in FA.list_drives():
+            if drive['status'] == 'unused':
+                continue
+            print(f"{drive['name']} {drive['status']} {drive['type']} {drive['capacity']}")
+    except OSError:
+        print(f"Could not get drives")
+        sys.exit(1)
+
+if __name__ == '__main__':
+    get_alerts()
+    get_hardware()
+    get_drives()
+
