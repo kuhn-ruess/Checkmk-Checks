@@ -20,14 +20,14 @@ def parse_pure_alerts(string_table):
         return section
 
     for row in string_table:
-        if row.startswith("error"):
-            section["error"] += row[1:]
-        elif row.startswith("critical"):
-            section["crit"] = row[1]
-        elif row.startswith("warning"):
-            section["warn"] = row[1]
-        elif row.startswith("info"):
-            section["info"] = row[1]
+        if row[0].startswith("error"):
+            section["error"] += ", ".join(row[1:])
+        elif row[0].startswith("critical"):
+            section["crit"] = int(row[1])
+        elif row[0].startswith("warning"):
+            section["warn"] = int(row[1])
+        elif row[0].startswith("info"):
+            section["info"] = int(row[1])
 
     return section
 
@@ -44,7 +44,7 @@ def discovery_pure_alerts(section):
 def check_pure_alerts(section):
     if len(section["error"]) > 0:
         yield Result(
-            state=State.UNKN,
+            state=State.UNKNOWN,
             summary=f"UNKN: {section['error']}",
         )
     elif section["crit"] > 0:

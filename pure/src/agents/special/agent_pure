@@ -24,6 +24,9 @@ if len(sys.argv) != 3:
 HOSTNAME = sys.argv[1]
 API_TOKEN = sys.argv[2]
 
+
+HARDWARE_CACHE = {}
+
 try:
     FA = purestorage.FlashArray(HOSTNAME, api_token=API_TOKEN)
 except OSError:
@@ -87,7 +90,12 @@ def get_hardware():
         for comp in FA.list_hardware():
             if comp['status'] == 'not_installed':
                 continue
-            print(f"{comp['name']} {comp['status']} {comp['serial']}")
+            # Filter Drives
+            if not comp['name'].startswith(('CH', 'SH')):
+                print(f"{comp['name']} {comp['status']} {comp['serial']} {comp['speed']} {comp['temperature']} {comp['voltage']} {comp['slot']}")
+            HARDWARE_CACHE[comp['name']] = {
+                'serial': comp['serial'],
+            }
     except OSError:
         print(f"Could not get hardware")
         sys.exit(1)
@@ -109,13 +117,16 @@ def get_drives():
         for drive in FA.list_drives():
             if drive['status'] == 'unused':
                 continue
-            print(f"{drive['name']} {drive['status']} {drive['type']} {drive['capacity']}")
+            details = HARDWARE_CACHE[drive['name']]
+            print(f"{drive['name']} {drive['status']} {details['serial']} {drive['type']} {drive['capacity']}")
     except OSError:
         print(f"Could not get drives")
         sys.exit(1)
 
 if __name__ == '__main__':
     get_alerts()
+    # We need to get Hardware before the drivers, in order
+    # to have more informations for the drives later
     get_hardware()
     get_drives()
 

@@ -11,7 +11,7 @@ from .agent_based_api.v1 import (
 def parse_pure_drives(string_table):
     section = {}
     for row in string_table:
-        (item, status, kind, capacity)  = row
+        (item, status, serial, kind, capacity)  = row
 
         try:
             capacity = int(capacity)
@@ -22,6 +22,7 @@ def parse_pure_drives(string_table):
             'status': status.lower(),
             'type': kind,
             'capacity': capacity,
+            'serial': serial,
         }
     return section
 
@@ -50,11 +51,12 @@ def check_pure_drives(item, section):
 
     if item not in section.keys():
         yield Result(
-            state=State.UNKN,
+            state=State.UNKNOWN,
             summary=f"Item {item} not found",
         )
-
-    txt = f"Storage type: {section[item]['type']}, Capacity: {render_size(section[item]['capacity'])}"
+    
+    data = section[item]
+    txt = f"Storage type: {data['type']}, Serial: {data['serial']}, Capacity: {render_size(data['capacity'])}"
     if section[item]['status'].lower() == 'healthy':
         yield Result(
             state=State.OK,
