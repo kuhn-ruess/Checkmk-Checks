@@ -1,6 +1,6 @@
 {'author': u'Bastian Kuhn',
- 'description': u'Mysql Status Check.\nFull configuration via Wato. \nWorks as Subcheck for the normal check_mk mysql monitoring, so that plugin has to be set up first in order to make this check work. \n\n',
- 'download_url': 'https://bastian-kuhn.de',
+ 'description': u'Mysql Status Check for Checkmk 2.0.\nFull configuration via Wato. \nWorks as Subcheck for the normal check_mk mysql monitoring, so that plugin has to be set up first in order to make this check work. \n\n',
+ 'download_url': 'https://github.com/Bastian-Kuhn/Check_MK-Treasures/tree/master/mysql_status',
  'files': {'checkman': ['mysql.status'],
            'checks': ['mysql.status'],
            'web': ['plugins/perfometer/mysql_status.py',
@@ -8,6 +8,6 @@
  'name': 'mysql_status',
  'num_files': 5,
  'title': u'Check of MySQL Status Variables with Instance Support',
- 'version': '3.0.0',
- 'version.min_required': '1.5.0',
- 'version.packaged': '1.6.0'}
+ 'version': '4.0.0',
+ 'version.min_required': '2.0.0',
+ 'version.packaged': '2.0.0'}
