@@ -30,6 +30,16 @@
 
 # Perf-O-Meter for mysql_status
 
+# issue #24
+from cmk.gui.plugins.views.perfometers import (
+    perfometers,
+    render_perfometer,
+    perfometer_linear,
+    perfometer_logarithmic,
+    perfometer_logarithmic_dual,
+    perfometer_logarithmic_dual_independent,
+)
+
 def perfometer_mysql_status(row, check_command, perf_data):
     color = { 0: "#a4f", 1: "#ff2", 2: "#f22", 3: "#fa2" }[row["service_state"]]
     return "%d" % int(perf_data[0][1]), perfometer_logarithmic(perf_data[0][1], 400, 2, color)
