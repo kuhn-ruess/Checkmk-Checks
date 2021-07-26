@@ -1,5 +1,4 @@
-# 2021 Created by Sven Rueß, sritd.de
-
+# 2021 created by Sven Rueß, sritd.de
 
 from cmk.gui.i18n import _
 from cmk.gui.valuespec import (
@@ -38,3 +37,4 @@ rulespec_registry.register(
         title=lambda: _("Cohesity filesystem size"),
     )
 )
+

@@ -24,6 +24,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+# 2021 reworked by Sven Rueß, sritd.de
 
 
 def agent_cohesity_arguments(params, hostname, ipaddress):
@@ -31,3 +32,4 @@ def agent_cohesity_arguments(params, hostname, ipaddress):
     return args
 
 special_agent_info['cohesity'] = agent_cohesity_arguments
+
