@@ -48,6 +48,7 @@ def check_bacula_jobs(item, params, parsed):
         's' : "Waiting for storage resource",
         'T' : "Terminated normally",
         't' : "Waiting for start time",
+        'W' : "Terminated with Warning",
     }
     state = 1
     message = "Current State: %s" % states.get(data['state'], data['state'])
