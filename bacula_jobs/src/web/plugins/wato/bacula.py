@@ -82,6 +82,7 @@ bacula_job_states = [
     ('s',  "Waiting for storage resource"),
     ('T',  "Terminated normally"),
     ('t',  "Waiting for start time"),
+    ('W',  "Terminated with Warning"),
 ]
 
 register_check_parameters(
