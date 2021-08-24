@@ -1,5 +1,5 @@
-{'author': u'Bastian Kuhn',
- 'description': u'Monitor job status of Bacula / Bareos Backup System. Supports MySQL and PostgreSQL backend databases.',
+{'author': 'Bastian Kuhn',
+ 'description': 'Monitor job status of Bacula / Bareos Backup System. Supports MySQL and PostgreSQL backend databases.',
  'download_url': 'https://bastian-kuhn.de/en/check_mk-treasures/',
  'files': {'agents': ['bakery/bacula', 'plugins/bacula_jobs'],
            'checks': ['bacula_jobs'],
@@ -8,6 +8,6 @@
  'name': 'Bacula_Jobs',
  'num_files': 4,
  'title': u'Bacula / Bareos Jobs Monitoring',
- 'version': '2.0.1',
+ 'version': '2.0.2',
  'version.min_required': '1.2.8',
- 'version.packaged': '1.5.0p9'}
+ 'version.packaged': '2.0.0p9'}
