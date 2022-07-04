@@ -1,0 +1,9 @@
+{'author': u'Bastian Kuhn',
+ 'description': u'Alert if there are now Updates for Antivirus for one hour',
+ 'download_url': 'https://bastian-kuhn.de/en/check_mk-treasures/',
+ 'files': {'agent_based': ['palo_alto_antivirus.py']},
+ 'name': 'palo_alto_antivius',
+ 'title': u'Palo Alto Antivirus',
+ 'version': '1.0.0',
+ 'version.min_required': '2.0.0',
+ 'version.packaged': '2.0.0'}
