@@ -54,7 +54,7 @@ def check_palo_alto_antivirus(section):
 
     timediff = now - last_update
 
-    if timediff > 3600:
+    if timediff > 3600*24:
         yield Result(
             state=State.CRIT,
             summary = f"No Updates for the last {render.timespan(timediff)}"
