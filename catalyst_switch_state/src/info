@@ -1,6 +1,6 @@
-{'author': 'Konstantin Büttner',
+{'author': 'Konstantin Büttner, Bastian Kuhn',
  'description': 'Monitors state and role of Catalyst switches',
- 'download_url': 'http://example.com/catalyst_switch_state/',
+ 'download_url': 'https://github.com/bastian-Kuhn/check_MK-Treasures',
  'files': {'agent_based': ['catalyst_switch_state.py'],
            'agents': [],
            'alert_handlers': [],
@@ -17,7 +17,7 @@
            'web': ['plugins/wato/catalyst_switch_state.py']},
  'name': 'catalyst_switch_state',
  'title': 'Catalyst Switch State',
- 'version': '1.0',
+ 'version': '1.0.1',
  'version.min_required': '2.0.0',
  'version.packaged': '2.0.0p20',
  'version.usable_until': None}
