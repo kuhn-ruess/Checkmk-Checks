@@ -1,6 +1,6 @@
-{'author': 'Konstantin Büttner',
+{'author': 'Konstantin Büttner, Bastian Kuhn',
  'description': 'Operational status for Cisco Distributed Stack ports',
- 'download_url': '',
+ 'download_url': 'https://github.com/Bastian-Kuhn/Check_MK-Treasures/',
  'files': {'agent_based': ['cisco_distr_stack_port.py'],
            'agents': [],
            'alert_handlers': [],
