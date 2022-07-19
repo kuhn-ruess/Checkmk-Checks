@@ -1,6 +1,6 @@
-{'author': 'Konstantin Büttner',
+{'author': 'Konstantin Büttner, Bastian Kuhn',
  'description': 'Catalyst redundancy status',
- 'download_url': '',
+ 'download_url': 'https://github.com/Bastian-Kuhn/Check_MK-Treasures/',
  'files': {'agent_based': ['catalyst_redundancy.py'],
            'agents': [],
            'alert_handlers': [],
