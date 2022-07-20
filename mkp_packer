@@ -62,6 +62,19 @@ def get_tar_info(name, obj):
     tar_info.mode = 0o644
     return tar_info
 
+def pack_suptar(package_name, sub_name, sub_path):
+    """
+    Helper to create the suptar
+    """
+    sub_filename = sub_name + ".tar"
+    sub_obj = io.BytesIO()
+    with tarfile.open(sub_filename, "w:", fileobj=sub_obj) as subtar:
+        subtar.add(package_name+"/src/"+sub_path, "")
+
+    sub_obj.seek(0)
+    tar_info = get_tar_info(sub_filename, sub_obj)
+    return sub_obj, tar_info
+
 
 def pack(package_name):
     """
@@ -73,6 +86,10 @@ def pack(package_name):
     info_dict = eval(open(path+"/info").read())
     info_json = json.dumps(info_dict).encode('utf-8')
 
+    special_dirs = {
+        'agent_based': 'base/plugins/agent_based',
+    }
+
     #Pack Subfolders
     mkp_filename = package_name+"/{name}-{version}.mkp".format(**info_dict)
     with tarfile.open(mkp_filename, "w:gz") as tar:
@@ -83,17 +100,23 @@ def pack(package_name):
         info_obj.seek(0)
         tar_info = get_tar_info('info.json', info_obj)
         tar.addfile(tar_info, info_obj)
-        for sub_path in os.listdir(path):
-            if sub_path in ['info', 'info.json']:
-                continue
-            sub_filename = sub_path + ".tar"
-            sub_obj = io.BytesIO()
-            with tarfile.open(sub_filename, "w:", fileobj=sub_obj) as subtar:
-                subtar.add(package_name+"/src/"+sub_path, "")
 
-            sub_obj.seek(0)
-            tar_info = get_tar_info(sub_filename, sub_obj)
+        # With Checkmk 2.0 the structure changed.
+        # In order to stay compatible this packer first
+        # Handels the old way, and will be improved step by step
+        # for parts in the new way
+        for sub_path in os.listdir(path):
+            if sub_path in ['info', 'info.json', 'base']:
+                continue
+            sub_obj, tar_info = pack_suptar(package_name, sub_path, sub_path)
             tar.addfile(tar_info, sub_obj)
+
+        # New part:
+        for folder_name, path in special_dirs.items():
+            if folder_name in info_dict['files']:
+                sub_obj, tar_info = pack_suptar(package_name, folder_name, path)
+                tar.addfile(tar_info, sub_obj)
+
 
 
 if __name__ == "__main__":
