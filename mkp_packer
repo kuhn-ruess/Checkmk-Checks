@@ -92,6 +92,7 @@ def pack(package_name):
 
     #Pack Subfolders
     mkp_filename = package_name+"/{name}-{version}.mkp".format(**info_dict)
+    found_legacy_folders = []
     with tarfile.open(mkp_filename, "w:gz") as tar:
         tar.add(path+'/info', 'info')
 
@@ -109,11 +110,12 @@ def pack(package_name):
             if sub_path in ['info', 'info.json', 'base']:
                 continue
             sub_obj, tar_info = pack_suptar(package_name, sub_path, sub_path)
+            found_legacy_folders.append(sub_path)
             tar.addfile(tar_info, sub_obj)
 
         # New part:
         for folder_name, path in special_dirs.items():
-            if folder_name in info_dict['files']:
+            if folder_name in info_dict['files'] and folder_name not in found_legacy_folders:
                 sub_obj, tar_info = pack_suptar(package_name, folder_name, path)
                 tar.addfile(tar_info, sub_obj)
 
