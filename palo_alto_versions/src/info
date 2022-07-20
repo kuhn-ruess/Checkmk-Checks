@@ -1,0 +1,14 @@
+{'author': 'Bastian Kuhn',
+ 'description': 'Show Versions for:\n'
+                '\n'
+                '- Thread Version\n'
+                '- Url Filtering Version\n',
+ 'download_url': 'https://github.com/Bastian-Kuhn/Check_MK-Treasures',
+ 'files': {'agent_based': ['palo_alto_threadid.py',
+                           'palo_alto_urlfilter.py']},
+ 'name': 'palto_alto_versions',
+ 'title': 'Collection of Palo alto Version Checks',
+ 'version': '1.0',
+ 'version.min_required': '2.0.0p22',
+ 'version.packaged': '2.0.0p22',
+ 'version.usable_until': None}
