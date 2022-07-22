@@ -9,7 +9,7 @@ from .agent_based_api.v1 import (
     State,
 )
 
-def parse_catalyst_switch_state(string_table):
+def parse_cisco_catalyst_9k_vss_switch_redundancy_state(string_table):
     parsed = {}
     for line in string_table:
         parsed[line[0]] = {
@@ -20,8 +20,8 @@ def parse_catalyst_switch_state(string_table):
 
 
 register.snmp_section(
-    name="catalyst_switch_state",
-    parse_function=parse_catalyst_switch_state,
+    name="cisco_catalyst_9k_vss_switch_redundancy_state",
+    parse_function=parse_cisco_catalyst_9k_vss_switch_redundancy_state,
     fetch=SNMPTree(
         base=".1.3.6.1.4.1.9.9.500.1.2.1.1",
         oids=[
@@ -34,12 +34,12 @@ register.snmp_section(
 )
 
 
-def discover_catalyst_switch_state(section):
+def discover_cisco_catalyst_9k_vss_switch_redundancy_state(section):
     for switch_number, info in section.items():
         yield Service(item=switch_number, parameters={"switch_role" : info["switch_role"]})
 
 
-def check_catalyst_switch_state(item, params, section):
+def check_cisco_catalyst_9k_vss_switch_redundancy_state(item, params, section):
     switch_roles = {
         "1" : "master",
         "2" : "member",
@@ -75,11 +75,11 @@ def check_catalyst_switch_state(item, params, section):
 
 
 register.check_plugin(
-    name="catalyst_switch_state",
-    sections=["catalyst_switch_state"],
+    name="cisco_catalyst_9k_vss_switch_redundancy_state",
+    sections=["cisco_catalyst_9k_vss_switch_redundancy_state"],
     service_name="State Switch %s",
-    discovery_function=discover_catalyst_switch_state,
-    check_function=check_catalyst_switch_state,
+    discovery_function=discover_cisco_catalyst_9k_vss_switch_redundancy_state,
+    check_function=check_cisco_catalyst_9k_vss_switch_redundancy_state,
     check_default_parameters={},
-    check_ruleset_name="catalyst_switch_state",
+    check_ruleset_name="cisco_catalyst_9k_vss_switch_redundancy_state",
 )

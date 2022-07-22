@@ -11,7 +11,7 @@ from .agent_based_api.v1 import (
 
 
 register.snmp_section(
-    name="catalyst_redundancy",
+    name="cisco_catalyst_9k_redundancy",
     fetch=SNMPTree(
             base=".1.3.6.1.4.1.9.9.500.1.1",
             oids=[
@@ -21,11 +21,11 @@ register.snmp_section(
     detect=startswith(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.9.1.2871"),
 )
 
-def discover_catalyst_redundancy(section):
+def discover_cisco_catalyst_9k_redundancy(section):
     yield Service()
 
 
-def check_catalyst_redundancy(section):
+def check_cisco_catalyst_9k_redundancy(section):
     if section[0][0] == "1":
         yield Result(state=State.OK, summary="Stackports form a redundant ring")
     elif section[0][0] == "2":
@@ -33,9 +33,9 @@ def check_catalyst_redundancy(section):
 
 
 register.check_plugin(
-    name="catalyst_redundancy",
-    sections=["catalyst_redundancy"],
+    name="cisco_catalyst_9k_redundancy",
+    sections=["cisco_catalyst_9k_redundancy"],
     service_name="Stack Ring Redundancy",
-    discovery_function=discover_catalyst_redundancy,
-    check_function=check_catalyst_redundancy,
+    discovery_function=discover_cisco_catalyst_9k_redundancy,
+    check_function=check_cisco_catalyst_9k_redundancy,
 )

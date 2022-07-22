@@ -32,11 +32,11 @@ def _parameter_valuespec_catalyst_switch_state():
 
 rulespec_registry.register(
     CheckParameterRulespecWithItem(
-        check_group_name="catalyst_switch_state",
+        check_group_name="cisco_catalyst_9k_vss_switch_redundancy_state",
         group=RulespecGroupCheckParametersNetworking,
         item_spec=lambda: TextAscii(title=_("Switch number")),
         match_type="dict",
         parameter_valuespec=_parameter_valuespec_catalyst_switch_state,
-        title=lambda: _("Catalyst Switch State"),
+        title=lambda: _("Cisco Catalyst 9k redundancy State"),
     )
 )
