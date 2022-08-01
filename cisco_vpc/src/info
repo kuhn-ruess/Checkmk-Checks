@@ -1,6 +1,6 @@
-{'author': 'Konstantin Büttner',
+{'author': 'Konstantin Büttner, Bastian Kuhn',
  'description': 'Suite of checks to monitor Cisco VPC redundancy setups',
- 'download_url': 'http://example.com/cisco_vpc/',
+ 'download_url': 'https://github.com/Bastian-Kuhn/Check_MK-Treasures',
  'files': {'agent_based': ['cisco_vpc_host_link.py',
                            'cisco_vpc_role.py',
                            'cisco_vpc_status.py'],
