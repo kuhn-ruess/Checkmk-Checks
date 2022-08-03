@@ -39,7 +39,7 @@ def check_cohesity_unprotected(section):
     if section["numObjectsUnprotected"] > 0:
         yield Result(
             state=State.CRIT,
-            summary=f"Number of unprotected objects: {len(section['numObjectsUnprotected'])}",
+            summary=f"Number of unprotected objects: {section['numObjectsUnprotected']}",
             details=f"Size of protected objects: {render.bytes(section['protectedSizeBytes'])}"
         )
     else:
