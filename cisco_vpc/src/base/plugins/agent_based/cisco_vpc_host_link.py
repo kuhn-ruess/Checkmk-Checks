@@ -40,7 +40,8 @@ register.snmp_section(
 
 
 def discover_cisco_vpc_host_link(section_cisco_vpc_host_link, section_if64):
-    yield Service()
+    if section_cisco_vpc_host_link and section_if64:
+        yield Service()
 
 
 def _cisco_vpc_host_link_get_if_name(if_idx, section_if64):
