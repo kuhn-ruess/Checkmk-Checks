@@ -161,7 +161,7 @@ def find_loglines(path, searchhost):
                     splited = line.split()
                     if len(splited) <= 2:
                         continue
-                    if splited[1] not in ["INITAL", "SERVICE", "HOST"]:
+                    if splited[1] not in ["INITIAL", "SERVICE", "HOST"]:
                         continue
 
                     message = line.split(":", 1)[1].strip().split(';')
@@ -192,6 +192,9 @@ def write_logfiles(path, hostname, config):
         outfilename = logfile+'-'+hostname
         if logfile.endswith('-'+hostname):
             outfilename = logfile
+        if not os.path.exists(path):
+            os.makedirs(path)
+            os.chown(path, opt_uid, opt_gid)
         with open(path+outfilename, "w+") as outfile:
             verbose("... Write "+path+outfilename)
             for line in lines:
