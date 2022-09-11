@@ -46,10 +46,10 @@ Options:
 """)
 
 
-short_options = 'vs:t:hH:aLPAd'
+short_options = 'vs:t:hH:aLPAdI'
 long_options = [
     'verbose', 'source=', 'target=', 'host=', 'help', 'all',
-    'logfiles', 'perfdata',  'autochecks', 'debug',
+    'logfiles', 'perfdata', 'autochecks', 'debug', 'inventory'
 ]
 
 opt_verbose = False
@@ -192,9 +192,6 @@ def write_logfiles(path, hostname, config):
         outfilename = logfile+'-'+hostname
         if logfile.endswith('-'+hostname):
             outfilename = logfile
-        if not os.path.exists(path):
-            os.makedirs(path)
-            os.chown(path, opt_uid, opt_gid)
         with open(path+outfilename, "w+") as outfile:
             verbose("... Write "+path+outfilename)
             for line in lines:
@@ -215,7 +212,12 @@ def handle_host(hostname): #pylint: disable=too-many-branches, too-many-statemen
         path = 'var/check_mk/core/archive/'
 
         logfile_data = find_loglines(source_site+path, hostname)
-        write_logfiles(target_site+path, hostname, logfile_data)
+
+        target_path = target_site+path
+        if not os.path.exists(target_path):
+            os.makedirs(target_path)
+            os.chown(target_path, opt_uid, opt_gid)
+        write_logfiles(target_path, hostname, logfile_data)
         verbose("...done")
 
 
@@ -236,6 +238,10 @@ def handle_host(hostname): #pylint: disable=too-many-branches, too-many-statemen
 
         verbose("Prepare Inventory History data for {}...".format(hostname))
         path = 'var/check_mk/inventory_archive/'
+        target_path = target_site + path
+        if not os.path.exists(target_path):
+            os.makedirs(target_path)
+            os.chown(target_path, opt_uid, opt_gid)
         source, target = prepare_host_url(hostname, path)
         copy_folder_list.append((source, target))
         verbose("...done")
@@ -243,6 +249,10 @@ def handle_host(hostname): #pylint: disable=too-many-branches, too-many-statemen
     if opt_autochecks:
         verbose("Prepare Autochecks for {}...".format(hostname))
         autochecks_path = 'var/check_mk/autochecks/'
+        target_path = target_site + autochecks_path
+        if not os.path.exists(target_path):
+            os.makedirs(target_path)
+            os.chown(target_path, opt_uid, opt_gid)
         source, target = prepare_host_url(hostname, autochecks_path, '.mk')
         copy_file_list.append((source, target))
         verbose("...done")
@@ -275,7 +285,6 @@ def handle_host(hostname): #pylint: disable=too-many-branches, too-many-statemen
             copyfile(source, target)
             os.chown(target, opt_uid, opt_gid)
         except FileNotFoundError as error:
-            raise
             debug("--> Not Found: {}".format(error))
         except Exception as error:
             debug("--> Error while Copy File: {}, {}->{}".format(error, source, target))
