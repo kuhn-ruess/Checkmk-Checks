@@ -1,0 +1,181 @@
+#!/usr/bin/env python3
+# 2021 created by Bastian Kuhn, bastian-kuhn.de
+# 2021 reworked by Sven Rueß, sritd.de
+# /omd/sites/BIS/local/share/check_mk/agents/special
+"""
+Pure Checks
+"""
+from cgi import print_arguments
+import sys
+import urllib3
+import purestorage
+import purity_fb
+import argparse
+import datetime
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+from purity_fb import PurityFb, ArrayPerformance, rest
+from cmk.gui.plugins.metrics.utils import graph_info, metric_info
+
+def usage():
+	"""
+	Print Usage
+	"""
+	print("Pure Special Agent for Checkmk")
+	print("./agent_pure.py <HOSTNAME> <TOKEN>")
+	sys.exit(0)
+
+if len(sys.argv) != 3:
+	usage()
+
+HOSTNAME = sys.argv[1]
+API_TOKEN = sys.argv[2]
+
+
+HARDWARE_CACHE = {}
+
+try:
+	FA = purestorage.FlashArray(HOSTNAME, api_token=API_TOKEN)
+except OSError:
+	print(f"Connection error to host {HOSTNAME}")
+	sys.exit(1)
+except ValueError:
+	print(f"unknown internal error")
+	sys.exit(1)
+except purestorage.purestorage.PureError:
+	print(f"purestorge module error")
+	sys.exit(1)
+
+def get_alerts():
+	""""
+	Get alerts
+	"""
+	print("<<<pure_fa_errors>>>")
+	crit = 0
+	warn = 0
+	info = 0
+	error = ''
+
+	try:
+		for alert in FA.list_messages(open=True):
+			if "current_severity" in alert.keys():
+				if alert["current_severity"] == "critical":
+					crit += 1
+				elif alert["current_severity"] == "warning":
+					warn += 1
+				elif alert["current_severity"] == "info":
+					info += 1
+				else:
+					error += f"New severity found: {alert['current_severit']}, "
+
+		print(f"critical {crit}")
+		print(f"warning {warn}")
+		print(f"info {info}")
+		print(f"error {error}")
+	except OSError:
+		print(f"Could not get alerts")
+		sys.exit(1)
+
+def get_hardware():
+	"""
+	Get Hardware Infos
+	"""
+	print("<<<pure_hardware>>>")
+	# {'details': None,
+	#  'identify': 'off',
+	#  'index': 0,
+	#  'model': 'DFSC1',
+	#  'name': 'SH9.SC0',
+	#  'serial': 'PSMFxxxxxx15',
+	#  'slot': None,
+	#  'speed': None,
+	#  'status': 'ok',
+	#  'temperature': 32,
+	#  'voltage': None},
+
+	try:
+		for comp in FA.list_hardware():
+			if comp['status'] == 'not_installed':
+				continue
+			# Filter Drives
+			if not comp['name'].startswith(('CH', 'SH')):
+				print(f"{comp['name']} {comp['status']} {comp['serial']} {comp['speed']} {comp['temperature']} {comp['voltage']} {comp['slot']}")
+			HARDWARE_CACHE[comp['name']] = {
+				'serial': comp['serial'],
+			}
+	except OSError:
+		print(f"Could not get hardware")
+		sys.exit(1)
+
+def get_drives():
+	print("<<<pure_drives>>>")
+	#{'status': 'healthy',
+	# 'protocol': 'NVMe',
+	# 'name': 'SH9.BAY13',
+	# 'last_evac_completed':
+	# '1970-01-01T00:00:00Z',
+	# 'details': None,
+	# 'capacity': 1041902862336,
+	# 'type': 'SSD',
+	# 'last_failure': 
+	# '1970-01-01T00:00:00Z'}
+
+	try:
+		for drive in FA.list_drives():
+			if drive['status'] == 'unused':
+				continue
+			details = HARDWARE_CACHE[drive['name']]
+			print(f"{drive['name']} {drive['status']} {details['serial']} {drive['type']} {drive['capacity']}")
+	except OSError:
+		print(f"Could not get drives")
+		sys.exit(1)
+
+if __name__ == '__main__':
+	get_alerts()
+	# We need to get Hardware before the drivers, in order
+	# to have more informations for the drives later
+	get_hardware()
+	get_drives()
+
+import math
+
+def truncate(number, decimals=0):
+	"""
+	Returns a value truncated to a specific number of decimal places.
+	"""
+	if not isinstance(decimals, int):
+		raise TypeError("decimal places must be an integer.")
+	elif decimals < 0:
+		raise ValueError("decimal places has to be 0 or more.")
+	elif decimals == 0:
+		return math.trunc(number)
+
+	factor = 10.0 ** decimals
+	return math.trunc(number * factor) / factor
+
+def list_volumes():
+	print("<<<pure_volumes>>>")
+	try:
+		for volume in FA.list_volumes(names=["*"], space=True):
+			print(f"{volume['name']}  {volume['size']} {volume['total']} {volume['volumes']} {volume['data_reduction']} {volume['total_reduction']} {volume['shared_space']} {volume['thin_provisioning']} {volume['snapshots']}")
+	except OSError:
+		print(f"Could not get volumes")
+		
+if __name__ == '__main__':
+	# We need to get Hardware before the volumers, in order
+	# to have more informations for the volume later
+	#get_hardware()
+	list_volumes()
+
+def list_volumes_performance():
+	print("<<<pure_volumes_performance>>>")
+	try:
+		for perfdata in FA.list_volumes(action='monitor'):
+			print(f"{perfdata['name']} {perfdata['reads_per_sec']} {perfdata['writes_per_sec']} {perfdata['output_per_sec']} {perfdata['input_per_sec']} {perfdata['usec_per_read_op']} {perfdata['usec_per_write_op']}")
+	except OSError:
+		print(f"Could not get performance")
+
+if __name__ == '__main__':
+	# We need to get Hardware before the volumers, in order
+	# to have more informations for the volume later
+	#get_hardware()
+	list_volumes_performance()   
