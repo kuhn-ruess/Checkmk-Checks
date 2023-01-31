@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # 2021 created by Bastian Kuhn, bastian-kuhn.de
 # 2021 reworked by Sven Rueß, sritd.de
+# 2023 reworked by Carlo Kleinloog
 # /omd/sites/BIS/local/share/check_mk/agents/special
 """
 Pure Checks
