@@ -54,7 +54,7 @@ def check_pure_drives(item, section):
             state=State.UNKNOWN,
             summary=f"Item {item} not found",
         )
-    
+        
     data = section[item]
     txt = f"Storage type: {data['type']}, Serial: {data['serial']}, Capacity: {render_size(data['capacity'])}"
     if section[item]['status'].lower() == 'healthy':
@@ -75,4 +75,3 @@ register.check_plugin(
     discovery_function=discovery_pure_drives,
     check_function=check_pure_drives,
 )
-
