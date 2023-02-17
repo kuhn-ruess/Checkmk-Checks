@@ -1,0 +1,29 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# Filesystem DF Mail
+# Bulk: yes
+import pprint
+import os
+from ast import literal_eval
+from cmk.notification_plugins import mail
+
+if __name__ == "__main__":
+
+
+    hostname = os.environ['NOTIFY_HOSTNAME']
+    service_name = os.environ['NOTIFY_SERVICEDESC']
+    omd_root = os.environ['OMD_ROOT']
+    try:
+        if service_name.startswith("Filesystem"):
+            fs_name = service_name.split()[1].strip()
+            inventory = \
+                    literal_eval(open(f"{omd_root}/var/check_mk/inventory/{hostname}").read())['Nodes']['filesystems']['Nodes']['owners']['Table']['Rows']
+            for inventory_fs in inventory:
+                if inventory_fs['Filesystem'] == fs_name:
+                    email = inventory_fs['Owner E-Mail']
+                    os.environ['NOTIFY_CONTACTEMAIL'] = email
+    except Exception as error_obj:
+        print(f"Error: {error_obj}")
+
+
+    mail.main()
