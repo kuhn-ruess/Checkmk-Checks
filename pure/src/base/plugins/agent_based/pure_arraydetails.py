@@ -90,7 +90,6 @@ def check_pure_arraydetails(item, section):
             Snapshots: {render.bytes(fs_snapshots)}",
             )
 # Metrics
-        yield Metric("dedup_ratio", float(dedup_ratio))
         yield Metric("pure_1_datareduction", float(data['data_reduction']))
         yield Metric("pure_2_totalreduction", float(data['total_reduction']))
         yield Metric("pure_3_thinprovisioned", float(fs_thin_provisioning))
@@ -106,7 +105,6 @@ def check_pure_arraydetails(item, section):
             )
 
 # Metrics
-        yield Metric("dedup_ratio", float(dedup_ratio))
         yield Metric("pure_1_datareduction", float(data['data_reduction']))
         yield Metric("pure_2_totalreduction", float(data['total_reduction']))
         yield Metric("pure_3_thinprovisioned", float(fs_thin_provisioning))
