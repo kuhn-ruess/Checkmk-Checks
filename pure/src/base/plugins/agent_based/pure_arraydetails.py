@@ -93,7 +93,7 @@ def check_pure_arraydetails(item, section):
         yield Metric("pure_1_datareduction", float(data['data_reduction']))
         yield Metric("pure_2_totalreduction", float(data['total_reduction']))
         yield Metric("pure_3_thinprovisioned", float(fs_thin_provisioning))
-        yield Metric("pure_4_snaphots", render.bytes(fs_snapshots))
+        yield Metric("pure_4_snaphots", int(fs_snapshots))
     else:
         yield Result(
             state=State.CRIT,
@@ -108,7 +108,7 @@ def check_pure_arraydetails(item, section):
         yield Metric("pure_1_datareduction", float(data['data_reduction']))
         yield Metric("pure_2_totalreduction", float(data['total_reduction']))
         yield Metric("pure_3_thinprovisioned", float(fs_thin_provisioning))
-        yield Metric("pure_4_snaphots", render.bytes(fs_snapshots))
+        yield Metric("pure_4_snaphots", int(fs_snapshots))
         
 register.check_plugin(
     name="pure_arraydetails",
