@@ -79,7 +79,7 @@ def check_pure_arraydetails(item, section):
     fs_provisioning: int = ((data['volumes']))
     fs_thin_provisioning = (data['thin_provisioning'])
     fs_size: int = (data['size'])
-    dedup_ratio = (data['data_reduction'])
+    
     if item in section.keys():
         yield Result(
             state=State.OK,
@@ -93,7 +93,7 @@ def check_pure_arraydetails(item, section):
         yield Metric("pure_1_datareduction", float(data['data_reduction']))
         yield Metric("pure_2_totalreduction", float(data['total_reduction']))
         yield Metric("pure_3_thinprovisioned", float(fs_thin_provisioning))
-        yield Metric("pure_4_snaphots", float(fs_snapshots))
+        yield Metric("pure_4_snaphots", render.bytes(fs_snapshots))
     else:
         yield Result(
             state=State.CRIT,
@@ -108,7 +108,7 @@ def check_pure_arraydetails(item, section):
         yield Metric("pure_1_datareduction", float(data['data_reduction']))
         yield Metric("pure_2_totalreduction", float(data['total_reduction']))
         yield Metric("pure_3_thinprovisioned", float(fs_thin_provisioning))
-        yield Metric("pure_4_snaphots", float(fs_snapshots))
+        yield Metric("pure_4_snaphots", render.bytes(fs_snapshots))
         
 register.check_plugin(
     name="pure_arraydetails",
