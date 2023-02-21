@@ -1,7 +1,7 @@
-# 2021 created by Sven Rueß, sritd.de
-# 2023 reworked by Carlo Kleinloog
-# omd/sites/BIS/local/lib/python3/cmk/base/plugins/agent_based
+# 2021 created by Carlo Kleinloog
+#/omd/sites/BIS/local/lib/python3/cmk/base/plugins/agent_based
 
+from cmk.base.check_api import get_bytes_human_readable, get_percent_human_readable
 from .agent_based_api.v1 import (
     register,
     Service,
@@ -12,48 +12,48 @@ from .agent_based_api.v1 import (
 )
 
 def parse_pure_arraydetails(string_table):
-
     section = {}
     for row in string_table:
-        (item,
-        data_reduction,
-        total_reduction,
-        shared_space,
-        thin_provisioning,
-        snapshots,
-        volumes) = row
-    try:
-        data_reduction = (data_reduction)
-    except ValueError:
-        data_reduction: Literal[0] = 0
-    try:
-        total_reduction = (total_reduction)
-    except ValueError:
-        total_reduction: Literal[0] = 0	 
-    try:
-        shared_space = int(shared_space)
-    except ValueError:
-        shared_space: Literal[0] = 0
-    try:
-        thin_provisioning = (thin_provisioning)
-    except ValueError:
-        thin_provisioning: Literal[0] = 0
-    try:
-        snapshots: int = int(snapshots)
-    except ValueError:
-        snapshots = 0
-    try:
-            volumes = int(volumes)
-    except ValueError:
-            volumes: Literal[0] = 0 
+        (item, data_reduction, total_reduction, shared_space, thin_provisioning, snapshots, volumes, size)  = row
 
-    section[item] = {
+        
+        try:
+            data_reduction = (data_reduction)
+        except ValueError:
+            data_reduction = 0
+        try:
+            total_reduction = (total_reduction)
+        except ValueError:
+            total_reduction = 0		 
+        try:
+            shared_space = int(shared_space)
+        except ValueError:
+            shared_space = 0
+        try:
+            thin_provisioning = (thin_provisioning)
+        except ValueError:
+            thin_provisioning = 0
+        try:
+            snapshots = int(snapshots)
+        except ValueError:
+            snapshots = 0
+        try:
+            volumes = int(volumes)
+        except ValueError:
+            volumes = 0 
+        try:
+            size = int(size)
+        except ValueError:
+            size = 0 
+
+        section[item] = {
             'data_reduction': data_reduction,
             'total_reduction': total_reduction,
             'shared_space': shared_space,
             'thin_provisioning': thin_provisioning,
             'snapshots': snapshots,
             'volumes': volumes,
+            'size': size,
         }
     return section
 
@@ -76,20 +76,37 @@ def check_pure_arraydetails(item, section):
         )
 
     data = section[item]
+    fs_snapshots: int = (data['snapshots'])
+    fs_provisioning: int = ((data['volumes']))
+    fs_thin_provisioning = (data['thin_provisioning'])
+    fs_size: int = (data['size'])
     dedup_ratio = (data['data_reduction'])
-    perfdata = True
     if item in section.keys():
         yield Result(
             state=State.OK,
-            summary=f"Data Reduction: {data['data_reduction']} to 1, Total reduction: {(data['total_reduction'])} to 1, Shared Space: {render.bytes(data['shared_space'])}, Thin Provisioned: {data['thin_provisioning']}, Snapshots: {render.bytes(data['snapshots'])}",
-            details=f"Used after deduplication: {render.bytes(data['volumes'])}",
-        )
+            summary=f"Provisioned Size: {get_bytes_human_readable(fs_size)}, Used after deduplication: {render.bytes(fs_provisioning)}",
+            details = f"Data Reduction: {data['data_reduction']} to 1 \n \
+            Total reduction: {data['total_reduction']} to 1 \n \
+            Thin Provisioned: {fs_thin_provisioning} \n \
+            Snapshots: {render.bytes(fs_snapshots)}",
+            )
+# Metrics
+        yield Metric("dedup_ratio", float(dedup_ratio))
+        yield Metric("fs_provisioning", int(fs_provisioning))
+    else:
+        yield Result(
+            state=State.CRIT,
+            summary=f"Provisioned Size: {get_bytes_human_readable(fs_size)}, Used after deduplication: {render.bytes(fs_provisioning)}",
+            details = f"Data Reduction: {data['data_reduction']} to 1 \n \
+            Total reduction: {data['total_reduction']} to 1 \n \
+            Thin Provisioned: {fs_thin_provisioning} \n \
+            Snapshots: {render.bytes(fs_snapshots)}",
+            )
 
 # Metrics
-    if perfdata is True:
         yield Metric("dedup_ratio", float(dedup_ratio))
-
-
+        yield Metric("fs_provisioning", int(fs_provisioning))
+        
 register.check_plugin(
     name="pure_arraydetails",
     service_name="Filesystem %s Details",

@@ -13,7 +13,6 @@ import purestorage
 import argparse
 import datetime
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-from purity_fb import PurityFb, ArrayPerformance, VersionResponse, rest
 from cmk.gui.i18n import _
 from cmk.gui.plugins.metrics.utils import graph_info, metric_info
 
@@ -180,7 +179,7 @@ def get_volumes():
 #wbw = input_per_sec
 #rbw = output_per_sec
 #wiops = writes_per_sec
-#riops = reads_per_sec
+#riops = reads_per_sec	
 
 def get_arrayperformance():
     print("<<<pure_arrayperformance>>>")
@@ -194,7 +193,7 @@ def get_arraydetails():
     print("<<<pure_arraydetails>>>")
     try:
         for details in FA.list_volumes(names=["*"], space=True):
-            print(f"{details['name']} {details['data_reduction']} {details['total_reduction']} {details['shared_space']} {details['thin_provisioning']} {details['snapshots']} {details['volumes']}")
+            print(f"{details['name']} {details['data_reduction']} {details['total_reduction']} {details['shared_space']} {details['thin_provisioning']} {details['snapshots']} {details['volumes']} {details['size']}")
     except OSError:
         print(f"Could not get array volume details")
 

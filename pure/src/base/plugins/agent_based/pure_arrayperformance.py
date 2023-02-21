@@ -1,5 +1,4 @@
-# 2021 created by Sven Rueß, sritd.de
-# 2023 reworked by Carlo Kleinloog
+# 2021 created by Carlo Kleinloog
 #/omd/sites/BIS/local/lib/python3/cmk/base/plugins/agent_based
 
 from .agent_based_api.v1 import (
@@ -14,13 +13,7 @@ from .agent_based_api.v1 import (
 def parse_pure_arrayperformance(string_table):
     section = {}
     for row in string_table:
-        (item,
-        reads_per_sec,
-        writes_per_sec,
-        output_per_sec,
-        input_per_sec,
-        usec_per_read_op,
-        usec_per_write_op)  = row
+        (item, reads_per_sec, writes_per_sec, output_per_sec, input_per_sec, usec_per_read_op, usec_per_write_op)  = row
 
         section[item] = {
             'reads_per_sec': reads_per_sec,
@@ -65,7 +58,7 @@ def check_pure_arrayperformance(item, section):
             Flash Volume: Yes")
 
 # Metrics
-    if perfdata is True:
+    if perfdata == True:
         yield Metric("disk_read_ios", int(disk_read_ios))
         yield Metric("disk_write_ios", int(disk_write_ios))
         yield Metric("disk_read_throughput", int(disk_read_throughput))
@@ -75,7 +68,6 @@ def check_pure_arrayperformance(item, section):
         state = State.OK
         message = f"Read: {render.bytes(data['output_per_sec'])}, Write: {render.bytes(data['input_per_sec'])}, Read operations: {data['reads_per_sec']}/s, Write operations: {data['writes_per_sec']}/s"
         yield Result(state=State(state), summary=message)
-
 
 register.check_plugin(
     name="pure_arrayperformance",
