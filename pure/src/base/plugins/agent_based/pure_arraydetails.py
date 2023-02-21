@@ -1,6 +1,5 @@
 # 2021 created by Carlo Kleinloog
 #/omd/sites/BIS/local/lib/python3/cmk/base/plugins/agent_based
-
 from cmk.base.check_api import get_bytes_human_readable, get_percent_human_readable
 from .agent_based_api.v1 import (
     register,
@@ -92,7 +91,10 @@ def check_pure_arraydetails(item, section):
             )
 # Metrics
         yield Metric("dedup_ratio", float(dedup_ratio))
-        yield Metric("fs_provisioning", int(fs_provisioning))
+        yield Metric("pure_1_datareduction", float(data['data_reduction']))
+        yield Metric("pure_2_totalreduction", float(data['total_reduction']))
+        yield Metric("pure_3_thinprovisioned", float(fs_thin_provisioning))
+        yield Metric("pure_4_snaphots", float(fs_snapshots))
     else:
         yield Result(
             state=State.CRIT,
@@ -105,7 +107,10 @@ def check_pure_arraydetails(item, section):
 
 # Metrics
         yield Metric("dedup_ratio", float(dedup_ratio))
-        yield Metric("fs_provisioning", int(fs_provisioning))
+        yield Metric("pure_1_datareduction", float(data['data_reduction']))
+        yield Metric("pure_2_totalreduction", float(data['total_reduction']))
+        yield Metric("pure_3_thinprovisioned", float(fs_thin_provisioning))
+        yield Metric("pure_4_snaphots", float(fs_snapshots))
         
 register.check_plugin(
     name="pure_arraydetails",
