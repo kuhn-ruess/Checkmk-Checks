@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+from cmk.gui.plugins.wato.notifications import NotificationParameterMail
+from cmk.gui.plugins.wato.utils import (
+    notification_parameter_registry,
+    )
+
 from cmk.gui.i18n import _
 from cmk.gui.valuespec import (
     DropdownChoice,
@@ -30,3 +35,13 @@ rulespec_registry.register(
         name="agent_config:df_inventory",
         valuespec=_valuespec,
     ))
+
+
+@notification_parameter_registry.register
+class NotificationParameterRbMail(NotificationParameterMail):
+
+    @property
+    def ident(self) -> str:
+        return "df_mail"
+
+
