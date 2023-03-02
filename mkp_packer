@@ -115,7 +115,7 @@ def pack(package_name):
 
         # New part:
         for folder_name, path in special_dirs.items():
-            if folder_name in info_dict['files'] and folder_name not in found_legacy_folders:
+            if (folder_name in info_dict['files'] and info_dict['files'][folder_name]) and folder_name not in found_legacy_folders:
                 sub_obj, tar_info = pack_suptar(package_name, folder_name, path)
                 tar.addfile(tar_info, sub_obj)
 
