@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+# Kentix SMS Gateway
+# Bulk: yes
+
+import requests
+import sys
+import pprint
+
+from cmk.notification_plugins import utils
+
+bulk_mode = "--bulk" in sys.argv
+
+def get_hosts_from_bulk_contexts(contexts):
+    hosts = set([])
+    for context in contexts:
+        hosts.add(context["HOSTNAME"])
+    return hosts
+
+
+def normalize_pager_number(pager_number):
+    return requests.utils.quote(pager_number.replace(" ", ""))
+
+
+def send_sms(manager_ip, key, pager_number, text):
+    url = "https://%s/php/sms_gateway.php?key=%s&recipients=%s&message=%s" % (manager_ip, key, pager_number, text)
+    response = requests.get(url)
+    status_code = response.status_code
+    if status_code == 200:
+        return
+    elif status_code == 403:
+        sys.stderr.write("Wrong SMS gateway password\n")
+    elif status_code == 404:
+        sys.stderr.write("SMS gateway not active\n")
+    elif status_code == 900:
+        sys.stderr.write("SIM card was not recognized\n")
+    elif status_code == 901:
+        sys.stderr.write("GSM modem was not detected\n")
+    elif status_code == 902:
+        sys.stderr.write("SIM card is locked\n")
+    exit(2)
+
+    
+def main():
+    if bulk_mode:
+        parameters, contexts = utils.read_bulk_contexts()
+        key = utils.retrieve_from_passwordstore(parameters["PARAMETER_PASSWORD"])
+        pager_number = normalize_pager_number(contexts[0]["CONTACTPAGER"]) 
+        manager_ip = parameters["PARAMETER_IPADDRESS"]
+        text = requests.utils.quote(utils.get_bulk_notification_subject(contexts, get_hosts_from_bulk_contexts(contexts)))
+    else:
+        context = utils.collect_context()
+        key = utils.retrieve_from_passwordstore(context["PARAMETER_PASSWORD"])
+        pager_number = normalize_pager_number(context["CONTACTPAGER"]) 
+        manager_ip = context["PARAMETER_IPADDRESS"]
+        text = requests.utils.quote(utils.substitute_context(context["PARAMETER_TEMPLATE_TEXT"], context))
+    send_sms(
+        manager_ip=manager_ip,
+        key=key,
+        pager_number=pager_number,
+        text=text,
+    )
+
+
+if __name__ == "__main__":
+    main()
