@@ -1,6 +1,7 @@
-# 2021 created by Sven Rueß, sritd.de
-# 2023 reworked by Carlo Kleinloog
-# omd/sites/BIS/local/lib/python3/cmk/base/plugins/agent_based
+
+#2023 created by Carlo Kleinloog
+#/omd/sites/BIS/local/lib/python3/cmk/base/plugins/agent_based
+from cmk.base.check_api import get_bytes_human_readable, get_percent_human_readable
 
 from .agent_based_api.v1 import (
     register,
@@ -12,6 +13,7 @@ from .agent_based_api.v1 import (
 )
 
 def parse_pure_arraydetails(string_table):
+
 
     section = {}
     for row in string_table:
@@ -54,6 +56,7 @@ def parse_pure_arraydetails(string_table):
             'thin_provisioning': thin_provisioning,
             'snapshots': snapshots,
             'volumes': volumes,
+            'size': size,
         }
     return section
 
@@ -76,19 +79,40 @@ def check_pure_arraydetails(item, section):
         )
 
     data = section[item]
-    dedup_ratio = (data['data_reduction'])
-    perfdata = True
+    fs_snapshots:int=data['snapshots']
+    fs_provisioning:int=data['volumes']
+    fs_thin_provisioning=data['thin_provisioning']
+    fs_size:int=data['size']
+
     if item in section.keys():
         yield Result(
             state=State.OK,
-            summary=f"Data Reduction: {data['data_reduction']} to 1, Total reduction: {(data['total_reduction'])} to 1, Shared Space: {render.bytes(data['shared_space'])}, Thin Provisioned: {data['thin_provisioning']}, Snapshots: {render.bytes(data['snapshots'])}",
-            details=f"Used after deduplication: {render.bytes(data['volumes'])}",
-        )
+            summary=f"Provisioned Size: {get_bytes_human_readable(fs_size)}, Used after deduplication: {render.bytes(fs_provisioning)}",
+            details = f"Data Reduction: {data['data_reduction']} to 1 \n \
+            Total reduction: {data['total_reduction']} to 1 \n \
+            Thin Provisioned: {fs_thin_provisioning} \n \
+            Snapshots: {render.bytes(fs_snapshots)}",
+            )
+# Metrics
+        yield Metric("pure_1_datareduction", float(data['data_reduction']))
+        yield Metric("pure_2_totalreduction", float(data['total_reduction']))
+        yield Metric("pure_3_thinprovisioned", float(fs_thin_provisioning))
+        yield Metric("pure_4_snaphots", int(fs_snapshots))
+    else:
+        yield Result(
+            state=State.CRIT,
+            summary=f"Provisioned Size: {get_bytes_human_readable(fs_size)}, Used after deduplication: {render.bytes(fs_provisioning)}",
+            details = f"Data Reduction: {data['data_reduction']} to 1 \n \
+            Total reduction: {data['total_reduction']} to 1 \n \
+            Thin Provisioned: {fs_thin_provisioning} \n \
+            Snapshots: {render.bytes(fs_snapshots)}",
+            )
 
 # Metrics
-    if perfdata is True:
-        yield Metric("dedup_ratio", float(dedup_ratio))
-
+        yield Metric("pure_1_datareduction", float(data['data_reduction']))
+        yield Metric("pure_2_totalreduction", float(data['total_reduction']))
+        yield Metric("pure_3_thinprovisioned", float(fs_thin_provisioning))
+        yield Metric("pure_4_snaphots", int(fs_snapshots))
 
 register.check_plugin(
     name="pure_arraydetails",
