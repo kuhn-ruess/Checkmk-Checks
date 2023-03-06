@@ -13,6 +13,7 @@ import purestorage
 import argparse
 import datetime
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+from purity_fb import PurityFb, ArrayPerformance, VersionResponse, rest
 from cmk.gui.i18n import _
 from cmk.gui.plugins.metrics.utils import graph_info, metric_info
 
@@ -164,6 +165,7 @@ def get_volumes():
     print("<<<df>>>")
     try:
         for volume in FA.list_volumes(names=["*"], space=True):
+
             fs_used = (int(volume['volumes']) + int(volume['snapshots']))
             fs_free = (int(volume['size']) - int(volume['volumes']) - (volume['snapshots']))
             print(f"{volume['name']} {int(volume['size'])} {int(fs_used)} {int(fs_free)} / {volume['name']}")
@@ -183,6 +185,7 @@ def get_arraydetails():
     try:
         for details in FA.list_volumes(names=["*"], space=True):
             print(f"{details['name']} {details['data_reduction']} {details['total_reduction']} {details['shared_space']} {details['thin_provisioning']} {details['snapshots']} {details['volumes']} {details['size']}")
+
     except OSError:
         print(f"Could not get array volume details")
 
