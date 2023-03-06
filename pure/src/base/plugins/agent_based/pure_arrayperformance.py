@@ -1,4 +1,4 @@
-# 2021 created by Carlo Kleinloog
+#2023 created by Carlo Kleinloog
 #/omd/sites/BIS/local/lib/python3/cmk/base/plugins/agent_based
 
 from .agent_based_api.v1 import (
@@ -44,13 +44,13 @@ def check_pure_arrayperformance(item, section):
         )
 
     data = section[item]
-    disk_read_ios = (data['reads_per_sec'])
-    disk_write_ios = (data['writes_per_sec'])
-    disk_read_throughput = (data['output_per_sec'])
-    disk_write_throughput = (data['input_per_sec'])
-    disk_read_responsetime = (data['usec_per_read_op'])
-    disk_write_responsetime = (data['usec_per_write_op'])
-    perfdata = True
+    disk_read_ios=data['reads_per_sec']
+    disk_write_ios=data['writes_per_sec']
+    disk_read_throughput=data['output_per_sec']
+    disk_write_throughput=data['input_per_sec']
+    disk_read_responsetime=data['usec_per_read_op']
+    disk_write_responsetime=data['usec_per_write_op']
+    perfdata=True
 
     if item in section.keys():
         yield Result(state=State.OK, notice = f"Read latency: {data['reads_per_sec']}\n \
@@ -58,15 +58,15 @@ def check_pure_arrayperformance(item, section):
             Flash Volume: Yes")
 
 # Metrics
-    if perfdata == True:
+    if perfdata is True:
         yield Metric("disk_read_ios", int(disk_read_ios))
         yield Metric("disk_write_ios", int(disk_write_ios))
         yield Metric("disk_read_throughput", int(disk_read_throughput))
         yield Metric("disk_write_throughput", int(disk_write_throughput))
         yield Metric("read_latency", int(disk_read_responsetime))
         yield Metric("write_latency", int(disk_write_responsetime))
-        state = State.OK
-        message = f"Read: {render.bytes(data['output_per_sec'])}, Write: {render.bytes(data['input_per_sec'])}, Read operations: {data['reads_per_sec']}/s, Write operations: {data['writes_per_sec']}/s"
+        state=State.OK
+        message=f"Read: {render.bytes(data['output_per_sec'])}, Write: {render.bytes(data['input_per_sec'])}, Read operations: {data['reads_per_sec']}/s, Write operations: {data['writes_per_sec']}/s"
         yield Result(state=State(state), summary=message)
 
 register.check_plugin(
