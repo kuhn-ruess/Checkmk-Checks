@@ -14,42 +14,41 @@ from .agent_based_api.v1 import (
 
 def parse_pure_arraydetails(string_table):
 
-
     section = {}
     for row in string_table:
-        (item,
-        data_reduction,
-        total_reduction,
-        shared_space,
-        thin_provisioning,
-        snapshots,
-        volumes) = row
-    try:
-        data_reduction = (data_reduction)
-    except ValueError:
-        data_reduction: Literal[0] = 0
-    try:
-        total_reduction = (total_reduction)
-    except ValueError:
-        total_reduction: Literal[0] = 0	 
-    try:
-        shared_space = int(shared_space)
-    except ValueError:
-        shared_space: Literal[0] = 0
-    try:
-        thin_provisioning = (thin_provisioning)
-    except ValueError:
-        thin_provisioning: Literal[0] = 0
-    try:
-        snapshots: int = int(snapshots)
-    except ValueError:
-        snapshots = 0
-    try:
-            volumes = int(volumes)
-    except ValueError:
-            volumes: Literal[0] = 0 
+        (item, data_reduction, total_reduction, shared_space, thin_provisioning, snapshots, volumes, size)  = row
 
-    section[item] = {
+
+        try:
+            data_reduction=data_reduction
+        except ValueError:
+            data_reduction=0
+        try:
+            total_reduction=total_reduction
+        except ValueError:
+            total_reduction=0
+        try:
+            shared_space=int(shared_space)
+        except ValueError:
+            shared_space=0
+        try:
+            thin_provisioning=thin_provisioning
+        except ValueError:
+            thin_provisioning=0
+        try:
+            snapshots=int(snapshots)
+        except ValueError:
+            snapshots = 0
+        try:
+            volumes=int(volumes)
+        except ValueError:
+            volumes=0
+        try:
+            size=int(size)
+        except ValueError:
+            size=0
+
+        section[item] = {
             'data_reduction': data_reduction,
             'total_reduction': total_reduction,
             'shared_space': shared_space,

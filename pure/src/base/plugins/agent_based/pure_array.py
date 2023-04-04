@@ -1,14 +1,11 @@
-# 2021 created by Sven Rueß, sritd.de
-# 2023 reworked by Carlo Kleinloog
+#2021 created by Sven Rueß, sritd.de
 #/omd/sites/BIS/local/lib/python3/cmk/base/plugins/agent_based
-
 from .agent_based_api.v1 import (
     register,
     Service,
     Result,
     State,
 )
-
 
 def parse_pure_array(string_table):
     section = {}
@@ -21,7 +18,6 @@ def parse_pure_array(string_table):
             'id': id,
         }
     return section
-
 
 register.agent_section(
     name="pure_array",
@@ -54,7 +50,6 @@ def check_pure_array(item, section):
             summary=f"OK, Storage OS: Purity, Software version: {data['version']}",
             details=f"Software revision: {data['revision']}, Array ID: {data['id']}",
         )
-
 
 register.check_plugin(
     name="pure_array",
