@@ -1,3 +1,4 @@
+
 #2023 created by Carlo Kleinloog
 #/omd/sites/BIS/local/lib/python3/cmk/base/plugins/agent_based
 
@@ -13,7 +14,8 @@ from .agent_based_api.v1 import (
 def parse_pure_arrayperformance(string_table):
     section = {}
     for row in string_table:
-        (item, reads_per_sec, writes_per_sec, output_per_sec, input_per_sec, usec_per_read_op, usec_per_write_op)  = row
+
+        item, reads_per_sec, writes_per_sec, output_per_sec, input_per_sec, usec_per_read_op, usec_per_write_op  = row
 
         section[item] = {
             'reads_per_sec': reads_per_sec,

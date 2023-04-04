@@ -1,6 +1,8 @@
+
 #2023 created by Carlo Kleinloog
 #/omd/sites/BIS/local/lib/python3/cmk/base/plugins/agent_based
 from cmk.base.check_api import get_bytes_human_readable, get_percent_human_readable
+
 from .agent_based_api.v1 import (
     register,
     Service,
@@ -11,6 +13,7 @@ from .agent_based_api.v1 import (
 )
 
 def parse_pure_arraydetails(string_table):
+
     section = {}
     for row in string_table:
         (item, data_reduction, total_reduction, shared_space, thin_provisioning, snapshots, volumes, size)  = row
