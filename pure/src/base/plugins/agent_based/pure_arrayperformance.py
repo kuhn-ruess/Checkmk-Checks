@@ -1,4 +1,3 @@
-
 #2023 created by Carlo Kleinloog
 #/omd/sites/BIS/local/lib/python3/cmk/base/plugins/agent_based
 
@@ -14,7 +13,7 @@ from .agent_based_api.v1 import (
 def parse_pure_arrayperformance(string_table):
     section = {}
     for row in string_table:
-        item, reads_per_sec, writes_per_sec, output_per_sec, input_per_sec, usec_per_read_op, usec_per_write_op  = row
+        (item, reads_per_sec, writes_per_sec, output_per_sec, input_per_sec, usec_per_read_op, usec_per_write_op)  = row
 
         section[item] = {
             'reads_per_sec': reads_per_sec,
@@ -44,7 +43,7 @@ def check_pure_arrayperformance(item, section):
             summary=f"Item {item} not found",
         )
 
-    data = section[item]
+    data=section[item]
     disk_read_ios=data['reads_per_sec']
     disk_write_ios=data['writes_per_sec']
     disk_read_throughput=data['output_per_sec']
@@ -52,7 +51,6 @@ def check_pure_arrayperformance(item, section):
     disk_read_responsetime=data['usec_per_read_op']
     disk_write_responsetime=data['usec_per_write_op']
     perfdata=True
-
 
     if item in section.keys():
         yield Result(state=State.OK, notice = f"Read latency: {data['reads_per_sec']}\n \
@@ -70,7 +68,6 @@ def check_pure_arrayperformance(item, section):
         state=State.OK
         message=f"Read: {render.bytes(data['output_per_sec'])}, Write: {render.bytes(data['input_per_sec'])}, Read operations: {data['reads_per_sec']}/s, Write operations: {data['writes_per_sec']}/s"
         yield Result(state=State(state), summary=message)
-
 
 register.check_plugin(
     name="pure_arrayperformance",

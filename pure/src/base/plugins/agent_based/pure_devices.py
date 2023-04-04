@@ -1,5 +1,5 @@
 # 2021 created by Sven Rueß, sritd.de
-
+#/omd/sites/BIS/local/lib/python3/cmk/base/plugins/agent_based/
 from .agent_based_api.v1 import (
     register,
     Service,
@@ -54,7 +54,7 @@ def check_pure_drives(item, section):
             state=State.UNKNOWN,
             summary=f"Item {item} not found",
         )
-        
+
     data = section[item]
     txt = f"Storage type: {data['type']}, Serial: {data['serial']}, Capacity: {render_size(data['capacity'])}"
     if section[item]['status'].lower() == 'healthy':
