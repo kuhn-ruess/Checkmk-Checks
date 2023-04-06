@@ -31,13 +31,9 @@
 # Perf-O-Meter for mysql_status
 
 # issue #24
-from cmk.gui.plugins.views.perfometers import (
+from cmk.gui.plugins.views.perfometers.utils import (
     perfometers,
-    render_perfometer,
-    perfometer_linear,
     perfometer_logarithmic,
-    perfometer_logarithmic_dual,
-    perfometer_logarithmic_dual_independent,
 )
 
 def perfometer_mysql_status(row, check_command, perf_data):

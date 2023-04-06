@@ -8,6 +8,6 @@
  'name': 'mysql_status',
  'num_files': 5,
  'title': u'Check of MySQL Status Variables with Instance Support',
- 'version': '4.0.0',
+ 'version': '4.0.1',
  'version.min_required': '2.0.0',
  'version.packaged': '2.0.0'}
