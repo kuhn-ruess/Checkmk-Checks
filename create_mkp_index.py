@@ -7,6 +7,8 @@ for infofile in glob.glob('./*/src/info'):
         output.append({
             'title': data['title'],
             'description': data['description'],
+            'version': data['version'],
+            'version_required': data['version.min_required'],
             'mkp': f"{data['name']}/{data['name']}-{data['version']}.mkp"
         })
 
