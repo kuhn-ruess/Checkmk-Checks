@@ -1,6 +1,6 @@
-{'author': 'Konstantin Büttner (Kuhn & Rueß GmbH)',
+{'author': u'Kuhn & Rueß GmbH',
  'description': 'Notifications via Kentix SMS Gateway',
- 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/tree/master/kentix_sms_gateway',
+ 'download_url': 'https://kuhn-ruess.de/en/checkmk_checks.html',
  'files': {'agent_based': [],
            'agents': [],
            'alert_handlers': [],
@@ -18,7 +18,7 @@
            'web': ['plugins/wato/notification_sms_kentix.py']},
  'name': 'kentix_sms_gateway',
  'title': 'Kentix SMS Gateway notification',
- 'version': '1.0',
+ 'version': '1.0.0',
  'version.min_required': '2.1.0p9',
  'version.packaged': '2.1.0',
  'version.usable_until': None}

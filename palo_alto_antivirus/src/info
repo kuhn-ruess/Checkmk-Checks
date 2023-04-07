@@ -1,6 +1,6 @@
-{'author': u'Bastian Kuhn',
+{'author': u'Kuhn & Rueß GmbH',
  'description': u'Alert if there are Updates for Antivirus for one hour',
- 'download_url': 'https://bastian-kuhn.de/en/check_mk-treasures/',
+ 'download_url': 'https://kuhn-ruess.de/en/checkmk_checks.html',
  'files': {'agent_based': ['palo_alto_antivirus.py']},
  'name': 'palo_alto_antivirus',
  'title': u'Palo Alto Antivirus',

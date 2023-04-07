@@ -1,6 +1,6 @@
-{'author': 'Konstantin Büttner',
+{'author': u'Kuhn & Rueß GmbH',
  'description': 'Additional checks based on the mssql_counters section',
- 'download_url': '',
+ 'download_url': 'https://kuhn-ruess.de/en/checkmk_checks.html',
  'files': {'agent_based': ['mssql_counters_access_methods.py',
                            'mssql_counters_connections.py',
                            'mssql_counters_latches.py',
@@ -26,7 +26,7 @@
                    'plugins/wato/mssql_counters_work_files_tables.py']},
  'name': 'mssql_counters_ext',
  'title': 'mssql_counters extra',
- 'version': '1.0',
+ 'version': '1.0.1',
  'version.min_required': '2.1.0',
  'version.packaged': '2.1.0p9',
  'version.usable_until': None}

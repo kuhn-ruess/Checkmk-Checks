@@ -1,6 +1,6 @@
-{'author': 'Bastian Kuhn',
+{'author': u'Kuhn & Rueß GmbH',
  'description': 'Monitor the active sessions agains the configured maxium sessions',
- 'download_url': 'https://github.com/Bastian-Kuhn/Check_MK-Treasures/',
+ 'download_url': 'https://kuhn-ruess.de/en/checkmk_checks.html',
  'files': {'agent_based': ['palo_alto_gp_tunnels.py'],
            'agents': [],
            'alert_handlers': [],
@@ -17,7 +17,7 @@
            'web': []},
  'name': 'palo_alto_gp_tunnels',
  'title': 'PaloAlto Globalprotect Tunnels',
- 'version': '1.0',
+ 'version': '1.0.1',
  'version.min_required': '2.0.0',
  'version.packaged': '2.0.0p20',
  'version.usable_until': None}

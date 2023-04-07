@@ -1,9 +1,9 @@
-{'author': u'Bastian Kuhn',
+{'author': u'Kuhn & Rueß GmbH',
  'description': u'Monitor Output Load on gtec USV Devices',
- 'download_url': 'https://bastian-kuhn.de/en/check_mk-treasures/',
+ 'download_url': 'https://kuhn-ruess.de/en/checkmk_checks.html',
  'files': {'agent_based': ['gtec_usv_load.py']},
  'name': 'gtec_usv_load',
  'title': u'Gtec USV Load',
- 'version': '1.0.0',
+ 'version': '1.0.1',
  'version.min_required': '2.0.0',
  'version.packaged': '2.0.0'}
