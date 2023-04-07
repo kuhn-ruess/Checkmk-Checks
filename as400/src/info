@@ -1,15 +1,23 @@
-{'author': u'Bastian Kuhn',
- 'description': u'AS400 Checks based on https://github.com/kalugen/check_mk-as400_checks',
- 'download_url': 'https://bastian-kuhn.de/en/check_mk-treasures/',
+{'author': u'Kuhn & Rueß GmbH',
+ 'description': '''
+    SNMP Based AS400 Check
+    Following Functions are monitored:
+    - Cpu
+    - Jobs
+    - TCP Connections
+    - Users
+  Based on: https://github.com/kalugen/check_mk-as400_checks
+  ''',
+ 'download_url': 'https://kuhn-ruess.de/en/checkmk_checks.html',
  'files': {'checks': ['as400.include',
                       'as400_cpu',
                       'as400_jobs',
                       'as400_tcp_connections',
                       'as400_users'],
            'web': ['plugins/wato/as400.py']},
- 'name': 'AS400',
+ 'name': 'as400',
  'num_files': 6,
  'title': u'AS/400 Checks',
- 'version': '2.1',
+ 'version': '2.1.1',
  'version.min_required': '2.0.0',
  'version.packaged': '2.0.0'}
