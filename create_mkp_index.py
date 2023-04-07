@@ -6,6 +6,7 @@ for infofile in glob.glob('./*/src/info'):
         data = ast.literal_eval(f.read().strip())
         output.append({
             'title': data['title'],
+            'name': data['name'],
             'description': data['description'],
             'version': data['version'],
             'version_required': data['version.min_required'],
