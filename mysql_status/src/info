@@ -1,13 +1,59 @@
-{'author': u'Bastian Kuhn',
- 'description': u'Mysql Status Check for Checkmk 2.0.\nFull configuration via Wato. \nWorks as Subcheck for the normal check_mk mysql monitoring, so that plugin has to be set up first in order to make this check work. \n\n',
- 'download_url': 'https://github.com/Bastian-Kuhn/Check_MK-Treasures/tree/master/mysql_status',
+{'author': u'Kuhn & Rueß GmbH',
+ 'description': '''
+This Check is based on my mysql status check i created years ago. It now supports the current Checkmk Version and not longer needs a plugin since it works no as subcheck for the normal Checkmk Mysql Monitoring.
+Monitored Vars:
+
+    Aborted_clients
+    Aborted_connects
+    Bytes_received
+    Bytes_sent
+    Compression
+    Connections
+    Created_tmp_disk_tables
+    Created_tmp_files
+    Created_tmp_tables
+    Innodb_buffer_pool_read_requests
+    Innodb_buffer_pool_reads
+    Innodb_buffer_pool_write_requests
+    Innodb_log_waits
+    Innodb_os_log_written
+    Innodb_row_lock_time
+    Innodb_row_lock_waits
+    Key_read_requests
+    Key_reads
+    Key_write_requests
+    Key_writes
+    Qcache_hits
+    Qcache_inserts
+    Qcache_low_mem_prunes
+    Qcache_lowmem_prunes
+    Qcache_not_cached
+    Queries
+    Questions
+    Select_full_join
+    Select_range_check
+    Slave_retried_transactions
+    Slave_running
+    Slow_launch_threads
+    Slow_queries
+    Sort_merge_passes
+    Table_locks_waited
+    Innodb_buffer_pool_pages_free
+    Qcache_free_memory
+    Qcache_free_blocks
+    Key_blocks_unused
+    Threads_cached
+    Open_tables
+    Open_files
+''',
+ 'download_url': 'https://kuhn-ruess.de/en/checkmk_checks.html',
  'files': {'checkman': ['mysql.status'],
            'checks': ['mysql.status'],
            'web': ['plugins/perfometer/mysql_status.py',
                    'plugins/wato/mysql_status.py']},
  'name': 'mysql_status',
  'num_files': 5,
- 'title': u'Check of MySQL Status Variables with Instance Support',
- 'version': '4.0.1',
+ 'title': u'Check for MySQL Status Variables',
+ 'version': '4.0.2',
  'version.min_required': '2.0.0',
  'version.packaged': '2.0.0'}

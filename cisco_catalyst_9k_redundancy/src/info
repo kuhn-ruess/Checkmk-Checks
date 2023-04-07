@@ -1,6 +1,6 @@
-{'author': 'Konstantin Büttner, Bastian Kuhn',
- 'description': '',
- 'download_url': 'https://github.com/Bastian-Kuhn/Check_MK-Treasures/',
+{'author': u'Kuhn & Rueß GmbH',
+ 'description': 'Monitoring for the Cisco Catalyst 9k redundancy',
+ 'download_url': 'https://kuhn-ruess.de/en/checkmk_checks.html',
  'files': {'agent_based': ['cisco_catalyst_9k_redundancy.py'],
            'agents': [],
            'alert_handlers': [],
@@ -17,7 +17,7 @@
            'web': []},
  'name': 'cisco_catalyst_9k_redundancy',
  'title': 'Cisco Catalyst 9K Redundancy check',
- 'version': '1.0.1',
+ 'version': '1.0.2',
  'version.min_required': '2.0.0',
  'version.packaged': '2.0.0p20',
  'version.usable_until': None}

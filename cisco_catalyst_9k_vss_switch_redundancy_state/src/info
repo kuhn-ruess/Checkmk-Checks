@@ -1,6 +1,6 @@
-{'author': 'Konstantin Büttner, Bastian Kuhn',
+{'author': u'Kuhn & Rueß GmbH',
  'description': 'Cisco Catalyst 9000 Series: Monitoring the VSS (Stack-Wise Virtual) State.\nChecks the Roles and Status of each Member Switch.',
- 'download_url': 'https://github.com/bastian-Kuhn/check_MK-Treasures',
+ 'download_url': 'https://kuhn-ruess.de/en/checkmk_checks.html',
  'files': {'agent_based': ['cisco_catalyst_9k_vss_switch_redundancy_state.py'],
            'agents': [],
            'alert_handlers': [],
@@ -17,7 +17,7 @@
            'web': ['plugins/wato/cisco_catalyst_9k_vss_switch_redundancy_state.py']},
  'name': 'cisco_catalyst_9k_vss_switch_redundancy_state',
  'title': 'Cisco Catalyst 9k VSS switch redundancy state',
- 'version': '1.0.1',
+ 'version': '1.0.2',
  'version.min_required': '2.0.0',
  'version.packaged': '2.0.0p20',
  'version.usable_until': None}

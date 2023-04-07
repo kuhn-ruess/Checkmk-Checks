@@ -16,7 +16,7 @@
            'notifications': ['kentix'],
            'pnp-templates': [],
            'web': ['plugins/wato/notification_sms_kentix.py']},
- 'name': 'kentix',
+ 'name': 'kentix_sms_gateway',
  'title': 'Kentix SMS Gateway notification',
  'version': '1.0',
  'version.min_required': '2.1.0p9',
