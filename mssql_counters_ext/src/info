@@ -24,7 +24,7 @@
                    'plugins/wato/mssql_counters_latches.py',
                    'plugins/wato/mssql_counters_memory.py',
                    'plugins/wato/mssql_counters_work_files_tables.py']},
- 'name': 'mssql_counters_ext',
+ 'name': 'MSSQL Extra Counters',
  'title': 'mssql_counters extra',
  'version': '1.0.1',
  'version.min_required': '2.1.0',
