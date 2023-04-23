@@ -12,6 +12,7 @@ for infofile in glob.glob('./*/src/info'):
             'version_required': data['version.min_required'],
             'mkp': f"{data['name']}/{data['name']}-{data['version']}.mkp"
         })
+        print(f"{data['title']}, {data['version']}")
 
 with open('mkp_index.json', 'w') as outfile:
     json.dump(output, outfile)

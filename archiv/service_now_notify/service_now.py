@@ -8,7 +8,7 @@ from requests.auth import HTTPBasicAuth
 #from cmk.notification_plugins import utils
 
 
-API_URL = "https://a1kit.service-now.com/api/x_segh4_cxn/connect/transaction_queue/checkmk/incident/create"
+API_URL = "https://xxxx.service-now.com/api/x_segh4_cxn/connect/transaction_queue/checkmk/incident/create"
 AUTH_USER = ""
 AUTH_PASSWORD = ""
 

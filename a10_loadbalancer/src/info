@@ -7,7 +7,7 @@
  'name': 'a10_loadbalancer',
  'num_files': 3,
  'title': u'A10 Loadbalancer Checks',
- 'version': '1.0.1',
+ 'version': '1.0.2',
  'version.min_required': '1.6.0',
- 'version.packaged': '1.6.0-2020.02.06',
+ 'version.packaged': '1.6.0',
  'version.usable_until': None}

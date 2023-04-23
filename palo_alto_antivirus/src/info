@@ -4,6 +4,6 @@
  'files': {'agent_based': ['palo_alto_antivirus.py']},
  'name': 'palo_alto_antivirus',
  'title': u'Palo Alto Antivirus',
- 'version': '1.0.1',
+ 'version': '1.0.2',
  'version.min_required': '2.0.0',
  'version.packaged': '2.0.0'}

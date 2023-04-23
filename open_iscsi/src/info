@@ -16,7 +16,7 @@
  'name': 'open_iscsi',
  'num_files': 15,
  'title': u'Open-iSCSI session and iSOE host checks',
- 'version': '1.0.0',
+ 'version': '1.0.1',
  'version.min_required': '1.6.0',
- 'version.packaged': '1.6.0-2020.02.06',
+ 'version.packaged': '1.6.0',
  'version.usable_until': None}
