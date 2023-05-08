@@ -79,7 +79,7 @@ register.check_plugin(
     check_ruleset_name="mssql_counters_connections",
     check_default_parameters={
         "user_connections" : (100, 200),
-        "LogInConnects" : (2, 10),
-        "LogOutConnects" : (2, 10),
+        "LogInConnects" : (2.0, 10.0),
+        "LogOutConnects" : (2.0, 10.0),
     },
 )

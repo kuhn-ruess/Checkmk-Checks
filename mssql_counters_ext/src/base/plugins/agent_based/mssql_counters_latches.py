@@ -94,8 +94,8 @@ register.check_plugin(
     check_function=check_mssql_latches,
     check_ruleset_name="mssql_counters_latches",
     check_default_parameters={
-        "LatchWaits" : (100, 200),
-        "LatchWaitTime" : (200, 400),
-        "LatchAverage" : (20, 40),
+        "LatchWaits" : (100.0, 200.0),
+        "LatchWaitTime" : (200.0, 400.0),
+        "LatchAverage" : (20.0, 40.0),
     },
 )

@@ -81,7 +81,7 @@ def check_mssql_access_methods(item, params, section):
         else:
             yield Metric("perf_AccessIndexSearches" , israte)
             yield Result(state=State.OK, summary=iinfotext)
-    
+
     if israte is not None and fsrate is not None and (israte + fsrate) != 0:
         if fsrate != 0:
             ispfs = israte / fsrate
@@ -115,8 +115,8 @@ register.check_plugin(
     check_function=check_mssql_access_methods,
     check_ruleset_name="mssql_counters_access_methods",
     check_default_parameters={
-        "AccessFullScans" :  (50, 100),
-        "AccessIndexSearches" :  (500, 1000),
-        "index_hit_ratio" :  (5, 1),
+        "AccessFullScans" :  (50.0, 100.0),
+        "AccessIndexSearches" :  (500.0, 1000.0),
+        "index_hit_ratio" :  (5.0, 1.0),
     }
 )

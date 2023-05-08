@@ -86,7 +86,7 @@ register.check_plugin(
     discovery_function=discover_mssql_work_files_tables,
     check_ruleset_name="mssql_counters_work_files_tables",
     check_default_parameters= {
-	"WorkFiles" : (100, 200),
-    	"WorkTables" : (200, 400),
+        "WorkFiles" : (100.0, 200.0),
+        "WorkTables" : (200.0, 400.0),
     },
 )

@@ -140,9 +140,9 @@ register.check_plugin(
     discovery_function=discover_mssql_counters_memory,
     check_ruleset_name="mssql_counters_memory",
     check_default_parameters={
-        "LazyWrites" : (20, 50),
+        "LazyWrites" : (20.0, 50.0),
         "page_life_expectancy" : (300, 120),
         "MemoryGrantsPending" : (3, 10),
-        "MemoryUsage" : (80, 90),
+        "MemoryUsage" : (80.0, 90.0),
     }
 )
