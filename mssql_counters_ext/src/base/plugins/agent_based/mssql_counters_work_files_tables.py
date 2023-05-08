@@ -82,7 +82,7 @@ def check_mssql_work_files_tables(item, params, section):
 
 register.check_plugin(
     name='mssql_counters_work_files_tables',
-    service_name="%s WorkFiles and WorkTables",
+    service_name="MSSQL %s WorkFiles and WorkTables",
     sections=['mssql_counters'],
     check_function=check_mssql_work_files_tables,
     discovery_function=discover_mssql_work_files_tables,

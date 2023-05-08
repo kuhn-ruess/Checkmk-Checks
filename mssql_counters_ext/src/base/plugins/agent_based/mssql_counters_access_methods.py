@@ -111,7 +111,7 @@ def check_mssql_access_methods(item, params, section):
 
 register.check_plugin(
     name='mssql_counters_access_methods',
-    service_name='%s Access Index Usage',
+    service_name='MSSQL %s Access Index Usage',
     sections=['mssql_counters'],
     discovery_function=discover_mssql_counters_access_methods,
     check_function=check_mssql_access_methods,

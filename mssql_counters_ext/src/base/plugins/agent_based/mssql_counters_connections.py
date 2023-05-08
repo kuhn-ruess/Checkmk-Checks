@@ -74,7 +74,7 @@ def check_mssql_counters_connections(item, params, section):
 
 register.check_plugin(
     name='mssql_counters_connections',
-    service_name='%s User Connections',
+    service_name='MSSQL %s User Connections',
     sections=['mssql_counters'],
     discovery_function=discover_mssql_counters_connections,
     check_function=check_mssql_counters_connections,

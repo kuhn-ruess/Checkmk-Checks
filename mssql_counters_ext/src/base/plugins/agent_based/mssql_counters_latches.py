@@ -90,7 +90,7 @@ def check_mssql_latches(item, params, section):
 
 register.check_plugin(
     name='mssql_counters_latches',
-    service_name="%s Latch Waits",
+    service_name="MSSQL %s Latch Waits",
     sections=['mssql_counters'],
     discovery_function=discover_mssql_latches,
     check_function=check_mssql_latches,

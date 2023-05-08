@@ -136,7 +136,7 @@ def check_mssql_counters_memory(item, params, section):
 
 register.check_plugin(
     name='mssql_counters_memory',
-    service_name="Memory %s",
+    service_name="MSSQL Memory %s",
     sections=['mssql_counters'],
     check_function=check_mssql_counters_memory,
     discovery_function=discover_mssql_counters_memory,
