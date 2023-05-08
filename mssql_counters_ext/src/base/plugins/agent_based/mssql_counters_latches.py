@@ -24,6 +24,8 @@ def discover_mssql_latches(section):
 
 
 def check_mssql_latches(item, params, section):
+    if not section:
+        return
     db = item
     obj_id = db + ":Latches"
     instance = "None"
@@ -65,7 +67,7 @@ def check_mssql_latches(item, params, section):
                 metric_name="latch_wait_time",
                 label="Latch wait time"
             )
-
+    avg_latch_wait_time = None
     with suppress(GetRateError):
         alwt = section[(obj_id, instance)]["average_latch_wait_time_(ms)"]
         alwt_counter = "mssql_avg_latch_wait_time.%s" % db

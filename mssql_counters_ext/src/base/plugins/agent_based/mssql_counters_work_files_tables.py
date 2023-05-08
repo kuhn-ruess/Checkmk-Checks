@@ -20,6 +20,8 @@ def discover_mssql_work_files_tables(section):
 
 
 def check_mssql_work_files_tables(item, params, section):
+    if not section:
+        return
     db = item
     obj_id = db + ":Access_Methods"
     instance = "None"

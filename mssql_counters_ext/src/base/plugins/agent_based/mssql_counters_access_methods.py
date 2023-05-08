@@ -21,6 +21,8 @@ def discover_mssql_counters_access_methods(section):
 
 
 def check_mssql_access_methods(item, params, section):
+    if not section:
+        return
     db = item
     obj_id = db + ":Access_Methods"
     instance = "None"

@@ -21,6 +21,8 @@ def discover_mssql_counters_connections(section):
 
 
 def check_mssql_counters_connections(item, params, section):
+    if not section:
+        return
     db = item
     obj_id = db + ":General_Statistics"
     instance = "None"

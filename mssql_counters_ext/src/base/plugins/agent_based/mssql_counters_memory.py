@@ -126,6 +126,8 @@ def discover_mssql_counters_memory(section):
 
 
 def check_mssql_counters_memory(item, params, section):
+    if not section:
+        return
     yield from _check_lazy_writes(item, params, section)
     yield from _check_page_life_expectancy(item, params, section)
     yield from _check_memory_grants(item, params, section)
