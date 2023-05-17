@@ -2,6 +2,7 @@
 # 2021 created by Bastian Kuhn, bastian-kuhn.de
 # 2021 reworked by Sven Rueß, sritd.de
 # 2023 reworked by Carlo Kleinloog
+# 2023 added certificate check - steven.parker@8x8.com
 # /omd/sites/BIS/local/share/check_mk/agents/special
 """
 Pure Checks
@@ -117,7 +118,7 @@ def get_drives():
     # 'details': None,
     # 'capacity': 1041902862336,
     # 'type': 'SSD',
-    # 'last_failure': 
+    # 'last_failure':
     # '1970-01-01T00:00:00Z'}
 
     try:
@@ -169,16 +170,16 @@ def get_volumes():
             fs_used = (int(volume['volumes']) + int(volume['snapshots']))
             fs_free = (int(volume['size']) - int(volume['volumes']) - (volume['snapshots']))
             print(f"{volume['name']} {int(volume['size'])} {int(fs_used)} {int(fs_free)} / {volume['name']}")
-    except OSError:
-        print(f"Could not get volumes")
+    except (OSError,purestorage.PureHTTPError) as excp:
+        print(f"Could not get volumes - {excp}")
 
 def get_arrayperformance():
     print("<<<pure_arrayperformance>>>")
     try:
         for perfometer in FA.list_volumes(names=["*"], action='monitor'):
             print(f"{perfometer['name']} {perfometer['reads_per_sec']} {perfometer['writes_per_sec']} {perfometer['output_per_sec']} {perfometer['input_per_sec']} {perfometer['usec_per_read_op']} {perfometer['usec_per_write_op']}")
-    except OSError:
-        print(f"Could not get array volume performance")
+    except (OSError,purestorage.PureHTTPError) as excp:
+        print(f"Could not get array volume performance - {excp}")
 
 def get_arraydetails():
     print("<<<pure_arraydetails>>>")
@@ -186,8 +187,17 @@ def get_arraydetails():
         for details in FA.list_volumes(names=["*"], space=True):
             print(f"{details['name']} {details['data_reduction']} {details['total_reduction']} {details['shared_space']} {details['thin_provisioning']} {details['snapshots']} {details['volumes']} {details['size']}")
 
-    except OSError:
-        print(f"Could not get array volume details")
+    except (OSError,purestorage.PureHTTPError) as excp:
+        print(f"Could not get array volume details - {excp}")
+
+def get_arraycertificates():
+#{'issued_to': '', 'locality': None, 'key_size': 2048, 'common_name': None, 'issued_by': '', 'country': None, 'state': None, 'valid_to': 1992478139000, 'organizational_unit': 'Pure Storage, Inc.', 'valid_from': 1677118139000, 'email': None, 'organization': 'Pure Storage, Inc.', 'name': 'management', 'status': 'self-signed'}
+    print("<<<pure_arraycertificates>>>")
+    try:
+        for certificate in FA.list_certificates():
+            print(f"{certificate['name']} {certificate['common_name']} {certificate['status']} {certificate['valid_from']} {certificate['valid_to']} {certificate['organizational_unit'].replace(' ','_')}|{certificate['organization'].replace(' ','_')}")
+    except (OSError,purestorage.PureHTTPError) as excp:
+        print(f"Could not get array certificate - {excp}")
 
 if __name__ == '__main__':
     get_alerts()
@@ -199,3 +209,4 @@ if __name__ == '__main__':
     get_volumes()
     get_arrayperformance()
     get_arraydetails()
+    get_arraycertificates()
