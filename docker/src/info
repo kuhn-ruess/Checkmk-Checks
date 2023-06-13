@@ -1,0 +1,19 @@
+{'author': 'Kuhn & Ruess GmbH',
+ 'description': 'Contains plugins and checks to monitor Docker Service, '
+                'Containers and Images.\n'
+                'Prerequisite: pip install docker (Version 2.5.1 or newer)\n'
+                'Based on Plugin of Lars Getwan',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
+ 'files': {'agent_based': ['docker_containers.py',
+                           'docker_images.py',
+                           'docker_info.py'],
+           'agents': ['plugins/check_docker.py'],
+           'gui': ['metrics/docker_containers.py', 'metrics/docker_images.py'],
+           'lib': ['base/plugins/bakery/docker_agent_plugin_bakelet.py'],
+           'web': ['plugins/wato/agent_bakery_docker.py']},
+ 'name': 'docker',
+ 'title': 'Docker Monitoring',
+ 'version': '1.0',
+ 'version.min_required': '2.1.0',
+ 'version.packaged': '2.1.0p25',
+ 'version.usable_until': None}
