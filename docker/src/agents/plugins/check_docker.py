@@ -73,8 +73,14 @@ def process_containers(docker_containers, label_whitelist):
             line.append('Stats=Unable to collect container statistics.')
 
         if 'Labels' in docker_container:
-            filtered_labels = {k : v for k, v in docker_container["Labels"].items()
-                    if k in label_whitelist}
+            filtered_labels = {}
+            for label_filter in label_whitelist:
+                for k,v in docker_container['Labels'].items():
+                    if label_filter.endswith('*'):
+                        if k.startswith(label_filter[:-1]):
+                            filtered_labels[k] = v
+                        elif k == label_filter:
+                            filtered_labels[k] = v
             if filtered_labels:
                 line.append('Labels='+"|".join("%s:%s" % (k, v) for k, v in filtered_labels.items()))
 
