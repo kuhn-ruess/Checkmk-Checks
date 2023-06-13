@@ -1,0 +1,321 @@
+#!/usr/bin/env python3
+"""
+Agent Quobyte
+
+2023-06 Kuhn & Rueß GmbH, bastian.kuhn@kuhn-ruess.de
+"""
+import sys
+import requests
+from requests.auth import HTTPBasicAuth
+
+class Quobyte():
+    """
+    Quobyte
+    """
+    
+    def __init__(self, api_host, user, password):
+        """
+        Init
+        """
+        self.api_host = api_host
+        self.auth = HTTPBasicAuth(user, password)
+
+
+    def request(self, method):
+        """
+        Request Data
+        """
+        json_request = {
+            "params": {},
+            "jsonrpc": "2.0",
+            "id": "12346",
+            'method': method
+        }
+        response = requests.post(self.api_host, json=json_request, auth=self.auth, timeout=30)
+        return response.json()['result']
+
+    def get_service_section(self):
+        """
+        Get Services
+
+        ## Example:
+            {
+                "last_seen_timestamp_ms": 1685622754617,
+                "network_addresses": [
+                    {
+                        "protocol": "PLAIN",
+                        "port": 7861,
+                        "ip_address": "172..63.224"
+                    },
+                    {
+                        "protocol": "PLAIN",
+                        "port": 7861,
+                        "ip_address": "172..171.24"
+                    }
+                ],
+                "is_registered": true,
+                "is_primary": false,
+                "service_name": "c-st-n4",
+                "additional_service_address": {
+                    "protocol": "PLAIN",
+                    "port": 0,
+                    "ip_address": ""
+                },
+                "rdma_enabled": false,
+                "is_available": true,
+                "status_server_token": "a47zHaW1yGW7Tux",
+                "service_type": "DIRECTORY_SERVICE",
+                "service_uuid": "xxx-xxx-xxx-xxx"
+
+                "failure_domain_infos": [
+                    {
+                        "domain_type": "MACHINE",
+                        "name": "xxx-xxx-xxx-xxx"
+                    },
+                    {
+                        "domain_type": "RACK",
+                        "name": "xxx-jbod2"
+                    },
+                    {
+                        "domain_type": "ROOM",
+                        "name": "none"
+                    },
+                    {
+                        "domain_type": "CLUSTER",
+                        "name": "none"
+                    },
+                    {
+                        "domain_type": "METRO",
+                        "name": "none"
+                    },
+                    {
+                        "domain_type": "POWER_1",
+                        "name": "none"
+                    },
+                    {
+                        "domain_type": "POWER_2",
+                        "name": "none"
+                    }
+                ],
+                "status_server": {
+                    "protocol": "PLAIN",
+                    "port": 7871,
+                    "ip_address": "172.00.000.24"
+                }
+            },
+        """
+        services_by_host = {}
+        for service_data in self.request('getServices')['service']:
+            hostname = service_data['service_name']
+            services_by_host.setdefault(hostname, [])
+            services_by_host[hostname].append((service_data['service_type'], service_data['is_available']))
+
+        for host, services in services_by_host.items():
+            print(f"<<<<{host}>>>>")
+            print("<<<quobyte_services>>>")
+            for service, status in services:
+                print(f"{service} {status}")
+            print("<<<<>>>>")
+
+    def get_health_section(self):
+        """
+        Get Healthmanger Data
+        ## Example
+            "health_manager_status": {
+                "devices_with_cleanup_due": 0,
+                "volumes_with_enforce_placement_due": 0,
+                "defective_devices": 0,
+                "next_maintenance_window_state": "ALWAYS",
+                "volumes_with_scrub_due": 0,
+                "devices_with_fstrim_due": 0,
+                "devices_with_catchup_due": 0,
+                "system_health": "HEALTHY",
+                "volumes_with_erasure_due": 0,
+                "snapshots_with_erasure_due": 0,
+                "hosts_with_version_update_due": 0,
+                "registry_replicas_in_sync": true,
+                "system_health_reason": []
+             }
+        """
+        status = self.request('getHealthManagerStatus')['health_manager_status']
+        print("<<<quobyte_healthmanager>>>")
+        for what, state in status.items():
+            print(f"{what} {state}")
+
+
+    def get_device_section(self):
+        """
+        Get Devices
+
+        ## Example
+                {
+                    "device_model": "Micron_7300_MTFDHBE960TDF",
+                    "is_primary": false,
+                    "used_disk_space_bytes": 3413544960,
+                    "led_status": "OFF",
+                    "device_serial_number": "xxxx-xxx",
+                    "firmware_version": "95420100",
+                    "filesystem_check_before_mount": "DISABLED",
+                    "content": [
+                        {
+                            "last_seen_timestamp_ms": 1685622754617,
+                            "service_uuid": "xxxx-xxx",
+                            "content_type": "METADATA",
+                            "available": true,
+                            "up_to_date_until_ms": 1685622754617
+                        }
+                    ],
+                    "volume_database_count": 1,
+                    "unsafe_shutdowns": 0,
+                    "media_errors": 0,
+                    "mount_state": "MOUNTED",
+                    "trim_device_method": "DISCARD_MOUNT_OPTION",
+                    "percentage_used": 0,
+                    "detected_disk_type": "SOLID_STATE_DISK_NVME",
+                    "device_temperature_in_c": 21,
+                    "current_mount_path": "/var/lib/quobyte/mnt/inspector-nvme1n1p1",
+                    "is_empty": false,
+                    "device_status": "ONLINE",
+                    "device_id": 10,
+                    "device_health": {
+                        "health_status": "HEALTHY"
+                    },
+                    "critical_warning_indicator": 0,
+                    "last_fstrim_ms": 1651586027668,
+                    "device_tags": [
+                        "ssd"
+                    ],
+                    "registry_database_count": 0,
+                    "last_cleanup_ms": 1651586027668,
+                    "total_bytes_written": 11964070912000,
+                    "last_device_available_ms": 1685622754617,
+                    "power_on_hours": 11217,
+                    "failure_domain_infos": [
+                        {
+                            "domain_type": "MACHINE",
+                            "name": "xxxx-xxx"
+                        },
+                        {
+                        {
+                            "domain_type": "POWER_2",
+                            "name": "none"
+                        }
+                    ],
+                    "total_bytes_read": 1796814336000,
+                    "total_disk_space_bytes": 429287014400,
+                    "device_label": "",
+                    "host_name": "ct-xxx-n6"
+                },
+        """
+        wanted = [
+            'device_serial_number',
+            'device_label',
+            'used_disk_space_bytes',
+            'total_disk_space_bytes',
+            'device_status',
+            'led_status',
+        ]
+        for device in self.request('getDeviceList')['device_list']['devices']:
+            print(f"<<<<{device['host_name']}>>>>")
+            print("<<<quobyte_devices>>>")
+            for what in wanted:
+                if data := device.get(what):
+                    print(f"{what} {data}")
+            print(f"health_status {device['device_health']['health_status']}")
+        print("<<<<>>>>")
+
+
+    def get_volume_section(self):
+        """
+        Get Volumes
+
+        ## Example
+            {
+                "file_count": 2,
+                "last_finished_scrub_ms": 1684940832838,
+                "directory_count": 2,
+                "last_access_timestamp_s": 1682327662,
+                "scheduled_for_deletion": false,
+                "used_disk_space_bytes": 196644,
+                "primary_device_id": 9,
+                "isExclusiveVolumeBucket": false,
+                "tenant_default": false,
+                "replica_device_ids": [
+                    8,
+                    9,
+                    7
+                ],
+                "device_spread": [
+                    58,
+                    13,
+                    140,
+                    128,
+                    37,
+                    53
+                ],
+                "used_allocated_space_bytes": 65548,
+                "creation_timestamp_ms": 1677164777335,
+                "name": "prodvol",
+                "tenant_domain": "a7c8ad24-4ce9-49e9-9201-0d93a0b4f614",
+                "last_successful_scrub_ms": 1684940832838,
+                "bucket_names": [],
+                "volume_uuid": "18b5dffa-e2e3-4885-bfe5-d613fb5b1f85",
+                "used_logical_space_bytes": 12,
+                "configuration_name": "BASE"
+            },
+        """
+        wanted = [
+            'used_logical_space_bytes',
+            'used_disk_space_bytes',
+            'file_count',
+            'directory_count',
+            'used_allocated_space_bytes'
+        ]
+        print("<<<quobyte_volumes>>>")
+        for volume in self.request('getVolumeList')['volume']:
+            #@TODO: Volume Name?????
+            print(volume['volume_uuid'])
+            for what in wanted:
+                if data := volume.get(what):
+                    print(f"{what} {data}")
+
+
+    def get_quotas(self):
+        """
+        Get Quotas
+
+        ## Example
+            {
+                "current_usage": [
+                    {
+                        "type": "LOGICAL_DISK_SPACE",
+                        "value": 15330181359492
+                    }
+                ],
+                "id": "558dfbed-30ef-4c2b-b726-850516b2b14c",
+                "consumer": [
+                    {
+                        "tenant_id": "c1040e1a-5d3f-482d-9569-1445bc055e9a",
+                        "identifier": "f9de187c-5491-403f-85e3-a1c1f5577de3",
+                        "type": "VOLUME"
+                    }
+                ],
+                "limits": [
+                    {
+                        "limit_type": "QUOTA",
+                        "type": "LOGICAL_DISK_SPACE",
+                        "value": 40000000000000
+                    }
+                ]
+            },
+        """
+        for quota in self.request('getQuota')['quotas']:
+            print(quota['id'])
+
+if __name__ == "__main__":
+    qb = Quobyte(sys.argv[1], sys.argv[2], sys.argv[3])
+    qb.get_service_section()
+    qb.get_health_section()
+    qb.get_device_section()
+    qb.get_volume_section()
+    #qb.get_quotas()
