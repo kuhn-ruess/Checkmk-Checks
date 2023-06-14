@@ -1,3 +1,10 @@
+from cmk.gui.valuespec import (
+        Tuple,
+        Dictionary,
+        Percentage,
+        Integer,
+)
+
 register_check_parameters(
     _("Operating System Resources"),
     "as400_cpu",
