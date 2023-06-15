@@ -16,11 +16,8 @@ def parse_quobyte_devices(string_table):
     """
     parsed = {}
     for line in string_table:
-        if line[0] == 'device_serial_number':
+        if line[0] == 'device_id':
             current_device = line[1]
-        elif line[0] == 'device_label':
-            if line[1]:
-                current_device = line[1]
         else:
             parsed.setdefault(current_device, {})
             parsed[current_device][line[0]]=line[1]
@@ -43,6 +40,10 @@ def check_quobyte_devices(item, params, section):
         yield Result(state=State.CRIT, summary="Device not found anymore")
         return
 
+    yield Result(state=State.OK, summary=f"Mount Point: {device['current_mount_path']}")
+    yield Result(state=State.OK, summary=f"Serial Number: {device['device_serial_number']}")
+    yield Result(state=State.OK, summary=f"Label: {device['device_label']}")
+
     # Check Device Mode
     state = State.OK
     if device['device_status'] in params['modes']['critical']:
@@ -51,12 +52,17 @@ def check_quobyte_devices(item, params, section):
         state  = State.WARN
     yield Result(state=state, summary=f"Device Mode: {device['device_status']}")
 
+
+    if device['health_status'] not in  ['HEALTHY', 'DECOMMISSIONED']:
+        yield Result(state=State.CRIT, summary=f"Health Status: {device['health_status']}")
+
+
     # Check Usage
     yield from df_check_filesystem_single(
         get_value_store(),
         item,
-        float(device['total_disk_space_bytes'])/1024,
-        (float(device['total_disk_space_bytes']) - float(device["used_disk_space_bytes"]))/1024,
+        float(device['total_disk_space_bytes'])/1024/1024,
+        (float(device['total_disk_space_bytes']) - float(device["used_disk_space_bytes"]))/1024/1024,
         0,
         None,
         None,

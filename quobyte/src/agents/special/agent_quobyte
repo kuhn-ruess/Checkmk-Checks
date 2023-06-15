@@ -12,7 +12,7 @@ class Quobyte():
     """
     Quobyte
     """
-    
+
     def __init__(self, api_host, user, password):
         """
         Init
@@ -208,12 +208,14 @@ class Quobyte():
                 },
         """
         wanted = [
+            'device_id',
             'device_serial_number',
             'device_label',
             'used_disk_space_bytes',
             'total_disk_space_bytes',
             'device_status',
             'led_status',
+            'current_mount_path',
         ]
         for device in self.request('getDeviceList')['device_list']['devices']:
             print(f"<<<<{device['host_name']}>>>>")
@@ -273,8 +275,7 @@ class Quobyte():
         ]
         print("<<<quobyte_volumes>>>")
         for volume in self.request('getVolumeList')['volume']:
-            #@TODO: Volume Name?????
-            print(volume['volume_uuid'])
+            print(volume['name'])
             for what in wanted:
                 if data := volume.get(what):
                     print(f"{what} {data}")
@@ -289,7 +290,7 @@ class Quobyte():
                 "current_usage": [
                     {
                         "type": "LOGICAL_DISK_SPACE",
-                        "value": 15330181359492
+                        "value": 15330181359492 # CURRENT
                     }
                 ],
                 "id": "558dfbed-30ef-4c2b-b726-850516b2b14c",
@@ -298,19 +299,51 @@ class Quobyte():
                         "tenant_id": "c1040e1a-5d3f-482d-9569-1445bc055e9a",
                         "identifier": "f9de187c-5491-403f-85e3-a1c1f5577de3",
                         "type": "VOLUME"
-                    }
+                    },
+                    {
+                        "tenant_id": "0815",
+                        "identifier": "f9de187c-123",
+                        "type": "VOLUME"
+                    } # Pro Consumer 1 Service 
+                      # Service Name: Tenant_id_type limit['type']
                 ],
                 "limits": [
                     {
                         "limit_type": "QUOTA",
                         "type": "LOGICAL_DISK_SPACE",
+                        "value": 40000000000000 # TOTAL
+                    },
+                    {
+                        "limit_type": "DISK",
+                        "type": "SOMETHING ELSE",
                         "value": 40000000000000
                     }
                 ]
             },
+
         """
+        print("<<<quobyte_quotas>>>")
+        quotas = {}
         for quota in self.request('getQuota')['quotas']:
-            print(quota['id'])
+            current_usage = None
+            if 'current_usage' in quota:
+                # TODO: Something may wrong here:
+                current_usage = quota['current_usage'][0]['value']
+            for idx, consumer in enumerate(quota['consumer']):
+                for idx, limit in enumerate(quota['limits']):
+                    if not 'identifier' in consumer:
+                        continue
+                    quotas[f"{consumer['identifier']} {consumer['type']} {limit.get('type','')}".strip()] = {
+                        'limit' : limit['value'],
+                        'usage' : current_usage,
+                        'limit_type': limit['limit_type'],
+                        'tenant_id': consumer.get('tenant_id'),
+                    }
+        for quota, data in quotas.items():
+            print(f"[[[{quota}]]]")
+            for key, value in data.items():
+                print(f"{key} {value}")
+
 
 if __name__ == "__main__":
     qb = Quobyte(sys.argv[1], sys.argv[2], sys.argv[3])
@@ -318,4 +351,4 @@ if __name__ == "__main__":
     qb.get_health_section()
     qb.get_device_section()
     qb.get_volume_section()
-    #qb.get_quotas()
+    qb.get_quotas()
