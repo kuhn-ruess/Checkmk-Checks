@@ -42,7 +42,8 @@ def check_quobyte_devices(item, params, section):
 
     yield Result(state=State.OK, summary=f"Mount Point: {device['current_mount_path']}")
     yield Result(state=State.OK, summary=f"Serial Number: {device['device_serial_number']}")
-    yield Result(state=State.OK, summary=f"Label: {device['device_label']}")
+    if "device_label" in device:
+        yield Result(state=State.OK, summary=f"Label: {device['device_label']}")
 
     # Check Device Mode
     state = State.OK

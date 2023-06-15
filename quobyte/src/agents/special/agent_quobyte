@@ -333,7 +333,7 @@ class Quobyte():
                 for idx, limit in enumerate(quota['limits']):
                     if not 'identifier' in consumer:
                         continue
-                    quotas[f"{consumer['identifier']} {consumer['type']} {limit.get('type','')}".strip()] = {
+                    quotas[f"{limit.get('type','')} {consumer['type']} {consumer['identifier']}".strip()] = {
                         'limit' : limit['value'],
                         'usage' : current_usage,
                         'limit_type': limit['limit_type'],
