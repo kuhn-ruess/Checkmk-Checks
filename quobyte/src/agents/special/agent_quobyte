@@ -13,6 +13,8 @@ class Quobyte():
     Quobyte
     """
 
+    volume_names_map = {}
+
     def __init__(self, api_host, user, password):
         """
         Init
@@ -275,6 +277,7 @@ class Quobyte():
         ]
         print("<<<quobyte_volumes>>>")
         for volume in self.request('getVolumeList')['volume']:
+            self.volume_names_map[volume['volume_uuid']] = volume['name']
             print(volume['name'])
             for what in wanted:
                 if data := volume.get(what):
@@ -333,7 +336,12 @@ class Quobyte():
                 for idx, limit in enumerate(quota['limits']):
                     if not 'identifier' in consumer:
                         continue
-                    quotas[f"{limit.get('type','')} {consumer['type']} {consumer['identifier']}".strip()] = {
+                    identifier = consumer['identifier']
+                    if consumer['type'] == 'VOLUME':
+                        if self.volume_names_map.get(identifier):
+                            identifier = self.volume_names_map[identifier]
+
+                    quotas[f"{limit.get('type','')} {consumer['type']} {identifier}".strip()] = {
                         'limit' : limit['value'],
                         'usage' : current_usage,
                         'limit_type': limit['limit_type'],
