@@ -5,6 +5,7 @@ from .agent_based_api.v1 import (
     Service,
     Result,
     State,
+    render,
 )
 
 
@@ -32,16 +33,6 @@ register.agent_section(
     parse_function=parse_pure_drives,
 )
 
-
-def render_size(value):
-    units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
-    unit_index = 0
-
-    while value > 1000 and unit_index < 4:
-        value /= 1024
-        unit_index += 1
-    return "{:.2f} {}".format(value, units[unit_index])
-
 def discovery_pure_drives(section):
     for item in section.keys():
         yield Service(item=item)
@@ -56,7 +47,7 @@ def check_pure_drives(item, section):
         )
 
     data = section[item]
-    txt = f"Storage type: {data['type']}, Serial: {data['serial']}, Capacity: {render_size(data['capacity'])}"
+    txt = f"Storage type: {data['type']}, Serial: {data['serial']}, Capacity: {render.bytes(data['capacity'])}"
     if section[item]['status'].lower() == 'healthy':
         yield Result(
             state=State.OK,
