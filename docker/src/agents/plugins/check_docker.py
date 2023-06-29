@@ -79,8 +79,8 @@ def process_containers(docker_containers, label_whitelist):
                     if label_filter.endswith('*'):
                         if k.startswith(label_filter[:-1]):
                             filtered_labels[k] = v
-                        elif k == label_filter:
-                            filtered_labels[k] = v
+                    elif k == label_filter:
+                        filtered_labels[k] = v
             if filtered_labels:
                 line.append('Labels='+"|".join("%s:%s" % (k, v) for k, v in filtered_labels.items()))
 
@@ -189,7 +189,7 @@ def main():
             cont_id = docker_container['Id']
             containers[cont_id] = docker_container
             try:
-                docker_stats = conn.stats(docker_container['Id'], decode=0, stream=0)
+                docker_stats = conn.stats(docker_container['Id'], decode=False, stream=False, one_shot=True)
                 containers[cont_id]['StatsValid'] = 'yes'
                 containers[cont_id]['Stats'] = docker_stats
             except:

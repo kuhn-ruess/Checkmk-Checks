@@ -35,7 +35,7 @@ def discover_docker_containers(section):
                 for label in value.split("|"):
                     label_key, label_value = label.split(":")
                     service_labels.append(ServiceLabel(
-                            "whitelist/" + label_key,
+                            label_key,
                             label_value
                         ))
         yield Service(item=line[0][1:], labels=service_labels)
