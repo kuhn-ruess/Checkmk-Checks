@@ -195,7 +195,9 @@ def get_arraycertificates():
     print("<<<pure_arraycertificates>>>")
     try:
         for certificate in FA.list_certificates():
-            print(f"{certificate['name']} {certificate['common_name']} {certificate['status']} {certificate['valid_from']} {certificate['valid_to']} {certificate['organizational_unit'].replace(' ','_')}|{certificate['organization'].replace(' ','_')}")
+            organizational_unit = certificate.get('organizational_unit','').replace(' ', '_')
+            organization = certificate.get('organization', '').replace(' ', '_')
+            print(f"{certificate['name']} {certificate['common_name']} {certificate['status']} {certificate['valid_from']} {certificate['valid_to']} {organizational_unit}|{organization}")
     except (OSError,purestorage.PureHTTPError) as excp:
         print(f"Could not get array certificate - {excp}")
 
