@@ -17,6 +17,7 @@
 
 import time
 
+from contextlib import suppress
 from cmk.base.plugins.agent_based.agent_based_api.v1 import (
     Metric,
     register,
@@ -24,6 +25,8 @@ from cmk.base.plugins.agent_based.agent_based_api.v1 import (
     Service,
     ServiceLabel,
     State,
+    get_value_store,
+    GetRateError,
 )
 
 def discover_docker_containers(section):
@@ -41,7 +44,33 @@ def discover_docker_containers(section):
         yield Service(item=line[0][1:], labels=service_labels)
 
 
+def get_docker_container_cpu(value_store, container):
+    last_state = value_store.get("usage_counters")
+    current_state = {
+            "cpu_usage" : float(container["CPU_usage"]),
+            "cpu_usage_system" : float(container["CPU_system_usage"]),
+    }
+
+    value_store["usage_counters"] = current_state
+    if not last_state:
+        raise GetRateError("Initialized usage counters")
+
+    usage = current_state["cpu_usage"] - last_state["cpu_usage"]
+    system_usage = current_state["cpu_usage_system"] - last_state["cpu_usage_system"]
+
+    if usage < 0 or system_usage < 0:
+        raise GetRateError("Value overflow")
+
+    if system_usage == 0:
+        raise GetRateError("No time difference")
+
+    cpu_usage_percent = 100 * (usage / system_usage)
+    return cpu_usage_percent
+
+
+
 def check_docker_containers(item, section):
+    value_store = get_value_store()
     for line in section:
         if line[0][1:] == item:
             container = {}
@@ -56,21 +85,22 @@ def check_docker_containers(item, section):
                 else:
                     yield Result(state=State.CRIT, summary="State = %s" % container['State'])
 
+                if "CPU_usage" in container and "CPU_system_usage" in container:
+                    with suppress(GetRateError):
+                        cpu_usage_percent = get_docker_container_cpu(value_store, container)
+                        yield Metric("CPU_pct", cpu_usage_percent, boundaries=(0, 100))
+                        yield Result(state=State.OK, summary="CPU_pct = %.1f" % cpu_usage_percent)
+
                 for var in container.keys():
 
-                    if var != 'State' and var != 'Labels':
+                    if var not in ['State', 'Labels', 'time', 'CPU_usage', 'CPU_system_usage']:
                         value = container[var]
                         if var == 'Stats':
                             yield Result(state=State.WARN, summary="Note: %s" % value)
                         else:
                             if var == 'Created':
                                 value = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(value)))
-
-
-                            if var in ['CPU_pct']:
-                                yield Metric(var, float(value), boundaries=(0, 100))
-
-                            if var in ['SizeRootFs', 'SizeRw', 'Memory_used', 'Memory_limit']:
+                            elif var in ['SizeRootFs', 'SizeRw', 'Memory_used', 'Memory_limit']:
                                 yield Metric(var, float(value))
 
                             yield Result(state=State.OK, summary="%s = %s" % (var, value))
