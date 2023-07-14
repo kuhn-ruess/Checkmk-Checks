@@ -44,6 +44,8 @@ def process_containers(docker_containers, label_whitelist):
             line.append('Command=%s' % docker_container['Command'])
         if 'Image' in docker_container: 
             line.append('Image=%s' % docker_container['Image'])
+        if 'ImageID' in docker_container:
+            line.append('ImageID=%s' % docker_container['ImageID'])
         if 'SizeRootFs' in docker_container:
             line.append('SizeRootFs=%s' % docker_container['SizeRootFs'])
         if 'SizeRw' in docker_container:
@@ -111,6 +113,7 @@ def process_images(docker_images, docker_containers):
             diskspace = docker_image['Size']    # The image uses this space only once
     
             line.append(image_name)
+            line.append("ImageID=" + image_id)
             line.append("Diskspace_used=%d" % diskspace)
             print("#".join(line))
 

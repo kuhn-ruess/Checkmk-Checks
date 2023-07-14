@@ -41,6 +41,8 @@ def check_docker_images(item, section):
                 value = image[var]
                 if var == 'Stats':
                     yield Result(state=State.WARN, summary="Note: %s" % value)
+                elif var == 'ImageID':
+                    continue
                 else:
                     yield Result(state=State.OK, summary="%s = %.2f" % (var, float(value)))
 
