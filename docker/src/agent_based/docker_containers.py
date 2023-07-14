@@ -17,6 +17,7 @@
 
 import time
 
+from contextlib import suppress
 from cmk.base.plugins.agent_based.agent_based_api.v1 import (
     Metric,
     register,
@@ -24,56 +25,66 @@ from cmk.base.plugins.agent_based.agent_based_api.v1 import (
     Service,
     ServiceLabel,
     State,
+    get_value_store,
+    GetRateError,
+)
+from .docker_utils import get_docker_container_cpu
+
+
+def parse_docker_containers(string_table):
+    parsed = {}
+    for line in string_table:
+        item = line[0][1:]
+        parsed[item] = { key: value for key, value in
+                map(lambda e: e.split("="), line[1:]) }
+        if "Labels" in parsed[item]:
+            parsed[item]["Labels"] = [
+                    ServiceLabel(label_key, label_value) for label_key, label_value in
+                    map(lambda e: e.split(":"), parsed[item]["Labels"].split("|"))
+                ]
+    return parsed
+
+
+register.agent_section(
+    name="docker_containers",
+    parse_function=parse_docker_containers,
 )
 
+
 def discover_docker_containers(section):
-    for line in section:
-        service_labels = []
-        for kv in line[1:]:
-            (key, value) = kv.split("=", 1)
-            if key == "Labels":
-                for label in value.split("|"):
-                    label_key, label_value = label.split(":")
-                    service_labels.append(ServiceLabel(
-                            label_key,
-                            label_value
-                        ))
-        yield Service(item=line[0][1:], labels=service_labels)
+    for item in section:
+        yield Service(item=item, labels=section[item]["Labels"])
 
 
 def check_docker_containers(item, section):
-    for line in section:
-        if line[0][1:] == item:
-            container = {}
+    value_store = get_value_store()
+    container = section[item]
 
-            for kv in line[1:]:
-                (key, value) = kv.split("=", 1)
-                container[key] = value
+    if 'State' in container.keys():
+        if container['State'] == 'running':
+            yield Result(state=State.OK, summary="State = running")
+        else:
+            yield Result(state=State.CRIT, summary="State = %s" % container['State'])
 
-            if 'State' in container.keys():
-                if container['State'] == 'running':
-                    yield Result(state=State.OK, summary="State = running")
+        if "CPU_usage" in container and "CPU_system_usage" in container:
+            with suppress(GetRateError):
+                cpu_usage_percent = get_docker_container_cpu(value_store, container)
+                yield Metric("CPU_pct", cpu_usage_percent, boundaries=(0, 100))
+                yield Result(state=State.OK, summary="CPU_pct = %.1f" % cpu_usage_percent)
+
+        for var in container.keys():
+
+            if var not in ['State', 'Labels', 'time', 'CPU_usage', 'CPU_system_usage']:
+                value = container[var]
+                if var == 'Stats':
+                    yield Result(state=State.WARN, summary="Note: %s" % value)
                 else:
-                    yield Result(state=State.CRIT, summary="State = %s" % container['State'])
+                    if var == 'Created':
+                        value = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(value)))
+                    elif var in ['SizeRootFs', 'SizeRw', 'Memory_used', 'Memory_limit']:
+                        yield Metric(var, float(value))
 
-                for var in container.keys():
-
-                    if var != 'State' and var != 'Labels':
-                        value = container[var]
-                        if var == 'Stats':
-                            yield Result(state=State.WARN, summary="Note: %s" % value)
-                        else:
-                            if var == 'Created':
-                                value = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(value)))
-
-
-                            if var in ['CPU_pct']:
-                                yield Metric(var, float(value), boundaries=(0, 100))
-
-                            if var in ['SizeRootFs', 'SizeRw', 'Memory_used', 'Memory_limit']:
-                                yield Metric(var, float(value))
-
-                            yield Result(state=State.OK, summary="%s = %s" % (var, value))
+                    yield Result(state=State.OK, summary="%s = %s" % (var, value))
 
 
 register.check_plugin(

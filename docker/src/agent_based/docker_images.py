@@ -20,15 +20,38 @@ from cmk.base.plugins.agent_based.agent_based_api.v1 import (
     Result,
     Service,
     State,
+    get_value_store,
+    GetRateError,
 )
+from .docker_utils import get_docker_container_cpu
+from contextlib import suppress
 
-def discover_docker_images(section):
-    for line in section:
+def get_running_image_containers(image_id, containers):
+    return [c for c in containers if c.get("ImageID") == image_id and c.get("State") == "running"]
+
+
+def get_docker_image_cpu(value_store, image_containers):
+    raise_get_rate_error = False
+    cpu_perc = 0
+    for container in image_containers:
+        try:
+            cpu_perc += get_docker_container_cpu(value_store, container)
+        except GetRateError:
+            raise_get_rate_error = True
+            continue
+    if raise_get_rate_error:
+        raise GetRateError
+    return cpu_perc
+
+
+def discover_docker_images(section_docker_images, section_docker_containers):
+    for line in section_docker_images:
         yield Service(item=line[0])
 
 
-def check_docker_images(item, section):
-    for line in section:
+def check_docker_images(item, section_docker_images, section_docker_containers):
+    value_store = get_value_store()
+    for line in section_docker_images:
 
         if line[0] == item:
             image = {}
@@ -37,10 +60,18 @@ def check_docker_images(item, section):
                 (key, value) = kv.split("=", 1)
                 image[key] = value
 
+            image_containers = get_running_image_containers(image["ImageID"], section_docker_containers.values())
+            image["Running_containers"] = len(image_containers)
+            image["Memory_used"] = sum(float(c["Memory_used"]) for c in image_containers)
+            with suppress(GetRateError):
+                image["CPU_pct"] = get_docker_image_cpu(value_store, image_containers)
+
             for var in image.keys():
                 value = image[var]
                 if var == 'Stats':
                     yield Result(state=State.WARN, summary="Note: %s" % value)
+                elif var == 'ImageID':
+                    continue
                 else:
                     yield Result(state=State.OK, summary="%s = %.2f" % (var, float(value)))
 
@@ -53,6 +84,7 @@ def check_docker_images(item, section):
 
 register.check_plugin(
     name='docker_images',
+    sections=['docker_images', 'docker_containers'],
     service_name="Docker Image %s",
     discovery_function=discover_docker_images,
     check_function=check_docker_images,
