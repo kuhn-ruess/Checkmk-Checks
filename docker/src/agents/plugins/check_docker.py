@@ -54,16 +54,13 @@ def process_containers(docker_containers, label_whitelist):
 
             # u'cpu_stats': {u'cpu_usage': {u'total_usage': 29103411,}
             #                u'system_cpu_usage': 1120853710000000,}}
-            # u'precpu_stats': {u'cpu_usage': {u'total_usage': 29103411,}
-            #                   u'system_cpu_usage': 1120852720000000,}}
             # u'memory_stats': {u'limit': 1040609280,
             #                   u'max_usage': 1540096,
             #                   u'usage': 1404928},
 
             if docker_container['State'] == 'running':
-                cpu_usage_pct = 100 * ( stats['cpu_stats']['cpu_usage']['total_usage'] - stats['precpu_stats']['cpu_usage']['total_usage'] ) / \
-                    ( stats['cpu_stats']['system_cpu_usage'] - stats['precpu_stats']['system_cpu_usage'] )
-                line.append('CPU_pct=%f' % cpu_usage_pct)
+                line.append('CPU_usage=%f' % stats['cpu_stats']['cpu_usage']['total_usage'])
+                line.append('CPU_system_usage=%f' % stats['cpu_stats']['system_cpu_usage'])
 
                 line.append('Memory_used=%d' % stats['memory_stats']['usage'])
                 line.append('Memory_limit=%d' % stats['memory_stats']['limit'])
@@ -111,47 +108,10 @@ def process_images(docker_images, docker_containers):
         image_id = docker_image['Id']
         if 'RepoTags' in docker_image and docker_image['RepoTags'] is not None and len(docker_image['RepoTags']) > 0:
             image_name = docker_image['RepoTags'][0]
-
-            container_count = 0
             diskspace = docker_image['Size']    # The image uses this space only once
-            cpu_usage_pct = 0
-            mem_used = 0
-            valid_stats = True
-    
-            for id in docker_containers:
-                if 'ImageID' in docker_containers[id] and docker_containers[id]['ImageID'] == image_id:
-                    if 'State' in docker_containers[id] and docker_containers[id]['State'] == 'running':
-                        # The space used for data that is changed during container runtime
-                        if 'SizeRw' in docker_containers[id]:
-                            diskspace += int(docker_containers[id]['SizeRw'])
-                        container_count += 1
-                        if docker_containers[id]['StatsValid'] == 'yes':
-                            stats = docker_containers[id]['Stats']
-                            cpu_usage_pct += ( stats['cpu_stats']['cpu_usage']['total_usage'] - stats['precpu_stats']['cpu_usage']['total_usage'] ) * 100 / \
-                                ( stats['cpu_stats']['system_cpu_usage'] - stats['precpu_stats']['system_cpu_usage'] )
-                            mem_used += stats['memory_stats']['usage']
-                        else:
-                            valid_stats = False
     
             line.append(image_name)
-            line.append("Running_containers=%s" % container_count)
-            if not valid_stats:
-                line.append("Stats=mem, cpu & storage values are incomplete, because not all container stats could be collected due to a timeout")
-
             line.append("Diskspace_used=%d" % diskspace)
-            line.append('CPU_pct=%f' % cpu_usage_pct)
-            line.append('Memory_used=%d' % mem_used)
-    
-            #line.append('Names=%s' % ','.join(docker_container['Names']))
-            #line.append('State=%s' % docker_container['State'])
-            #line.append('Status=%s' % docker_container['Status'])
-            #line.append('Created=%s' % docker_container['Created'])
-            #line.append('Command=%s' % docker_container['Command'])
-            #line.append('Image=%s' % docker_container['Image'])
-            #if 'SizeRootFs' in docker_container:
-            #    line.append('SizeRootFs=%s' % docker_container['SizeRootFs'])
-            #if 'SizeRw' in docker_container:
-            #    line.append('SizeRw=%s' % docker_container['SizeRw'])
             print("#".join(line))
 
     return
