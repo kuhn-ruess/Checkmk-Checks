@@ -28,6 +28,7 @@ from cmk.base.plugins.agent_based.agent_based_api.v1 import (
     get_value_store,
     GetRateError,
 )
+from .docker_utils import get_docker_container_cpu
 
 
 def parse_docker_containers(string_table):
@@ -53,31 +54,6 @@ register.agent_section(
 def discover_docker_containers(section):
     for item in section:
         yield Service(item=item, labels=section[item]["Labels"])
-
-
-def get_docker_container_cpu(value_store, container):
-    last_state = value_store.get("usage_counters")
-    current_state = {
-            "cpu_usage" : float(container["CPU_usage"]),
-            "cpu_usage_system" : float(container["CPU_system_usage"]),
-    }
-
-    value_store["usage_counters"] = current_state
-    if not last_state:
-        raise GetRateError("Initialized usage counters")
-
-    usage = current_state["cpu_usage"] - last_state["cpu_usage"]
-    system_usage = current_state["cpu_usage_system"] - last_state["cpu_usage_system"]
-
-    if usage < 0 or system_usage < 0:
-        raise GetRateError("Value overflow")
-
-    if system_usage == 0:
-        raise GetRateError("No time difference")
-
-    cpu_usage_percent = 100 * (usage / system_usage)
-    return cpu_usage_percent
-
 
 
 def check_docker_containers(item, section):
