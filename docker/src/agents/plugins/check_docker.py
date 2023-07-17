@@ -11,7 +11,7 @@ import os
 
 api_timeout = 30	# 30s is the default. Adjust to your needs!
 
-def process_containers(docker_containers, label_whitelist):
+def process_containers(docker_containers, label_whitelist, label_replacements):
 
     print("<<<docker_containers:sep(35)>>>")
 
@@ -81,7 +81,7 @@ def process_containers(docker_containers, label_whitelist):
                     elif k == label_filter:
                         filtered_labels[k] = v
             if filtered_labels:
-                line.append('Labels='+"|".join("%s:%s" % (k, v) for k, v in filtered_labels.items()))
+                line.append('Labels='+"|".join("%s:%s" % (label_replacements.get(k, k), v) for k, v in filtered_labels.items()))
 
         print("#".join(line))
 
@@ -125,11 +125,20 @@ def process_images(docker_images, docker_containers):
 
 def main():
     label_whitelist = []
+    label_replacements = {}
     conffile = os.path.join(os.getenv("MK_CONFDIR", "/etc/check_mk"), "check_docker.cfg")
     if os.path.exists(conffile):
         with open(conffile) as f:
+            current_section = None
             for line in f.readlines():
-                label_whitelist.append(line.strip())
+                if line.startswith("[["):
+                    current_section = line.strip()
+                    continue
+                if current_section == "[[whitelist]]":
+                    label_whitelist.append(line.strip())
+                elif current_section == "[[replacements]]":
+                    original, replacement = line.strip().split()
+                    label_replacements[original] = replacement
     containers = {}
 
     #conn = docker.from_env(timeout=10)
@@ -161,7 +170,7 @@ def main():
 
         images = conn.images(all=1)
 
-        process_containers(containers, label_whitelist)
+        process_containers(containers, label_whitelist, label_replacements)
         process_images(images, containers)
 
     except requests.exceptions.ConnectionError as objectname:
