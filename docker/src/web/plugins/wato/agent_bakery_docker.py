@@ -14,6 +14,7 @@ from cmk.gui.valuespec import (
    TextAscii,
    ListOf,
    DropdownChoice,
+   Tuple,
 )
 
 
@@ -39,6 +40,15 @@ def _valuespec_check_docker_bakery():
             ( "label_whitelist", ListOf(
                 TextAscii(title=_("Label")),
                 title=_("Label Whitelist"),
+            )),
+            ( "label_replacements", ListOf(
+                Tuple(
+                    elements=[
+                        TextAscii(title=_("Original Label")),
+                        TextAscii(title=_("Rewritten Label")),
+                    ],
+                ),
+                title=_("Label rewriting"),
             )),
         ],
     )
