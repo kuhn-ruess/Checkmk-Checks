@@ -42,6 +42,8 @@ def parse_docker_containers(string_table):
                     ServiceLabel(label_key, label_value) for label_key, label_value in
                     map(lambda e: e.split(":"), parsed[item]["Labels"].split("|"))
                 ]
+        else:
+            parsed[item]['Labels'] = {}
     return parsed
 
 
