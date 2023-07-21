@@ -26,6 +26,19 @@ Web configuration for mysql.status checks
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
+from cmk.gui.i18n import _
+from cmk.gui.valuespec import (
+    Dictionary,
+    TextAscii,
+    DropdownChoice,
+)
+from cmk.gui.wato import (
+    subgroup_applications,
+)
+from cmk.gui.plugins.wato.utils import (
+    register_check_parameters,
+    Levels,
+)
 
 
 register_check_parameters(
