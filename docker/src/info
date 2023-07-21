@@ -1,8 +1,10 @@
 {'author': 'Kuhn & Ruess GmbH',
- 'description': 'Contains plugins and checks to monitor Docker Service, '
-                'Containers and Images. Automaticly Adds Labels based on Docker Labels\n'
-                'Prerequisite: pip install docker (Version 2.5.1 or newer)\n'
-                'Based on Plugin of Lars Getwan',
+ 'description': 'Contains plugins and checks to monitor Docker Services, '
+                'Containers and Images. The Services are added to the Host, no Piggyback needed\n'
+                'Automaticly Adds Host Labels based on Docker Container Labels.\n'
+                'Also possible to rewrite or filter this labels before\n'
+                'Prerequisite: pip install docker (Version 6.1.1 or newer)\n'
+                'Original based on a Plugin of Lars Getwan',
  'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
  'files': {'agent_based': ['docker_containers.py',
                            'docker_images.py',
