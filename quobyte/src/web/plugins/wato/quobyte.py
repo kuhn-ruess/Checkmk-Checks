@@ -23,6 +23,7 @@ from cmk.gui.plugins.wato.utils import (
     CheckParameterRulespecWithoutItem,
 )
 
+from cmk.gui.plugins.wato.utils.simple_levels import SimpleLevels
 
 def _valuespec_special_agents_quobyte():
     return Dictionary(
