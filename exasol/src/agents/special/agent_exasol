@@ -50,7 +50,7 @@ def xml_rpc(path):
     params['path'] = path
     url = 'https://{user_name}:{user_password}@{hostname}/cluster1{path}'.format(**params)
     if hasattr(ssl, 'SSLContext'):
-        sslcontext = ssl.SSLContext(3)
+        sslcontext = ssl.SSLContext(ssl.PROTOCOL_TLS)
         sslcontext.verify_mode = ssl.CERT_NONE
         sslcontext.check_hostname = False
         return ServerProxy(url, context=sslcontext)
