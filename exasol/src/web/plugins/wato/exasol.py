@@ -39,6 +39,80 @@ register_rule(
     match = "first",
 )
 
+def get_free_used_dynamic_valuespec(
+    what,
+    name,
+    default_value=(80.0, 90.0),
+    *,
+    maxvalue: Union[None, int, float] = 101.0,
+):
+    if what == "used":
+        title = _("used space")
+        course = _("above")
+
+    else:
+        title = _("free space")
+        course = _("below")
+
+    vs_subgroup: List[ValueSpec] = [
+        Tuple(
+            title=_("Percentage %s") % title,
+            elements=[
+                Percentage(
+                    title=_("Warning if %s") % course,
+                    unit="%",
+                    minvalue=0.0 if what == "used" else 0.0001,
+                    maxvalue=maxvalue,
+                ),
+                Percentage(
+                    title=_("Critical if %s") % course,
+                    unit="%",
+                    minvalue=0.0 if what == "used" else 0.0001,
+                    maxvalue=maxvalue,
+                ),
+            ],
+        ),
+        Tuple(
+            title=_("Absolute %s") % title,
+            elements=[
+                Integer(
+                    title=_("Warning if %s") % course,
+                    unit=_("MB"),
+                    minvalue=0 if what == "used" else 1,
+                ),
+                Integer(
+                    title=_("Critical if %s") % course,
+                    unit=_("MB"),
+                    minvalue=0 if what == "used" else 1,
+                ),
+            ],
+        ),
+    ]
+
+    def validate_dynamic_levels(value, varprefix):
+        if [v for v in value if v[0] < 0]:
+            raise MKUserError(varprefix, _("You need to specify levels of at least 0 bytes."))
+
+    return Alternative(
+        title=_("Levels for %s %s") % (name, title),
+        show_alternative_title=True,
+        default_value=default_value,
+        elements=vs_subgroup
+        + [
+            ListOf(
+                Tuple(
+                    orientation="horizontal",
+                    elements=[
+                        Filesize(title=_("%s larger than") % name.title()),
+                        Alternative(elements=vs_subgroup),
+                    ],
+                ),
+                title=_("Dynamic levels"),
+                allow_empty=False,
+                validate=validate_dynamic_levels,
+            )
+        ],
+    )
 
 
 register_check_parameters(
