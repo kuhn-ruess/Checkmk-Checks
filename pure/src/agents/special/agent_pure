@@ -166,15 +166,14 @@ def get_volumes():
     print("<<<df>>>")
     try:
         for volume in FA.list_volumes(names=["*"], space=True):
+            volumes_byte = int(volume['volumes'])
+            snapshots_byte = int(volume['snapshots'])
+            size_byte = int(volume['size'])
 
-            fs_used = (int(volume['volumes']) + int(volume['snapshots']))
-            fs_free = (int(volume['size']) - int(volume['volumes']) - (volume['snapshots']))
-            # Convert to Kbytes since Checkmk now expects it like that
-            # https://www.evernote.com/shard/s199/nl/30336635/006e8f43-9f26-44ef-baa4-5953ca3858ae
-            fs_used /= 1024
-            fs_free /= 1024
-            fs_size = (int(volume['size'])/1024)
-            print(f"{volume['name']} {int(fs_size)} {int(fs_used)} {int(fs_free)} / {volume['name']}")
+            fs_used_kb = (volumes_byte + snapshots_byte) / 1024
+            fs_free_kb = (size_byte - volumes_byte - snapshots_byte) / 1024
+            fs_size_kb = size_byte / 1024
+            print(f"{volume['name']} {fs_size_kb} {fs_used_kb} {fs_free_kb} / {volume['name']}")
     except (OSError,purestorage.PureHTTPError) as excp:
         print(f"Could not get volumes - {excp}")
 
