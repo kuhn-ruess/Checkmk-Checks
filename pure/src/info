@@ -13,7 +13,7 @@
  'name': 'pure',
  'num_files': 6,
  'title': 'Pure checks',
- 'version': '1.4.3',
+ 'version': '1.4.4',
  'version.min_required': '2.0.0',
  'version.packaged': '2.0.0p6',
  'version.usable_until': None}
