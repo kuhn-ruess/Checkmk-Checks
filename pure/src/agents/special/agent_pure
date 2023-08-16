@@ -166,7 +166,6 @@ def get_volumes():
     print("<<<df>>>")
     try:
         for volume in FA.list_volumes(names=["*"], space=True):
-
             volumes_byte = int(volume['volumes'])
             snapshots_byte = int(volume['snapshots'])
             size_byte = int(volume['size'])
