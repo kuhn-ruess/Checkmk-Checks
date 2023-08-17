@@ -173,7 +173,7 @@ def get_volumes():
             fs_used_kb = (volumes_byte + snapshots_byte) / 1024
             fs_free_kb = (size_byte - volumes_byte - snapshots_byte) / 1024
             fs_size_kb = size_byte / 1024
-            print(f"{volume['name']} {fs_size_kb} {fs_used_kb} {fs_free_kb} / {volume['name']}")
+            print(f"{volume['name']} {int(fs_size_kb)} {int(fs_used_kb)} {int(fs_free_kb)} / {volume['name']}")
     except (OSError,purestorage.PureHTTPError) as excp:
         print(f"Could not get volumes - {excp}")
 
