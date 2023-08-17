@@ -7,16 +7,10 @@
 """
 Pure Checks
 """
-from cgi import print_arguments
 import sys
 import urllib3
 import purestorage
-import argparse
-import datetime
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-from purity_fb import PurityFb, ArrayPerformance, VersionResponse, rest
-from cmk.gui.i18n import _
-from cmk.gui.plugins.metrics.utils import graph_info, metric_info
 
 def usage():
     """
