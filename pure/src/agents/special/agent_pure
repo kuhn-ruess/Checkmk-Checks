@@ -34,11 +34,11 @@ try:
 except OSError:
     print(f"Connection error to host {HOSTNAME}")
     sys.exit(1)
-except ValueError:
-    print(f"unknown internal error")
+except ValueError as error_txt:
+    print(f"unknown internal error: {error_txt}")
     sys.exit(1)
-except purestorage.purestorage.PureError:
-    print(f"purestorge module error")
+except purestorage.purestorage.PureError as error_txt:
+    print(f"purestorge module error {error_txt}")
     sys.exit(1)
 
 def get_alerts():
