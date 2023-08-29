@@ -1,5 +1,5 @@
 {'author': 'Kuhn & Ruess GmbH',
- 'description': 'Pure checks For Devices, Fans, Interfaces etc.\n With lot of Community help, see git',
+ 'description': 'Pure checks For Devices, Fans, Interfaces etc.\n With lot of Community help, see git. Login Tokens you need create in Pure Storage Interface -> Settings -> Api Client',
  'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/tree/master/pure',
  'files': {'agent_based': ['pure_alerts.py',
                            'pure_devices.py',
