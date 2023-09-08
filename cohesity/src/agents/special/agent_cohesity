@@ -84,7 +84,7 @@ def get_cluster_status():
         if node['serviceStatus']:
             for service in node['serviceStatus']:
                 service_name = service['name']
-                if len(service['processIds']) > 1:
+                if len(service['processIds']) >= 1:
                     ok_services.append(service_name)
                 else:
                     failed_services.append(service_name)
