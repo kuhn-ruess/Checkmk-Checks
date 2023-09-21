@@ -5,6 +5,13 @@ In Order that the Plugin works, you need to install the Pure Storage FlashArray 
 your Checkmk Site. This can be done using pip:
 **pip3 install purestorage**
 
+
+## User Config
+The Check needs an API Token.
+This Token is best created in the CLI with:
+
+pureadmin create --api-token
+
 ## Supported checks
 
 1) Alerts<br>
