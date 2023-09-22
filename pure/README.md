@@ -3,7 +3,7 @@
 This check is an agent based check, which can do monitoring for base services on devices.
 In Order that the Plugin works, you need to install the Pure Storage FlashArray REST Client (https://pypi.org/project/purestorage/) installed in
 your Checkmk Site. This can be done using pip:
-**pip3 install purestorage**
+**pip3 install --no-deps purestorage**
 
 
 ## User Config
