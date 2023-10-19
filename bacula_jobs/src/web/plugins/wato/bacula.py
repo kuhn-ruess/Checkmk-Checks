@@ -2,7 +2,8 @@ from cmk.gui.valuespec import (
     Dictionary,
     DropdownChoice,
     Tuple,
-    TextAscii
+    TextAscii,
+    ListChoice
 )
 from cmk.gui.plugins.wato.utils import (
     register_check_parameters
