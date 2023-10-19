@@ -1,4 +1,12 @@
-
+from cmk.gui.valuespec import (
+    Dictionary,
+    DropdownChoice,
+    Tuple,
+    TextAscii
+)
+from cmk.gui.plugins.wato.utils import (
+    register_check_parameters
+)
 
 group = "agents/" + _("Agent Plugins")
 register_rule(group,

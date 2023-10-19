@@ -16,6 +16,6 @@ You must set a agent rule if you do not use the default values (MySQL, "bacula" 
  'name': 'bacula_jobs',
  'num_files': 4,
  'title': u'Bacula / Bareos Jobs Monitoring',
- 'version': '2.0.3',
- 'version.min_required': '1.2.8',
- 'version.packaged': '2.0.0p9'}
+ 'version': '2.0.4',
+ 'version.min_required': '2.2.0',
+ 'version.packaged': '2.2.0p9'}
