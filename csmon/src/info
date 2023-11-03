@@ -1,0 +1,12 @@
+{'author': 'Kuhn & Ruess GmbH',
+ 'description': 'Connect CSMON SAP Monitoring Instances to your Checkmk using the CSMON RestAPI',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
+ 'files': {'agents': ['special/agent_csmon'],
+           'checks': ['agent_csmon'],
+           'web': ['plugins/wato/agent_csmon.py']},
+ 'name': 'csmon_connector',
+ 'title': 'CSMON SAP Monitoring Connector',
+ 'version': '1.0.0',
+ 'version.min_required': '2.2.0',
+ 'version.packaged': '2.2.0',
+ 'version.usable_until': None}
