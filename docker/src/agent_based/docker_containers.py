@@ -4,7 +4,7 @@
 # Check status of docker containers
 # Service is CRIT if container state is not "running"
 #
-# Author: lars.getwan@metrosystems.net
+#Original Author: lars.getwan@metrosystems.net
 #
 # 
 # Plugin output:
@@ -36,7 +36,7 @@ def parse_docker_containers(string_table):
     for line in string_table:
         item = line[0][1:]
         parsed[item] = { key: value for key, value in
-                map(lambda e: e.split("="), line[1:]) }
+                map(lambda e: e.split("=", 1), line[1:]) }
         if "Labels" in parsed[item]:
             parsed[item]["Labels"] = [
                     ServiceLabel(label_key, label_value) for label_key, label_value in

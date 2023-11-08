@@ -16,7 +16,7 @@
            'lib': ['check_mk/base/cee/plugins/bakery/docker_agent_plugin_bakelet.py']},
  'name': 'docker',
  'title': 'Docker Monitoring',
- 'version': '1.1.4',
+ 'version': '1.1.5',
  'version.min_required': '2.1.0',
  'version.packaged': '2.1.0p25',
  'version.usable_until': None}
