@@ -1,4 +1,34 @@
 
+
+def parse_multi_list(string_table):
+    """
+    Parse list with repeating objects
+    """
+
+    entries = []
+    start = False
+    entry = {}
+
+
+    for line in string_table:
+        if len(line) == 1:
+            #Skip invalid lines
+            continue
+
+        key, value = line[0].strip(), line[1].strip()
+        if not start:
+            start = key
+            entry[key] = value
+        elif start:
+            if key == start:
+                entries.append(entry)
+                entry = {}
+                start = key
+            entry[key] = value
+    # Add last key also
+    entries.append(entry)
+    return entries
+
 def parse_list(string_table, field):
     """
     Parse Powershell lists
@@ -6,6 +36,7 @@ def parse_list(string_table, field):
     seperator = False
     entries = {}
     content = {}
+
     for line in string_table:
         if len(line) == 1:
             # Skip Invalid lines
