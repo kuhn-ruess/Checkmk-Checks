@@ -16,9 +16,12 @@ foreach ($Cluster in $Clusters){
     Get-ClusterResource -Cluster $Cluster | ? {$_.ResourceType -NotLike 'Virtual Machine*' -and $_.Name -notlike '*Cau*'}  | Format-List
     Write-Output  "<<<hci_cluster_nodes:sep(58)>>>"
     Get-ClusterNode -cluster $Cluster | Format-List
+    Write-Output  "<<<hci_cluster_performance:sep(58)>>>"
+    Invoke-Command -ComputerName $Cluster -ScriptBlock { Get-Cluster | Get-ClusterPerf | Format-List }
 
     $Node = (get-clusternode -Cluster $Cluster | ? State -eq 'Up')[0]
-    Invoke-Command -ComputerName $node.Name -ScriptBlock {
+
+    Invoke-Command -ComputerName $Node.Name -ScriptBlock {
         Write-Output "<<<hci_storage_pools:sep(58)>>>"
         Get-StoragePool -FriendlyName '*S2D*'  | Format-List
         Write-Output  "<<<hci_storage_jobs:sep(58)>>>"
@@ -30,3 +33,20 @@ foreach ($Cluster in $Clusters){
     }
     Write-Output "<<<<>>>>"
 }
+
+
+foreach ($Cluster in $Clusters){
+    $Nodes = (get-clusternode -Cluster $Cluster | ? State -eq 'Up')
+
+    foreach ($Node in $Nodes){
+        $NodeName = $Node.Name
+
+        Write-Output  "<<<<$NodeName>>>>"
+
+       Invoke-Command -ComputerName $Node.Name -ScriptBlock {
+            Write-Output  "<<<hci_s2d_volume_performance:sep(58)>>>"
+            Get-Volume -FriendlyName $using:NodeName | Get-ClusterPerf | Format-List 
+        }
+    }
+}
+Write-Output "<<<<>>>>"

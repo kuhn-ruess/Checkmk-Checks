@@ -5,6 +5,7 @@
  'files': {'agent_based': ['hci_cluster_nodes.py',
                            'hci_cluster_resources.py',
                            'hci_s2d-storage-pools.py',
+                           'hci_s2d-volume_performance.py',
                            'hci_virtual_disks.py',
                            'hci_helper.py',
                            'hci_storage_jobs.py'],
@@ -13,7 +14,7 @@
  'name': 'hci_cluster',
  'num_files': 9,
  'title': 'HCI Cluster Monitoring',
- 'version': '1.0.1',
- 'version.min_required': '2.0.0',
- 'version.packaged': '2.0.0p1',
+ 'version': '1.1.0',
+ 'version.min_required': '2.2.0p1',
+ 'version.packaged': '2.2.0p1',
  'version.usable_until': None}
