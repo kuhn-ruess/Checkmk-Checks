@@ -11,3 +11,4 @@ The Script therfore can't detect that.
 - Trigger Activate Changes
 - Waits for Activate to be finsh
 - Exits if changes are made while the script is started.
+- use -d for Debug Outputs

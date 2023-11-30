@@ -15,13 +15,16 @@ TIMEOUT=15
 
 DEBUG = False
 
+for arg in sys.argv:
+    if arg == '-d':
+        DEBUG = True
 
 def print_debug(what):
     """
     Print String if Debug is set
     """
     if DEBUG:
-        print(what)
+        print(f"DEBUG: {what}")
 
 try:
     print("Started Activate Changes")
