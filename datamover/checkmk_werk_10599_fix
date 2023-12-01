@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+"""
+This scripts searchs for RRD Data wich is lost
+Because of Checkmk Werk10599 and copies the file to the new names
+to restore them.
+
+Bastian Kuhn (bastian.kuhn@kuhn-ruess.de)
+"""
+import os
+import sys
+import shutil
+
+PATH = sys.argv[1]
+ILLEAGE_CHARS = "`;~!$%^&*|\\'\"<>?,()="
+
+
+TRY_ONLY = False
+
+for arg in sys.argv[2:]:
+    if arg == '--tryrun':
+        TRY_ONLY = True
+
+findings = {}
+old_files = []
+for path, subdirs, files in os.walk(PATH):
+    for file in files:
+        if not file.startswith('Interface') and not file.startswith("'Interface"):
+            continue
+        if file.endswith("bak"):
+            continue
+        full_path = f"{path}/{file}"
+        is_new_file = False
+        for char in ILLEAGE_CHARS:
+            if char in file:
+                is_new_file = True
+                findings[full_path] = (path, file)
+                break
+        if not is_new_file:
+            old_files.append(full_path)
+
+joblist =[]
+for new_full_path, new_name_data in findings.items():
+    path, new_name = new_name_data
+    cleaned_name = new_name[1:-1]
+    for char in ILLEAGE_CHARS:
+        cleaned_name = cleaned_name.replace(char, '')
+    old_full_path = f"{path}/{cleaned_name}"
+    if old_full_path in old_files:
+        joblist.append((old_full_path, new_full_path))
+
+for old, new in joblist:
+    print(f"Move {old} to {new}")
+    if not TRY_ONLY:
+        # Backup the new
+        shutil.move(new, new+".bak")
+        # Move old to new
+        shutil.move(old, new)

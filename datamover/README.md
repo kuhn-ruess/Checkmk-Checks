@@ -61,3 +61,16 @@ Options:
   -c, --config      Config File
   -p, --path        Optional RRD Path
 ```
+
+
+## checkmk_werk_10599_fix
+Checkmk in werk 10599 broke Interface RRD Files. This tool recovers them.
+
+Usage:
+
+    checkmk_werk_10599_fix /path/to/var/check_mk/rrdpath
+
+Options:
+```
+  --tryrun  Just print what tool would do
+```
