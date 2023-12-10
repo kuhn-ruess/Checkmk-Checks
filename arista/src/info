@@ -1,12 +1,12 @@
 {'author': u'Kuhn & Rueß GmbH',
  'description': u'SNMP based Checks for Aristas Fan, Temperature and Voltage',
- 'download_url': 'https://kuhn-ruess.de/en/checkmk_checks.html',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/tree/master/arista',
  'files': {'agents': [],
            'checks': ['arista'],
            'web': []},
  'name': 'arista',
  'num_files': 1,
  'title': u'Arista Monitoring',
- 'version': '1.0.2',
+ 'version': '1.0.4',
  'version.min_required': '1.6.0',
- 'version.packaged': '1.6.0'}
+ 'version.packaged': '2.2.0p16'}
