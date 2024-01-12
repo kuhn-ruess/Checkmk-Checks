@@ -45,8 +45,9 @@ def get_docker_image_cpu(value_store, image_containers):
 
 
 def discover_docker_images(section_docker_images, section_docker_containers):
-    for line in section_docker_images:
-        yield Service(item=line[0])
+    if section_docker_images is not None:
+        for line in section_docker_images:
+            yield Service(item=line[0])
 
 
 def check_docker_images(item, section_docker_images, section_docker_containers):

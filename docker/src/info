@@ -1,4 +1,4 @@
-{'author': 'Kuhn & Ruess GmbH',
+{'author': 'Kuhn & Rueß GmbH',
  'description': 'Contains plugins and checks to monitor Docker Services, '
                 'Containers and Images. The Services are added to the Host, no Piggyback needed\n'
                 'Automaticly Adds Host Labels based on Docker Container Labels.\n'
@@ -16,7 +16,7 @@
            'lib': ['check_mk/base/cee/plugins/bakery/docker_agent_plugin_bakelet.py']},
  'name': 'docker',
  'title': 'Docker Monitoring',
- 'version': '1.1.5',
+ 'version': '1.2.0',
  'version.min_required': '2.1.0',
- 'version.packaged': '2.1.0p25',
+ 'version.packaged': '2.1.0p38',
  'version.usable_until': None}

@@ -26,25 +26,27 @@ from cmk.base.plugins.agent_based.agent_based_api.v1 import (
 
 def discover_docker_info(section):
     for line in section:
-        if line[0] == 'service':
+        if line[0] == "service":
             yield Service()
-            return
+            break
 
 
 def check_docker_info(section):
     for line in section:
-        if  line[0] == 'service':
+        if  line[0] == "service":
             service = line[1]
 
-            if service == 'up':
+            if service == "up":
                 yield Result(state=State.OK, summary="service = up")
             else:
-                yield Result(state=State.CRIT, summary="service = %s" % service)
+                yield Result(state=State.CRIT, summary=f"service = {service}")
 
-        for var in ('images','go_routines','file_descriptors','events_listeners'):
+        for var in ("version", "images", "go_routines", "file_descriptors", "events_listeners"):
             if line[0] == var:
-                yield Result(state=State.OK, summary="%s = %s" % (line[0],line[1]))
-                yield Metric(line[0], int(line[1]))
+                yield Result(state=State.OK, summary=f"{line[0]} = {line[1]}")
+
+                if isinstance(line[1], int):
+                    yield Metric(line[0], int(line[1]))
 
 
 register.check_plugin(

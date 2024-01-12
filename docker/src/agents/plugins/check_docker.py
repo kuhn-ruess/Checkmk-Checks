@@ -1,21 +1,21 @@
 #! /usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
-#import docker
 
-# "pip install docker" is your friend. Please use version 2.5.1 or newer
-from docker import APIClient
-import pprint
-import requests
-import os
+try:
+    from docker import APIClient
+    from docker.errors import DockerException, APIError
+except ImportError:
+    print("Python package docker >= 6.1.0 is missing")
+    print("Please install it with: <<<pip install docker>>>")
 
-api_timeout = 30	# 30s is the default. Adjust to your needs!
+from pprint import pprint
+from os import getenv
+from os.path import exists, join
 
-def process_containers(docker_containers, label_whitelist, label_replacements):
 
-    print("<<<docker_containers:sep(35)>>>")
-
-    #pprint.pprint(docker_containers)
+def process_containers(docker_containers, label_whitelist, label_replacements, piggyback):
+    #pprint(docker_containers)
     # [{u'Command': u"nginx -g 'daemon off;'",
     #   u'Created': 1499762426,
     #   u'HostConfig': {u'NetworkMode': u'default'},
@@ -27,71 +27,67 @@ def process_containers(docker_containers, label_whitelist, label_replacements):
     #   u'Status': u'Up 2 hours'},
     # ]
 
-    for id in docker_containers:
-        #pprint.pprint(docker_container)
-        line = []
-        docker_container = docker_containers[id]
-        line.append(docker_container['Names'][0])
-        if 'Names' in docker_container: 
-            line.append('Names=%s' % ','.join(docker_container['Names']))
-        if 'State' in docker_container: 
-            line.append('State=%s' % docker_container['State'])
-        if 'Status' in docker_container: 
-            line.append('Status=%s' % docker_container['Status'])
-        if 'Created' in docker_container: 
-            line.append('Created=%s' % docker_container['Created'])
-        if 'Command' in docker_container: 
-            line.append('Command=%s' % docker_container['Command'])
-        if 'Image' in docker_container: 
-            line.append('Image=%s' % docker_container['Image'])
-        if 'ImageID' in docker_container:
-            line.append('ImageID=%s' % docker_container['ImageID'])
-        if 'SizeRootFs' in docker_container:
-            line.append('SizeRootFs=%s' % docker_container['SizeRootFs'])
-        if 'SizeRw' in docker_container:
-            line.append('SizeRw=%s' % docker_container['SizeRw'])
+    for container_id in docker_containers:
+        docker_container = docker_containers[container_id]
 
-        if docker_container['StatsValid'] == 'yes':
-            stats = docker_container['Stats']
+        if piggyback and "com.docker.swarm.service.name" in docker_container["Labels"]:
+            print(f"<<<<{docker_container['Labels']['com.docker.swarm.service.name']}>>>>")
 
+        print("<<<docker_containers:sep(35)>>>")
+
+        output = []
+        output.append(docker_container["Names"][0])
+
+        for item in ["Names", "State", "Status", "Created", "Command", "Image", "ImageID", "SizeRootFs", "SizeRw"]:
+            if item in docker_container:
+                if isinstance(docker_container[item], list):
+                    output.append(f"{item}={','.join(docker_container[item])}")
+                else:
+                    output.append(f"{item}={docker_container[item]}")
+
+        if docker_container["StatsValid"] == "yes":
             # u'cpu_stats': {u'cpu_usage': {u'total_usage': 29103411,}
             #                u'system_cpu_usage': 1120853710000000,}}
             # u'memory_stats': {u'limit': 1040609280,
             #                   u'max_usage': 1540096,
             #                   u'usage': 1404928},
 
-            if docker_container['State'] == 'running':
-                line.append('CPU_usage=%f' % stats['cpu_stats']['cpu_usage']['total_usage'])
-                line.append('CPU_system_usage=%f' % stats['cpu_stats']['system_cpu_usage'])
+            stats = docker_container["Stats"]
 
-                line.append('Memory_used=%d' % stats['memory_stats']['usage'])
-                line.append('Memory_limit=%d' % stats['memory_stats']['limit'])
-        elif docker_container['StatsValid'] == 'timeout':
-            line.append('Stats=Unable to collect container statistics. Timeout!')
+            if docker_container["State"] == "running":
+                output.append(f"CPU_usage={stats['cpu_stats']['cpu_usage']['total_usage']}")
+                output.append(f"CPU_system_usage={stats['cpu_stats']['system_cpu_usage']}")
+
+                output.append(f"Memory_used={stats['memory_stats']['usage']}")
+                output.append(f"Memory_limit={stats['memory_stats']['limit']}")
+
         else:
-            line.append('Stats=Unable to collect container statistics.')
+            output.append("Stats=Unable to collect container statistics.")
 
-        if 'Labels' in docker_container:
+        if "Labels" in docker_container:
             filtered_labels = {}
+
             for label_filter in label_whitelist:
-                for k,v in docker_container['Labels'].items():
-                    if label_filter.endswith('*'):
+
+                for k,v in docker_container["Labels"].items():
+                    if label_filter.endswith("*"):
                         if k.startswith(label_filter[:-1]):
                             filtered_labels[k] = v
                     elif k == label_filter:
                         filtered_labels[k] = v
+
             if filtered_labels:
-                line.append('Labels='+"|".join("%s:%s" % (label_replacements.get(k, k), v) for k, v in filtered_labels.items()))
+                text = "Labels="
+                for k, v in filtered_labels.items():
+                    text += "|".join(f"{label_replacements.get(k, k)}:{v}")
+                output.append(text)
 
-        print("#".join(line))
-
-    return
+        print("#".join(output))
+        if piggyback and "com.docker.swarm.service.name" in docker_container["Labels"]:
+            print("<<<<>>>>")
 
 
 def process_images(docker_images, docker_containers):
-
-    print("<<<docker_images:sep(35)>>>")
-
     # [{u'Containers': -1,
     #   u'Created': 1499283368,
     #   u'Id': u'sha256:2f7f7bce89290f69233351416b0cc8d0c8d4800c825ba92e70de5b1cc048a50a',
@@ -104,84 +100,115 @@ def process_images(docker_images, docker_containers):
     #   u'VirtualSize': 107509834},
     # ]
 
+    print("<<<docker_images:sep(35)>>>")
+
     for docker_image in docker_images:
-        line = []
-        
+        output = []
         image_id = docker_image['Id']
-        if 'RepoTags' in docker_image and docker_image['RepoTags'] is not None and len(docker_image['RepoTags']) > 0:
-            image_name = docker_image['RepoTags'][0]
-            diskspace = docker_image['Size']    # The image uses this space only once
-    
-            line.append(image_name)
-            line.append("ImageID=" + image_id)
-            line.append("Diskspace_used=%d" % diskspace)
-            print("#".join(line))
 
-    return
+        if "RepoTags" in docker_image and docker_image["RepoTags"] is not None and len(docker_image["RepoTags"]) > 0:
+            image_name = docker_image["RepoTags"][0]
+            diskspace = docker_image["Size"]    # The image uses this space only once
 
+            output.append(image_name)
+            output.append(f"ImageID={image_id}")
+            output.append(f"Diskspace_used={diskspace}")
+            print("#".join(output))
 
-# If the nagios plugin aborts with an uncaught exception or timeout, it exits with 
-# an unknown exit code and prints a traceback in a format acceptable by Nagios.
 
 def main():
+    timeout = 30
+    piggyback = False
     label_whitelist = []
     label_replacements = {}
-    conffile = os.path.join(os.getenv("MK_CONFDIR", "/etc/check_mk"), "check_docker.cfg")
-    if os.path.exists(conffile):
+
+    conffile = join(getenv("MK_CONFDIR", "/etc/check_mk"), "check_docker.cfg")
+    if exists(conffile):
         with open(conffile) as f:
+
             current_section = None
             for line in f.readlines():
                 if line.startswith("[["):
                     current_section = line.strip()
                     continue
+                elif line.startswith("timeout"):
+                    timeout = int(line.split("=")[1])
+                    continue
+                elif line.startswith("piggyback"):
+                    piggyback = bool(line.split("=")[1])
+                    continue
+
                 if current_section == "[[whitelist]]":
                     label_whitelist.append(line.strip())
                 elif current_section == "[[replacements]]":
                     original, replacement = line.strip().split()
                     label_replacements[original] = replacement
-    containers = {}
 
-    #conn = docker.from_env(timeout=10)
-    conn = APIClient(base_url='unix://var/run/docker.sock', timeout=api_timeout, version='auto')
+    # try to connect to docker service
+    try:
+        #conn = docker.from_env(timeout=timeout)
+        #conn = APIClient(base_url="tcp://127.0.0.1:1234", timeout=timeout, version="auto")
+        conn = APIClient(base_url="unix://var/run/docker.sock", timeout=timeout, version="auto")
 
+    except DockerException:
+        print("Connection not possible")
+        raise
+
+    except Exception:
+        print("Unknown error:")
+        raise
+
+    # try to get docker info
     try:
         docker_info = conn.info()
 
-        # try to connect the docker service, and catch an exception if we can't.
         print("<<<docker_info:sep(59)>>>")
-        print('service;up')
-        print('images;%s' % docker_info['Images'])
-        print('go_routines;%s' % docker_info['NGoroutines'])
-        print('file_descriptors;%s' % docker_info['NFd'])
-        print('events_listeners;%s' % docker_info['NEventsListener'])
+        print("service;up")
+        print(f"version;{docker_info['ServerVersion']}")
+        print(f"images;{docker_info['Images']}")
+        print(f"go_routines;{docker_info['NGoroutines']}")
+        print(f"file_descriptors;{docker_info['NFd']}")
+        print(f"events_listeners;{docker_info['NEventsListener']}")
 
-        docker_containers = conn.containers(all=1, size=1)
+    except APIError:
+        print("<<<docker_info:sep(59)>>>")
+        print("service;down")
+        pass
+
+    containers = {}
+
+    # try to get all containers
+    try:
+        docker_containers = conn.containers(all=True, size=True)
 
         for docker_container in docker_containers:
-            cont_id = docker_container['Id']
+            cont_id = docker_container["Id"]
             containers[cont_id] = docker_container
+
+            # try to get statistics for container
             try:
-                docker_stats = conn.stats(docker_container['Id'], decode=False, stream=False, one_shot=True)
-                containers[cont_id]['StatsValid'] = 'yes'
-                containers[cont_id]['Stats'] = docker_stats
-            except:
-                containers[cont_id]['StatsValid'] = 'timeout'
+                #docker_stats = conn.stats(container=cont_id, decode=False, stream=False, one_shot=True)
+                docker_stats = conn.stats(container=cont_id, decode=False, stream=False)
+                containers[cont_id]["StatsValid"] = "yes"
+                containers[cont_id]["Stats"] = docker_stats
+
+            except APIError:
+                containers[cont_id]["StatsValid"] = "no"
                 pass
 
-        images = conn.images(all=1)
+        process_containers(containers, label_whitelist, label_replacements, piggyback)
 
-        process_containers(containers, label_whitelist, label_replacements)
+    except APIError:
+        print("<<<docker_containers:sep(35)>>>")
+
+    # try to get all images
+    try:
+        images = conn.images(all=True)
         process_images(images, containers)
 
     except requests.exceptions.ConnectionError as objectname:
-        print("<<<docker_info:sep(59)>>>")
-        print('service;down')
-        print("<<<docker_containers:sep(35)>>>")
         print("<<<docker_images:sep(35)>>>")
-    except:
-        print("Unexpected error:")
-        raise
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
