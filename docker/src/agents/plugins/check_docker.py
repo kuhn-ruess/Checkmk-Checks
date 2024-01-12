@@ -135,7 +135,8 @@ def main():
                     timeout = int(line.split("=")[1])
                     continue
                 elif line.startswith("piggyback"):
-                    piggyback = bool(line.split("=")[1])
+                    if line.split("=")[1] == "True":
+                        piggyback = True
                     continue
 
                 if current_section == "[[whitelist]]":
