@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # +-----------------------------------------------------------------+
 # |                                                                 |
 # |        (  ___ \     | \    /\|\     /||\     /|( (    /|        |
@@ -30,8 +30,9 @@ import ssl
 import json
 import time
 import os
-from xmlrpclib import ServerProxy
-from urllib import quote_plus
+from xmlrpc.client import ServerProxy
+import requests
+from urllib.parse import quote_plus
 
 CONFIG = {
     "hostname" : sys.argv[1],
@@ -50,9 +51,9 @@ def xml_rpc(path):
     params['path'] = path
     url = 'https://{user_name}:{user_password}@{hostname}/cluster1{path}'.format(**params)
     if hasattr(ssl, 'SSLContext'):
-        sslcontext = ssl.SSLContext(ssl.PROTOCOL_TLS)
-        sslcontext.verify_mode = ssl.CERT_NONE
+        sslcontext = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
         sslcontext.check_hostname = False
+        sslcontext.verify_mode = ssl.CERT_NONE
         return ServerProxy(url, context=sslcontext)
     return ServerProxy(url)
 
@@ -60,20 +61,20 @@ def xml_rpc(path):
 CLUSTER = xml_rpc('/')
 STORAGE = xml_rpc('/storage')
 
-print "<<<exasol_nodes>>>"
+print("<<<exasol_nodes>>>")
 for node in CLUSTER.getNodeList():
     node_info = CLUSTER.getNodeState(node)
-    print "{0} {1}".format(node, node_info['status'])
+    print("{0} {1}".format(node, node_info['status']))
 
-print "<<<exasol_services>>>"
+print("<<<exasol_services>>>")
 for module, state in CLUSTER.getServiceState():
-    print "{0} {1}".format(module, state)
+    print("{0} {1}".format(module, state))
 
-print "<<<exasol_database>>>"
+print("<<<exasol_database>>>")
 for database_name in CLUSTER.getDatabaseList():
     database = xml_rpc('/db_' + quote_plus(database_name))
     db_info = database.getDatabaseInfo()
-    print "[[[{0}]]]".format(db_info['name'])
+    print("[[[{0}]]]".format(db_info['name']))
 
     db_nodes = db_info['nodes']['active']
     db_volume = db_info['persistent volume']
@@ -140,8 +141,8 @@ for database_name in CLUSTER.getDatabaseList():
     usedSegmentSpace = ((databaseSegmentUsage * db_segments.count(minPartitionNode)) +
                         databaseTempSegmentUsage)
 
-    print "usage "+ str(usedSegmentSpace)
-    print "free "+ str(minPartitionSize)
+    print("usage "+ str(usedSegmentSpace))
+    print("free "+ str(minPartitionSize))
     backup_cache = CACHE_FILE + "_backup"
     backups = []
     if os.path.isfile(backup_cache) and \
@@ -165,5 +166,5 @@ for database_name in CLUSTER.getDatabaseList():
 
 
     for backup in backups:
-        print "backup_expiration " +  backup['expire date']
+        print("backup_expiration " +  backup['expire date'])
 

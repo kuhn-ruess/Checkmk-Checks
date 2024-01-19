@@ -1,16 +1,6 @@
-# +-----------------------------------------------------------------+
-# |                                                                 |
-# |        (  ___ \     | \    /\|\     /||\     /|( (    /|        |
-# |        | (   ) )    |  \  / /| )   ( || )   ( ||  \  ( |        |
-# |        | (__/ /     |  (_/ / | |   | || (___) ||   \ | |        |
-# |        |  __ (      |   _ (  | |   | ||  ___  || (\ \) |        |
-# |        | (  \ \     |  ( \ \ | |   | || (   ) || | \   |        |
-# |        | )___) )_   |  /  \ \| (___) || )   ( || )  \  |        |
-# |        |/ \___/(_)  |_/    \/(_______)|/     \||/    )_)        |
-# |                                                                 |
-# | Copyright Bastian Kuhn 2018                mail@bastian-kuhn.de |
-# +-----------------------------------------------------------------+
-#
+"""
+Exasol Monitoring
+"""
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -22,107 +12,78 @@
 # GNU General Public License for more details.
 
 
+from cmk.gui.i18n import _
+from cmk.gui.valuespec import (
+    Tuple,
+    Dictionary,
+    Password,
+    TextInput,
+    Filesize,
 
-group = "datasource_programs"
-
-register_rule(
-    group,
-    "special_agents:exasol",
-    Dictionary(
-        elements = [
-            ("user", TextAscii(title = _("Username"), allow_empty = False)),
-            ("password", Password(title = _("Password"), allow_empty = False)),
-        ],
-    ),
-    title = _("Check EXASOL DB Cluster"),
-    help = _("This rule set selects the special agent for EXASOL Cluster"),
-    match = "first",
 )
 
-def get_free_used_dynamic_valuespec(
-    what,
-    name,
-    default_value=(80.0, 90.0),
-    *,
-    maxvalue: Union[None, int, float] = 101.0,
-):
-    if what == "used":
-        title = _("used space")
-        course = _("above")
+from cmk.gui.plugins.wato.utils.simple_levels import SimpleLevels
 
-    else:
-        title = _("free space")
-        course = _("below")
 
-    vs_subgroup: List[ValueSpec] = [
-        Tuple(
-            title=_("Percentage %s") % title,
-            elements=[
-                Percentage(
-                    title=_("Warning if %s") % course,
-                    unit="%",
-                    minvalue=0.0 if what == "used" else 0.0001,
-                    maxvalue=maxvalue,
-                ),
-                Percentage(
-                    title=_("Critical if %s") % course,
-                    unit="%",
-                    minvalue=0.0 if what == "used" else 0.0001,
-                    maxvalue=maxvalue,
-                ),
-            ],
-        ),
-        Tuple(
-            title=_("Absolute %s") % title,
-            elements=[
-                Integer(
-                    title=_("Warning if %s") % course,
-                    unit=_("MB"),
-                    minvalue=0 if what == "used" else 1,
-                ),
-                Integer(
-                    title=_("Critical if %s") % course,
-                    unit=_("MB"),
-                    minvalue=0 if what == "used" else 1,
-                ),
-            ],
-        ),
-    ]
+from cmk.gui.plugins.wato.datasource_programs import (
+    RulespecGroupDatasourceProgramsCustom,
+)
 
-    def validate_dynamic_levels(value, varprefix):
-        if [v for v in value if v[0] < 0]:
-            raise MKUserError(varprefix, _("You need to specify levels of at least 0 bytes."))
+from cmk.gui.plugins.wato.utils import (
+    CheckParameterRulespecWithItem,
+)
 
-    return Alternative(
-        title=_("Levels for %s %s") % (name, title),
-        show_alternative_title=True,
-        default_value=default_value,
-        elements=vs_subgroup
-        + [
-            ListOf(
+from cmk.gui.watolib.rulespec_groups import (
+    RulespecGroupEnforcedServicesHardware
+)
+
+from cmk.gui.plugins.wato import (
+    rulespec_registry,
+    HostRulespec,
+)
+
+def _valuespec_special_agents_exasol():
+    return Dictionary(
+        title = _("Exasol via XMLApi"),
+        help = _("This rule set selects the special agent for exasol"),
+        elements = [
+            ("user", TextInput(title = _("Username"), allow_empty = False)),
+            ("password", Password(title = _("Password"), allow_empty = False)),
+        ],
+        optional_keys=[],
+    )
+
+rulespec_registry.register(
+    HostRulespec(
+        group=RulespecGroupDatasourceProgramsCustom,
+        name="special_agents:exasol",
+        valuespec=_valuespec_special_agents_exasol,
+    )
+)
+
+
+def _parameter_valuespec_exasol():
+    return Dictionary(
+        elements = [
+            ("levels", 
                 Tuple(
-                    orientation="horizontal",
-                    elements=[
-                        Filesize(title=_("%s larger than") % name.title()),
-                        Alternative(elements=vs_subgroup),
-                    ],
-                ),
-                title=_("Dynamic levels"),
-                allow_empty=False,
-                validate=validate_dynamic_levels,
-            )
+                    title=_("Maximum size of Database"),
+                    help=_("Please configure levels for maximum used filesystem size of Database."),
+                    elements = [
+                        Filesize(title=_("warning at")),
+                        Filesize(title=_("critical at")),
+                    ]
+            )),
         ],
     )
 
-
-register_check_parameters(
-    subgroup_storage,
-    "exasol_dbs",
-    _("Exasol db usage"),
-    get_free_used_dynamic_valuespec("used", "Space"),
-    TextAscii(
-        title = _("Database Name"),
-        allow_empty = False
-    ),
-    'first'
+rulespec_registry.register(
+    CheckParameterRulespecWithItem(
+        check_group_name="exasol_dbs",
+        group=RulespecGroupEnforcedServicesHardware,
+        match_type="dict",
+        item_spec=lambda: TextInput(title=_("Database Name")),
+        parameter_valuespec=_parameter_valuespec_exasol,
+        title=lambda: _("Exasol db usage"),
+    )
 )

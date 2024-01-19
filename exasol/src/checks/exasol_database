@@ -58,8 +58,9 @@ def check_exasol_database(item, params, parsed):
         usage = int(usage)
         total = int(total)
         state = 0
+        warn, crit = None, None
         if params:
-            warn, crit = params
+            warn, crit = params['levels']
             if type(warn) == float:
                 # percent levels
                 if perc_used >= crit:
@@ -69,8 +70,8 @@ def check_exasol_database(item, params, parsed):
             else:
                 # absolute levels
                 # levels to gb
-                warn = warn * 1024 * 1024 * 1024
-                crit = crit * 1024 * 1024 * 1024
+                warn = warn
+                crit = crit
                 if usage >= crit:
                     state = 2
                 elif usage >= warn:
