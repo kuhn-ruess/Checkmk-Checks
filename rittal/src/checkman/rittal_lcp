@@ -1,0 +1,18 @@
+title: Rittal LCP Monitoring
+agents: snmp
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Monitors all sensors of an Rittal LCP. Temperature in/out, Blower Grade, Regulator, Water in/out, Waterflow
+ All warning levels must be set direct in the device.
+
+perfdata:
+ The actual value of each sensor (rpm, percent, degree, liters)
+
+item:
+ Sensor index
+
+inventory:
+ Automatic inventory
+ 
