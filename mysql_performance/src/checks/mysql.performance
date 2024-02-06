@@ -26,7 +26,7 @@
 def inventory_performance(parsed):
     for instance, data in parsed.items():
         if 'Threads_created' in data and 'Connections' in data:
-            yield "Thread Cache "+instance, (80, 90)
+            yield f"{instance} Thread Cache", (80, 90)
 
 def check_performance(item, params, parsed):
     splitted = item.split()

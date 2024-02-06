@@ -82,6 +82,9 @@ def check_mysql_status(item, params, parsed):
     Check Function
     """
     instance, key = item.split()
+    if instance not in parsed:
+        return 3, "Instance Data not found in output"
+
     data = parsed[instance]
     def check_level(val, warn, crit, is_n, params):
         """

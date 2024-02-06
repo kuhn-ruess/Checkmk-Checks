@@ -54,6 +54,6 @@ Monitored Vars:
  'name': 'mysql_status',
  'num_files': 5,
  'title': u'Check for MySQL Status Variables',
- 'version': '4.0.3',
- 'version.min_required': '2.2.0',
- 'version.packaged': '2.2.0'}
+ 'version': '4.0.4',
+ 'version.min_required': '2.0.0',
+ 'version.packaged': '2.0.0'}
