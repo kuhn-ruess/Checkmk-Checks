@@ -56,7 +56,7 @@ def check_performance(item, params, parsed):
 check_info["mysql.performance"] = {
     'check_function': check_performance,
     'inventory_function': inventory_performance,
-    'service_description': "MySQL Performance %s",
+    'service_description': "MySQL %s",
     'group' : "mysql_performance",
     'has_perfdata' : True,
 }

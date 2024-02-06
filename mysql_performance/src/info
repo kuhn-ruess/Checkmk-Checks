@@ -5,6 +5,6 @@
  'name': 'mysql_performance',
  'num_files': 2,
  'title': u'Mysql Performance Checks',
- 'version': '1.0.3',
+ 'version': '1.0.4',
  'version.min_required': '1.2.8',
  'version.packaged': '1.5.0p3'}
