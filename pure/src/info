@@ -1,4 +1,4 @@
-{'author': 'Kuhn & Ruess GmbH',
+{'author': 'Kuhn & Rueß GmbH',
  'description': 'Pure checks For Devices, Fans, Interfaces etc.\n With lot of Community help, see git. Login Tokens you need create in Pure Storage Interface -> Settings -> Api Client or CLI: pureadmin create --api-token',
  'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/tree/master/pure',
  'files': {'agent_based': ['pure_alerts.py',
@@ -13,7 +13,7 @@
  'name': 'pure',
  'num_files': 6,
  'title': 'Pure checks',
- 'version': '1.4.7',
+ 'version': '1.4.8',
  'version.min_required': '2.0.0',
- 'version.packaged': '2.0.0p6',
+ 'version.packaged': '2.0.0',
  'version.usable_until': None}

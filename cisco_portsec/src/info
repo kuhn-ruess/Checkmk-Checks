@@ -1,11 +1,11 @@
-{'author': 'Kuhn & Ruess GmbH',
+{'author': 'Kuhn & Rueß GmbH',
  'description': 'Check for Interfaces without enabled port security',
  'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
  'files': {'agent_based': ['cisco_portsec.py'],
            'web': ['plugins/wato/cisco_portsec.py']},
  'name': 'cisco_portsec',
  'title': 'Cisco Interface Portsecurity Monitoring',
- 'version': '1.0.0',
+ 'version': '1.0.1',
  'version.min_required': '2.2.0',
  'version.packaged': '2.2.0',
  'version.usable_until': None}
