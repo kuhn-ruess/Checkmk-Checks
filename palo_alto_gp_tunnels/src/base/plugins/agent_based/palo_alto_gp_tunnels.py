@@ -59,13 +59,13 @@ def check_palo_alto_tunnels(section: PaloAtoTunnels) -> CheckResult:
     text = f"Currently {section.active_tunnels} of {section.max_tunnels} Possible GlobalProtect Tunnels used"
 
     if section.active_tunnels >= section.max_tunnels - 15:
-        yield Result(state=state.CRIT, summary=text)
+        yield Result(state=State.CRIT, summary=text)
 
-    elif section.active_tunnels >= section.mac_tunnels - 50:
-        yield Result(state=state.WARN, summary=text)
+    elif section.active_tunnels >= section.max_tunnels - 50:
+        yield Result(state=State.WARN, summary=text)
 
     else:
-        yield Result(state=state.OK, summary=text)
+        yield Result(state=State.OK, summary=text)
 
 
 register.check_plugin(

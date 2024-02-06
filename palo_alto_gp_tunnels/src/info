@@ -17,7 +17,7 @@
            'web': []},
  'name': 'palo_alto_gp_tunnels',
  'title': 'PaloAlto Globalprotect Tunnels',
- 'version': '1.0.2',
+ 'version': '1.0.4',
  'version.min_required': '2.0.0',
  'version.packaged': '2.0.0p20',
  'version.usable_until': None}
