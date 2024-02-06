@@ -32,6 +32,8 @@ def check_performance(item, params, parsed):
     splitted = item.split()
     instance = splitted[-1]
     what = " ".join(splitted[:-1])
+    if instance not in parsed:
+        return 3, "Instance Data not found in output"
     data = parsed[instance]
     if what == "Thread Cache":
         created = float(data['Threads_created'])
