@@ -3,7 +3,7 @@
 Feiertags Modul for Notifications
 """
 
-from datetime import date, datetime
+from datetime import date, datetime, time
 
 def is_ostern(year):
     """
@@ -25,6 +25,16 @@ def is_ostern(year):
         return date(year, 4, OS-31)
     return date(year, 3, OS)
 
+
+def is_weekend(_year):
+    """
+    Check if today is in weekend
+    """
+    now = datetime.today().date()
+    if now.weekday() > 4:
+        return now
+    return False
+
 checks = {
   'ostern': is_ostern,
   'neujahr': lambda year: date(year, 1, 1),
@@ -37,6 +47,7 @@ checks = {
   'erstweih': lambda year: date(year, 12, 25),
   'zweitweih': lambda year: date(year, 12, 26),
   'silvester': lambda year: date(year, 12, 31),
+  'weekend': is_weekend
 }
 
 
@@ -53,7 +64,6 @@ def check_date(date_to_check):
     return False
 
 
-
 def check_today():
     """
     Check if current day is a Feiertag
@@ -64,7 +74,22 @@ def check_today():
     return check_date(date_to_check)
 
 
+def check_for_night():
+    """
+    Check if it is currently
+    night
+    """
+    now_time = datetime.now().time()
+    if now_time >= time(19,00) or now_time <= time(7,00):
+        return True
+    return False
+
+
 if __name__ == "__main__":
-    print("Fake Check a Date:")
+    print("- Fake Check a Date:")
     test_date = date(2024, 12, 24)
-    check_date(test_date)
+    print(f"  Test date: {test_date}, Result: {check_date(test_date)}")
+    print("- Check current Time:")
+    print(f"  Is it night: {check_for_night()}")
+    print("- Check current Date:")
+    print(f"  Currently Feiertag: {check_today()}")
