@@ -128,8 +128,9 @@ def main():
 
             current_section = None
             for line in f.readlines():
+                line = line.strip()
                 if line.startswith("[["):
-                    current_section = line.strip()
+                    current_section
                     continue
                 elif line.startswith("timeout"):
                     timeout = int(line.split("=")[1])
@@ -140,9 +141,9 @@ def main():
                     continue
 
                 if current_section == "[[whitelist]]":
-                    label_whitelist.append(line.strip())
+                    label_whitelist.append(line)
                 elif current_section == "[[replacements]]":
-                    original, replacement = line.strip().split()
+                    original, replacement = line.split()
                     label_replacements[original] = replacement
 
     # try to connect to docker service
