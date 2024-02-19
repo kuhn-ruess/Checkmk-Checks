@@ -3,9 +3,10 @@
 Feiertags Modul for Notifications
 """
 
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 
-def is_ostern(year):
+
+def get_osterstonntag(year):
     """
     Retun Date of Estern in Germany
     """
@@ -36,7 +37,13 @@ def is_weekend(_year):
     return False
 
 checks = {
-  'ostern': is_ostern,
+  'ostersonntag': get_osterstonntag,
+  'karfreitag': lambda year: get_osterstonntag(year) - timedelta(days=2),
+  'ostermontag': lambda year: get_osterstonntag(year) + timedelta(days=1),
+  'christi_himmelfahrt': lambda year: get_osterstonntag(year) + timedelta(days=39),
+  'pfingstsonntag': lambda year: get_osterstonntag(year) + timedelta(days=49),
+  'pfingstmontag': lambda year: get_osterstonntag(year) + timedelta(days=50),
+  'fronleichnam': lambda year: get_osterstonntag(year) + timedelta(days=60),
   'neujahr': lambda year: date(year, 1, 1),
   'dreikoenig': lambda year: date(year, 1, 6),
   'tagderarbeit': lambda year: date(year, 5, 1),
@@ -51,13 +58,15 @@ checks = {
 }
 
 
-def check_date(date_to_check):
+def check_date(date_to_check, debug=False):
     """
     Check the given Date
     """
     for check_name, checkfunc in checks.items():
         year = date_to_check.year
         feast_date = checkfunc(year)
+        if debug:
+            print(f"{feast_date}: {check_name}")
         if feast_date == date_to_check:
             print(f"It's {check_name}")
             return True
@@ -68,6 +77,7 @@ def check_today():
     """
     Check if current day is a Feiertag
     """
+
 
     now = datetime.now()
     date_to_check = now.date()
@@ -86,9 +96,9 @@ def check_for_night():
 
 
 if __name__ == "__main__":
-    print("- Fake Check a Date:")
+    print("- Fake Check a Date and Print all Days:")
     test_date = date(2024, 12, 24)
-    print(f"  Test date: {test_date}, Result: {check_date(test_date)}")
+    print(f"  Test date: {test_date}, Result: {check_date(test_date, debug=True)}")
     print("- Check current Time:")
     print(f"  Is it night: {check_for_night()}")
     print("- Check current Date:")
