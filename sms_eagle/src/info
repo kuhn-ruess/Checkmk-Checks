@@ -1,0 +1,9 @@
+{'author': u'Kuhn & Rueß GmbH',
+ 'description': u'SMS Eagle Notification Script',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
+ 'files': {'notifications': ['sms_eagle.py']},
+ 'name': 'notify_sms_eagle',
+ 'title': u'SMS Eagle Notification',
+ 'version': '1.0.0',
+ 'version.min_required': '2.0.0',
+ 'version.packaged': '2.0.0'}

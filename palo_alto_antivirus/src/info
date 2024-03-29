@@ -1,6 +1,6 @@
 {'author': u'Kuhn & Rueß GmbH',
  'description': u'Alert if there were no updates for Antivirus for 24 hours',
- 'download_url': 'https://kuhn-ruess.de/en/checkmk_checks.html',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
  'files': {'agent_based': ['palo_alto_antivirus.py'],
            'web': ['plugins/wato/palo_alto_antivirus.py']},
  'name': 'palo_alto_antivirus',
