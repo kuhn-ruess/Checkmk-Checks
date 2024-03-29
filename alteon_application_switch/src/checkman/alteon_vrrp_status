@@ -1,0 +1,17 @@
+title: Alteon Application Switch: VRRP Status
+agents: snmp
+catalog: hw/network/alteon
+license: GPLv3
+distribution: check_mk
+description:
+  The state of virtual interfaces on the Alteon Application Switch in a Cluster can either be master or slave. This check monitors this state. The state is compared to the initial or configured state.
+  The state is determined from OID .1.3.6.1.4.1.1872.2.5.3.3.3.1.1.2 (VRRP State) which delivers the cluster state per virtual interface.
+  The state is moitored for each virtual interface, the VRRP Router IP (OID .1.3.6.1.4.1.1872.2.5.3.1.6.3.1.3) is also listed in check output.
+  The check is warning, if the state is different from initial or configured state. The check is critical, if the state of all virtual interfaces is not equal.
+  Additional Comment: Configure the desired state of all Intances in WATO using regex. If the cluster is switched, change the WATO config accordingly.
+
+item:
+  One item for the current context is generated.
+
+inventory:
+  The check creates one item for the current context is generated. The Current VRRP status is stored for comparison.

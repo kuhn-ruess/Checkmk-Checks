@@ -1,0 +1,13 @@
+title: Alteon Application Switch: Sessions
+agents: snmp
+catalog: hw/network/alteon
+license: GPLv3
+distribution: check_mk
+description:
+ The Alteon Application Switch is able to handle TCP Sessions. This check moitors the amount of Sessions per SP Core. OID .1.3.6.1.4.1.1872.2.5.4.2.1.5.1 (2: Maximum number of Sessions per SP Core, 3: Current Session Bindings, 4: Session Bindings over 4 Sec, 5: Session Bindings over 64 Sec) are used for Monitoring Sessions. The state will be {WARN/CRIT} if one of the percentage of one of the session counter is higher then the defined percentage treshold. The tresold defines the percentage from maximum sessions per SP Core. The number of maximum sessions per core is obtained from OID: .1.3.6.1.4.1.1872.2.5.4.2.1.5.1.2.
+
+item:
+  One item per SP Core is generated.
+
+inventory:
+  The check creates one service for each SP Core in the current context. The default tresholds are 80% and 90%. 

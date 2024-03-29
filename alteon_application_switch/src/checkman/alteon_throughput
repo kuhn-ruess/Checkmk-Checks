@@ -1,0 +1,13 @@
+title: Alteon Application Switch: Throughput
+agents: snmp
+catalog: hw/network/alteon
+license: GPLv3
+distribution: check_mk
+description:
+  This check moitors the throughput of the specific context of the Alteon Application Switch in bits per second. OID .1.3.6.1.4.1.1872.2.5.1.2.12 (1: Peak, 2: Current) are used for Monitoring Sessions in Bps. The state will be {WARN/CRIT} if the throughput exeeds the thresold percentage of the maximum Bps which is determined by OID:.1.3.6.1.4.1.1872.2.5.1.3.10.3.1.2.9.
+
+item:
+  One item for the current context is generated.
+
+inventory:
+  The check creates one service for the current context. The tresholds are defined in percent of the maximum configured throughput (Mbps) in the context OID: .1.3.6.1.4.1.1872.2.5.1.3.10.3.1.2.9. The warn treshold is 70% and the error treshold is 80%.

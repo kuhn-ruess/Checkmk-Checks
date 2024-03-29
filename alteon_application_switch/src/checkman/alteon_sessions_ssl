@@ -1,0 +1,13 @@
+title: Alteon Application Switch: SSL Sessions
+agents: snmp
+catalog: hw/network/alteon
+license: GPLv3
+distribution: check_mk
+description:
+ The Alteon Application Switch is able to handle SSL/TLS Connections. This check moitors the amount of SSL/TLS Connections per Context. OID .1.3.6.1.4.1.1872.2.5.1.2.12 (3.0: Peak, 4.0 Current) are used for Monitoring Sessions in CPS. Due to a Bug in the Alteon Appliances SNMP Interface, this check may return 0 every time. The state will be {WARN/CRIT} if the percentage of current Sessions is higher then the defined percentage of maximum SSL Sessions. The tresold defines the percentage from maximum configured SSL Session, which is determined by OID: .1.3.6.1.4.1.1872.2.5.1.3.10.3.1.2.10.
+
+item:
+  One item for the current context is generated.
+
+inventory:
+  The check creates one service for the current context. The thresholds are defined in percent of the maximum SSL Sessions, which are determined by OID: .1.3.6.1.4.1.1872.2.5.1.3.10.3.1.2.10. The default warn treshold is 80% of this value and the default error treshold is 90%.

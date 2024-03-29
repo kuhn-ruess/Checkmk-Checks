@@ -1,0 +1,16 @@
+title: Alteon Application Switch: CPU Utilization of MP and SP Cores
+agents: snmp
+catalog: hw/network/alteon
+license: GPLv3
+distribution: check_mk
+description:
+ The Alteon Application Switch has mutliple MP and SP CPU Cores. This check moitors the utilization of each MP and SP Core over 1, 4 and 64 seconds.
+ OID .1.3.6.1.4.1.1872.2.5.1.2.4.1.1 (2: Utilization over 1 Second, 3: Utlilization over 4 Seconds, 4: Utilization over 64 Seconds) is used used for monitoring SP Cores. 
+ OID .1.3.6.1.4.1.1872.2.5.1.2.2 (1: Utilization over 1 Second, 2: Utlilization over 4 Seconds, 3: Utilization over 64 Seconds) is used used for monitoring MP Cores. 
+ The state will be {WARN/CRIT} if one of the utilization values is higher then the treshold. The tresold defines the utilization in Percent. The Treshold is used for each MP and SP Core.
+
+item:
+  One item for each MP and SP Core is generated.
+
+inventory:
+  The check creates one item for each MP and SP Core in the current context. The default tresholds are 80% (WARN) and 90% (ERROR).

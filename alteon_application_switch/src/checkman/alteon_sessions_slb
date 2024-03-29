@@ -1,0 +1,13 @@
+title: Alteon Application Switch: SLB Sessions
+agents: snmp
+catalog: hw/network/alteon
+license: GPLv3
+distribution: check_mk
+description:
+ The Alteon Application Switch is able to handle SLB Sessions. This check moitors the amount of SLB Sessions per Context. OID .1.3.6.1.4.1.1872.2.5.4.2.5 (1: maximum, 2: current, 3: 4 seconds, 4: 64 seconds) are used for Monitoring Sessions. The state will be {WARN/CRIT} if the amount of current Sessions is higher then the defined percentage from the maximum SLB Sessions. The maximum of SLB Sessions is determined by OID: .1.3.6.1.4.1.1872.2.5.4.2.5.1.
+
+item:
+  One item for the current context is generated.
+
+inventory:
+  The check creates one service for the current context. The default tresholds are defined in percent of the maximum configured amount of SLB Sessions in the context OID: .1.3.6.1.4.1.1872.2.5.4.2.5.1. The warn treshold is 80% and the error treshold is 90%.

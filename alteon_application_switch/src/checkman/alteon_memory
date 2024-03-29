@@ -1,0 +1,14 @@
+title: Alteon Application Switch: Memory Global and per SP Core	
+agents: snmp
+catalog: hw/network/alteon
+license: GPLv3
+distribution: check_mk
+description:
+ This check monitors the memory usage of the Alteon Application Switch. The following performance values are monitored onece per host: MpMemStatsTotal - 1.3.6.1.4.1.1872.2.5.1.2.8.1, MpMemStatsFree - 1.3.6.1.4.1.1872.2.5.1.2.8, mpMemStatsVirtual - 1.3.6.1.4.1.1872.2.5.1.2.8.4, mpMemStatsRss - 1.3.6.1.4.1.1872.2.5.1.2.8.5 and the following values are monitored per SP Core: Peak memory used from 1st watermark - 1.3.6.1.4.1.1872.2.5.1.2.4.5.1.12, Memory used from 1st watermark - 1.3.6.1.4.1.1872.2.5.1.2.4.5.1.14
+ The state will be {WARN/CRIT} if one of the utilization values is higher then the configured treshold. The tresold defines the utilization in Percent. There are different treshold values for different performance data values.
+
+item:
+  One item per VX or context and additionally one item per SP Core will be created
+
+inventory:
+  The check creates one Service for global values: MpMemStatsTotal, MpMemStatsFree, mpMemStatsVirtual, mpMemStatsRss and one Service per SP Core for the values: Peak, Memory. The default tresholds are 75% (WARN) and 90% (ERROR).

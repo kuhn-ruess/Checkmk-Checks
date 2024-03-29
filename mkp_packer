@@ -52,6 +52,10 @@ def usage():
     print("PACKAGENAME:")
     print(" - e.g. namexy is  ./namexy/src")
 
+special_dirs = {
+    'agent_based': 'base/plugins/agent_based',
+}
+
 
 def get_tar_info(name, obj):
     """
@@ -89,10 +93,6 @@ def pack(package_name):
     info_dict = ast.literal_eval(open(path+"/info").read())
     info_json = json.dumps(info_dict).encode('utf-8')
 
-    special_dirs = {
-        'agent_based': 'base/plugins/agent_based',
-    }
-
     #Pack Subfolders
     mkp_filename = package_name+"/{name}-{version}.mkp".format(**info_dict)
     found_legacy_folders = []
@@ -128,8 +128,10 @@ def _copy_category(cmk_type, info_dict, base_path, search_path):
     Copy File from Local to GIT
     """
     for file in info_dict['files'][cmk_type]:
-        # @TODO Handle Special Dirs in new Checkmk
-        src_file = f"{search_path}/share/check_mk/{cmk_type}/{file}"
+        if special_dir := special_dirs.get(cmk_type):
+            src_file = f"{search_path}/lib/check_mk/{special_dir}/{file}"
+        else:
+            src_file = f"{search_path}/share/check_mk/{cmk_type}/{file}"
         dest_file = f"{base_path}/{cmk_type}/{file}"
         try:
             os.makedirs((os.path.dirname((dest_file))))

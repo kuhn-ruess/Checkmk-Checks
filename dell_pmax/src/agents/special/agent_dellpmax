@@ -1,0 +1,225 @@
+#!/usr/bin/env python3
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+# +------------------------------------------------------------+
+# |              _               _              _              |
+# |             | |             | |            | |             |
+# |          ___| |__   ___  ___| | ___ __ ___ | | __          |
+# |         / __| '_ \ / _ \/ __| |/ / '_ ` _ \| |/ /          |
+# |        | (__| | | |  __/ (__|   <| | | | | |   <           |
+# |         \___|_| |_|\___|\___|_|\_\_| |_| |_|_|\_\          |
+# |                                   custom code by Nagarro   |
+# |                                                            |
+# +------------------------------------------------------------+
+#
+# Copyright (C)  2022  DevOps InfrastructureServices@nagarro-es.com
+# for Nagarro ES GmbH
+
+
+import sys
+import urllib3
+import requests
+import argparse
+
+from requests.auth import HTTPBasicAuth
+from requests.packages import urllib3
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+
+def parse_arguments(argv):
+    parser = argparse.ArgumentParser(description=__doc__)
+
+    parser.add_argument(
+        "-d",
+        "--debug",
+        action="store_true",
+        default=False,
+        help="Debug mode: Print API responses",
+    )
+    parser.add_argument(
+        "-a",
+        "--address",
+        type=str,
+        required=True,
+        help="Host name or IP address of the target device",
+    )
+    parser.add_argument(
+        "-p",
+        "--port",
+        type=int,
+        default=8443,
+        help="Port for Unisphere for PowerMax API Login (default 8443)",
+    )
+    parser.add_argument(
+        "-u",
+        "--username",
+        type=str,
+        required=True,
+        help="Username for Unisphere for PowerMax API Login",
+    )
+    parser.add_argument(
+        "-s",
+        "--secret",
+        type=str,
+        required=True,
+        help="Password for Unisphere for PowerMax API Login",
+    )
+    args = parser.parse_args(argv)
+    args.port = str(args.port)
+
+    return args
+
+
+class PmaxAgent:
+    def __init__(self, debug, address, port, username, secret, verify_ssl=False):
+        self.debug = debug
+        self.username = username
+        self.password = secret
+        self.headers = {"Content-Type": "application/json"}
+        self.verify_ssl = verify_ssl
+        self.base_url = "https://%s:%s/univmax/restapi/" % (
+            address,
+            port,
+        )
+
+    def do_get(self, endpoint):
+        url = self.base_url + endpoint
+        try:
+            response = requests.get(
+                url,
+                auth=HTTPBasicAuth(self.username, self.password),
+                headers={
+                    "Accept": "application/json",
+                },
+                verify=False,
+            )
+
+            if response.status_code == 200:
+                if self.debug:
+                    print(response.json())
+                return response.json()
+
+            elif response.status_code == 401:
+                raise Exception("Unauthorized: " + str(response.status_code))
+
+            else:
+                raise Exception("Invalid Request: " + str(response.status_code))
+
+        except requests.ConnectionError:
+            sys.exit(1)
+
+    def output(self, data):
+        pmax_output = []
+        pmax_output.append(data)
+
+        for line in pmax_output:
+            sys.stdout.write(line + "\n")
+
+    # SYSTEMINFO
+
+    def get_version(self):
+        self.output("<<<dellpmax_systeminfo:sep(124)>>>")
+        data = self.do_get("version")
+        self.output("version|" + data["version"])
+
+    # RUNTIME USAGE
+
+    def get_system_stats(self):
+        self.output("<<<dellpmax_systemstats:sep(124)>>>")
+        data = self.do_get("management/RuntimeUsage/read")
+        jvm_stats = data["runtimeGenericResources"]["jvmStats"]
+        sys_stats = data["runtimeGenericResources"]["systemStats"]
+        self.output(
+            "systemStatistics|%s|%s|%s|%s|%s|%s"
+            % (
+                jvm_stats["heap"],
+                jvm_stats["heapMax"],
+                jvm_stats["heapUsed"],
+                sys_stats["cpuStats"]["usage"],
+                sys_stats["memoryStats"]["total"],
+                sys_stats["memoryStats"]["used"],
+            )
+        )
+
+    # STORAGE RESSOURCE POOLS
+
+    def get_local_array_id(self):
+        data = self.do_get("92/vvol/symmetrix")
+        for id in data["symmetrixId"]:
+            sym_info = self.do_get("92/vvol/symmetrix/%s" % id)
+            if sym_info["local"] == True:
+                return id
+        return None
+
+    def get_storage_ressource_pools(self, symm_id):
+        self.output("<<<dellpmax_storage_pools:sep(124)>>>")
+        data = self.do_get("92/sloprovisioning/symmetrix/%s/srp" % symm_id)
+        for srp_id in data["srpId"]:
+            data = self.do_get(
+                "92/sloprovisioning/symmetrix/%s/srp/%s" % (symm_id, srp_id)
+            )
+
+            self.output(
+                "{}|{subscribed_allocated_tb}|{subscribed_total_tb}|{snapshot_modified_tb}|{snapshot_total_tb}|{usable_used_tb}|{usable_total_tb}|{effective_used_capacity_percent}".format(
+                    srp_id, **data["srp_capacity"]
+                )
+            )
+
+    # ALERTS
+
+    def get_alerts(self, symm_id):
+        alert_categories = [
+            "critical_unacknowledged_count",
+            "fatal_unacknowledged_count",
+            "warning_unacknowledged_count",
+        ]
+        alert_types = ["arrayAlertSummary", "performanceAlertSummary"]
+
+        data = self.do_get("92/system/alert_summary")
+
+        # Server alerts
+        self.output("<<<dellpmax_server_alerts:sep(124)>>>")
+        server_alert = data["serverAlertSummary"]
+        self.output(
+            "serverAlertSummary"
+            + "|"
+            + "|".join(str(server_alert[category]) for category in alert_categories)
+        )
+
+        # Symm alerts
+        self.output("<<<dellpmax_symm_alerts:sep(124)>>>")
+        for symm in data["symmAlertSummary"]:
+            if symm["symmId"] == symm_id:
+                output = "symmAlertSummary|"
+                for atype in alert_types:
+                    output += "|".join(
+                        str(symm[atype][category]) for category in alert_categories
+                    )
+                    output += "|" if atype == "arrayAlertSummary" else ""
+                self.output(output)
+                break
+
+    def run(self):
+
+        self.get_version()
+
+        self.get_system_stats()
+
+        local_id = self.get_local_array_id()
+
+        self.get_alerts(local_id)
+
+        self.get_storage_ressource_pools(local_id)
+
+
+def main(argv=None):
+
+    args = parse_arguments(argv or sys.argv[1:])
+
+    agent_dellpmax = PmaxAgent(
+        args.debug, args.address, args.port, args.username, args.secret
+    )
+    agent_dellpmax.run()
+
+
+main()
