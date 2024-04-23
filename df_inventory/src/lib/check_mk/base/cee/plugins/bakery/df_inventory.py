@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
+"""
+Docker df
+"""
 from typing import Any
 from pathlib import Path
 from cmk.base.cee.plugins.bakery.bakery_api.v1 import register, Plugin, OS, FileGenerator
 
 
 def get_df_inventory(conf: Any) -> FileGenerator:
+    """
+    DF Inventory
+    """
+
     yield Plugin(
         base_os=OS.LINUX,
         source=Path("df_inventory_linux.sh"),
