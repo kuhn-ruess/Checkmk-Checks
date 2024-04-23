@@ -1,0 +1,12 @@
+<<<exasol_nodes>>>
+n0010 Running
+<<<exasol_services>>>
+Loggingd OK
+Lockd OK
+Storaged OK
+DWAd OK
+<<<exasol_database>>>
+[[[EXASolution]]]
+usage 43.0
+free 469.0
+backup_expiration 2024-02-04 04:00

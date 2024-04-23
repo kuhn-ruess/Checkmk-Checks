@@ -60,9 +60,9 @@ def check_alteon_vrrp_status(item, params, section):
     defined_state = params["inventory_alteon_vrrp_state"][0]
     state = 0
     states = ["nd", "init", "master", "backup", "holdoff"]
-    infotext = "VRRP Status: {}\n".format(states[list(section.values())[0]])
+    infotext = "VRRP Status: {}".format(states[list(section.values())[0]])
     for router_ip, router_state in section.items():
-        infotext = "{}{} -> {}\n".format(infotext, router_ip, states[router_state])
+        infotext = "{}{} -> {}".format(infotext, router_ip, states[router_state])
 
     if not all(elem == list(section.values())[0] for elem in section.values()):
         yield Result(state=State.CRIT, summary=infotext)

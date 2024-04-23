@@ -35,7 +35,7 @@
                    'plugins/wato/alteon_memory.py']},
  'name': 'alteon_application_switch',
  'title': 'Alteon Application Switch monitoring',
- 'version': '2.1.8',
+ 'version': '2.1.9',
  'version.min_required': '2.2.0',
  'version.packaged': '2.2.0p24',
  'version.usable_until': None}

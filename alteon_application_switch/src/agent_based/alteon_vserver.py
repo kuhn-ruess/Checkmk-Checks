@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
+import time
 
 from .agent_based_api.v1 import (
     register,
-    SNMPTree, 
+    SNMPTree,
     startswith,
     Service,
     Result,
@@ -54,7 +55,7 @@ register.snmp_section(
 
 
 def discover_alteon_vserver(section):
-    for idx, data in section.items():
+    for idx, _data in section.items():
         #service_name = "{} [{}]".format(idx, data["ip"])
         yield Service(item=idx)
 

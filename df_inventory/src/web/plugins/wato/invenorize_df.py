@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+"""
+DF Inventory 2.2
+"""
 from cmk.gui.plugins.wato.notifications import NotificationParameterMail
 from cmk.gui.plugins.wato.utils import (
     notification_parameter_registry,
@@ -8,13 +11,13 @@ from cmk.gui.i18n import _
 from cmk.gui.valuespec import (
     DropdownChoice,
 )
-from cmk.gui.plugins.wato import (
+from cmk.gui.plugins.wato.utils import (
     rulespec_registry,
     HostRulespec,
 )
 
-from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import (
-    RulespecGroupMonitoringAgentsAgentPlugins,
+from cmk.gui.watolib.rulespec_groups import (
+    RulespecGroupMonitoringAgents,
 )
 
 
@@ -31,7 +34,7 @@ def _valuespec():
 
 rulespec_registry.register(
     HostRulespec(
-        group=RulespecGroupMonitoringAgentsAgentPlugins,
+        group=RulespecGroupMonitoringAgents,
         name="agent_config:df_inventory",
         valuespec=_valuespec,
     ))
@@ -39,9 +42,10 @@ rulespec_registry.register(
 
 @notification_parameter_registry.register
 class NotificationParameterRbMail(NotificationParameterMail):
+    """
+    Notification Parameter
+    """
 
     @property
     def ident(self) -> str:
         return "df_mail"
-
-

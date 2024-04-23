@@ -1,13 +1,13 @@
 {'author': u'Kuhn & Rueß GmbH',
  'description': 'Invtory for Filesystem Owners',
- 'download_url': 'https://kuhn-ruess.de/en/checkmk_checks.html',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/tree/master/df_inventory',
  'files': {'agent_based': ['inventorize_df.py'],
            'notifications': ['df_mail'],
            'agents': ['bakery/df_inventory.py', 'plugins/df_inventory_linux.sh', 'plugins/df_inventory_aix.sh', 'plugins/df_inventory_solaris.sh'],
            'web': ['plugins/wato/invenorize_df.py']},
  'name': 'df_inventory',
  'title': 'Filesystem Inventory',
- 'version': '1.0.1',
- 'version.min_required': '2.0.0',
- 'version.packaged': '2.0.0',
- 'version.usable_until': None}
+ 'version': '1.0.2',
+ 'version.min_required': '2.2.0',
+ 'version.packaged': '2.2.0',
+ 'version.usable_until': '2.3.0'}
