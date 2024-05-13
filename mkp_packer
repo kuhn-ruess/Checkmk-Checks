@@ -46,15 +46,12 @@ def usage():
     print("./mkp_packer OPERATION  PACKAGENAME")
     print()
     print("OPERATIONS:")
-    print(" - pack (Create MKP File)")
+    print(" - pack (Create MKP File in cmk 2.3 Style)")
+    print(" - pack_legacy (Create MKP File in cmk 2.2 Style)")
     print(" - get_files (Get files from info file and move to repo")
     print()
     print("PACKAGENAME:")
     print(" - e.g. namexy is  ./namexy/src")
-
-special_dirs = {
-    'agent_based': 'base/plugins/agent_based',
-}
 
 
 def get_tar_info(name, obj):
@@ -69,6 +66,50 @@ def get_tar_info(name, obj):
     tar_info.mode = 0o644
     return tar_info
 
+
+def pack_suptar_23(package_name, sub_name, sub_path):
+    """
+    Helper to create the suptar
+    """
+    sub_filename = sub_name + ".tar"
+    sub_obj = io.BytesIO()
+    with tarfile.open(sub_filename, "w:", fileobj=sub_obj) as subtar:
+        subtar.add(f"{package_name}/src/{sub_path}", sub_path)
+
+    sub_obj.seek(0)
+    tar_info = get_tar_info(sub_filename, sub_obj)
+    return sub_obj, tar_info
+
+def pack_23(package_name):
+    """
+    Pack a MKP File for Checkmk Version 2.3
+    """
+    path = f"{package_name}/src/"
+
+    #Create  info:
+    info_dict = ast.literal_eval(open(path+"/info").read())
+    info_json = json.dumps(info_dict).encode('utf-8')
+
+    #Pack Subfolders
+    mkp_filename = package_name+"/{name}-{version}.mkp".format(**info_dict)
+    dirs = {
+        'cmk_addons_plugins': f"{package_name}",
+    }
+    with tarfile.open(mkp_filename, "w:gz") as tar:
+        tar.add(path+'/info', 'info')
+
+        info_obj = io.BytesIO()
+        info_obj.write(info_json)
+        info_obj.seek(0)
+        tar_info = get_tar_info('info.json', info_obj)
+        tar.addfile(tar_info, info_obj)
+
+        # New part:
+        for folder_name, sub_path in dirs.items():
+            if (folder_name in info_dict['files'] and info_dict['files'][folder_name]):
+                sub_obj, tar_info = pack_suptar_23(package_name, folder_name, sub_path)
+                tar.addfile(tar_info, sub_obj)
+
 def pack_suptar(package_name, sub_name, sub_path):
     """
     Helper to create the suptar
@@ -82,11 +123,14 @@ def pack_suptar(package_name, sub_name, sub_path):
     tar_info = get_tar_info(sub_filename, sub_obj)
     return sub_obj, tar_info
 
-
 def pack(package_name):
     """
-    Pack a MKP File
+    DEPRECATED: Pack a MKP File
     """
+    special_dirs = {
+        'agent_based': 'base/plugins/agent_based',
+    }
+
     path = package_name+"/src"
 
     #Create  info:
@@ -163,6 +207,8 @@ if __name__ == "__main__":
     # beware of empty name, since we add /src as path
     NAME = sys.argv[2].lower()
     if OPERATION == "pack":
+        pack_23(NAME)
+    elif OPERATION == "pack_legacy":
         pack(NAME)
     elif OPERATION == "unpack":
         print("NOT YET IMPLEMENTED")

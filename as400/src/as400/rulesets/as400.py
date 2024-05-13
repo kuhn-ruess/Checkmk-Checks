@@ -8,7 +8,7 @@ from cmk.rulesets.v1 import (
         Title,
 )
 
-from cmk.rulesets.v1.form_sepcs import (
+from cmk.rulesets.v1.form_specs import (
         Dictionary,
         DictElement,
         SimpleLevels,
