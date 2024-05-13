@@ -1,5 +1,5 @@
 {'author': 'Bastian Kuhn, Kuhn & Ruess GmbH',
- 'description': '',
+ 'description': 'This Check monitors jobs, users and tcp connection counts on a AS400',
  'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/tree/master/as400',
  'files': {'cmk_addons_plugins': ['as400/agent_based/__init__.py',
                                   'as400/agent_based/as400_cpu.py.archiv',
