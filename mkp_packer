@@ -67,6 +67,18 @@ def get_tar_info(name, obj):
     return tar_info
 
 
+def _file_filter(tarinfo):
+    """
+    Exclude Files from Tar
+    """
+    excludes = ['__pycache__', '__init__']
+    for exclude in excludes:
+        if exclude in tarinfo.name:
+            return None
+    return tarinfo
+
+
+
 def pack_suptar_23(package_name, sub_name, sub_path):
     """
     Helper to create the suptar
@@ -74,7 +86,7 @@ def pack_suptar_23(package_name, sub_name, sub_path):
     sub_filename = sub_name + ".tar"
     sub_obj = io.BytesIO()
     with tarfile.open(sub_filename, "w:", fileobj=sub_obj) as subtar:
-        subtar.add(f"{package_name}/src/{sub_path}", sub_path)
+        subtar.add(f"{package_name}/src/{sub_path}", sub_path, filter=_file_filter)
 
     sub_obj.seek(0)
     tar_info = get_tar_info(sub_filename, sub_obj)
