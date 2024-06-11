@@ -1,5 +1,6 @@
 
 #2023 created by Carlo Kleinloog
+#2024-06-11 Steve Parker - Code tweak to avoid KeyError crashing the check
 #/omd/sites/BIS/local/lib/python3/cmk/base/plugins/agent_based
 from cmk.base.check_api import get_bytes_human_readable, get_percent_human_readable
 
@@ -77,13 +78,13 @@ def check_pure_arraydetails(item, section):
             summary=f"Item {item} not found",
         )
 
-    data = section[item]
-    fs_snapshots:int=data['snapshots']
-    fs_provisioning:int=data['volumes']
-    fs_thin_provisioning=data['thin_provisioning']
-    fs_size:int=data['size']
-
     if item in section.keys():
+        data = section[item]
+        fs_snapshots:int=data['snapshots']
+        fs_provisioning:int=data['volumes']
+        fs_thin_provisioning=data['thin_provisioning']
+        fs_size:int=data['size']
+        perfdata=True
         yield Result(
             state=State.OK,
             summary=f"Provisioned Size: {get_bytes_human_readable(fs_size)}, Used after deduplication: {render.bytes(fs_provisioning)}",
@@ -92,22 +93,9 @@ def check_pure_arraydetails(item, section):
             Thin Provisioned: {fs_thin_provisioning} \n \
             Snapshots: {render.bytes(fs_snapshots)}",
             )
-# Metrics
-        yield Metric("pure_1_datareduction", float(data['data_reduction']))
-        yield Metric("pure_2_totalreduction", float(data['total_reduction']))
-        yield Metric("pure_3_thinprovisioned", float(fs_thin_provisioning))
-        yield Metric("pure_4_snaphots", int(fs_snapshots))
-    else:
-        yield Result(
-            state=State.CRIT,
-            summary=f"Provisioned Size: {get_bytes_human_readable(fs_size)}, Used after deduplication: {render.bytes(fs_provisioning)}",
-            details = f"Data Reduction: {data['data_reduction']} to 1 \n \
-            Total reduction: {data['total_reduction']} to 1 \n \
-            Thin Provisioned: {fs_thin_provisioning} \n \
-            Snapshots: {render.bytes(fs_snapshots)}",
-            )
 
 # Metrics
+    if perfdata is True:
         yield Metric("pure_1_datareduction", float(data['data_reduction']))
         yield Metric("pure_2_totalreduction", float(data['total_reduction']))
         yield Metric("pure_3_thinprovisioned", float(fs_thin_provisioning))
