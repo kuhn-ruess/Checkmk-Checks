@@ -1,5 +1,6 @@
 
 #2023 created by Carlo Kleinloog
+#2024-06-11 Steve Parker - Code tweak to avoid KeyError crashing the check
 #/omd/sites/BIS/local/lib/python3/cmk/base/plugins/agent_based
 
 from .agent_based_api.v1 import (
@@ -45,16 +46,16 @@ def check_pure_arrayperformance(item, section):
             summary=f"Item {item} not found",
         )
 
-    data=section[item]
-    disk_read_ios=data['reads_per_sec']
-    disk_write_ios=data['writes_per_sec']
-    disk_read_throughput=data['output_per_sec']
-    disk_write_throughput=data['input_per_sec']
-    disk_read_responsetime=data['usec_per_read_op']
-    disk_write_responsetime=data['usec_per_write_op']
-    perfdata=True
-
     if item in section.keys():
+        data=section[item]
+        disk_read_ios=data['reads_per_sec']
+        disk_write_ios=data['writes_per_sec']
+        disk_read_throughput=data['output_per_sec']
+        disk_write_throughput=data['input_per_sec']
+        disk_read_responsetime=data['usec_per_read_op']
+        disk_write_responsetime=data['usec_per_write_op']
+        perfdata=True
+
         yield Result(state=State.OK, notice = f"Read latency: {data['reads_per_sec']}\n \
             Write latency: {data['writes_per_sec']}\n \
             Flash Volume: Yes")
