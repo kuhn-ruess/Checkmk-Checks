@@ -71,7 +71,7 @@ def discovery_pure_arraydetails(section):
 
 def check_pure_arraydetails(item, section):
     failed = []
-
+    perfdata = False
     if item not in section.keys():
         yield Result(
             state=State.UNKNOWN,

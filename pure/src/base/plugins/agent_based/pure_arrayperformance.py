@@ -39,6 +39,7 @@ def discovery_pure_arrayperformance(section):
 
 def check_pure_arrayperformance(item, section):
     failed = []
+    perfdata = False
 
     if item not in section.keys():
         yield Result(
