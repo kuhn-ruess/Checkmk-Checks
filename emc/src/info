@@ -1,0 +1,11 @@
+{'author': 'Kuhn & Rueß GmbH',
+ 'description': 'Monitoring for EMC VNX pools and EMC Server mpfs '
+                'filesystems.\n',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks',
+ 'files': {'cmk_addons_plugins': ['emc/agent_based/filesystems.py']},
+ 'name': 'emc_checks',
+ 'title': 'EMC Checks based on df',
+ 'version': '2.0.0',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.3.0p9',
+ 'version.usable_until': None}
