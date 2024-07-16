@@ -1,14 +1,21 @@
 #!/usr/bin/env python3
 
-from .agent_based_api.v1 import (
-    register,
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+
+from cmk.agent_based.v2 import (
+    AgentSection,
+    CheckPlugin,
     Result,
     Service,
     State,
     get_value_store,
 )
+from cmk.plugins.lib.df import df_check_filesystem_single
 
-from .utils.df import df_check_filesystem_single
 
 def parse_quobyte_devices(string_table):
     """
@@ -23,12 +30,14 @@ def parse_quobyte_devices(string_table):
             parsed[current_device][line[0]]=line[1]
     return parsed
 
+
 def discover_quobyte_devices(section):
     """
     Discover one Service per Device
     """
     for device_id in section:
         yield Service(item=device_id)
+
 
 def check_quobyte_devices(item, params, section):
     """
@@ -53,10 +62,8 @@ def check_quobyte_devices(item, params, section):
         state  = State.WARN
     yield Result(state=state, summary=f"Device Mode: {device['device_status']}")
 
-
     if device['health_status'] not in  ['HEALTHY', 'DECOMMISSIONED']:
         yield Result(state=State.CRIT, summary=f"Health Status: {device['health_status']}")
-
 
     # Check Usage
     yield from df_check_filesystem_single(
@@ -72,23 +79,25 @@ def check_quobyte_devices(item, params, section):
         },
     )
 
-register.agent_section(
-    name="quobyte_devices",
-    parse_function=parse_quobyte_devices,
+
+agent_section_quobyte_devices = AgentSection(
+    name = "quobyte_devices",
+    parse_function = parse_quobyte_devices,
 )
 
-register.check_plugin(
-    name="quobyte_devices",
-    sections=["quobyte_devices"],
-    service_name="Device %s",
-    discovery_function=discover_quobyte_devices,
-    check_function=check_quobyte_devices,
-    check_default_parameters={
+
+check_plugin_quobyte_devices = CheckPlugin(
+    name = "quobyte_devices",
+    sections = ["quobyte_devices"],
+    service_name = "Device %s",
+    discovery_function = discover_quobyte_devices,
+    check_function = check_quobyte_devices,
+    check_default_parameters = {
         'usage_levels': (90.0, 95.0),
         'modes' : {
             'warning' : ['DECOMMISSIONED', 'DRAIN', 'REGENERATE'],
             'critical' : ['OFFLINE'],
         }
     },
-    check_ruleset_name="quobyte_devices",
+    check_ruleset_name = "quobyte_devices",
 )

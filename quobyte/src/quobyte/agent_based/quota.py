@@ -1,14 +1,21 @@
 #!/usr/bin/env python3
 
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
 
-from .agent_based_api.v1 import (
-    register,
+from cmk.agent_based_api.v2 import (
+    AgentSection,
+    CheckPlugin,
     Result,
     Service,
     State,
-    render,
     Metric,
+    render,
 )
+
 
 def parse_quobyte_quotas(string_table):
     """
@@ -25,13 +32,13 @@ def parse_quobyte_quotas(string_table):
     return parsed
 
 
-
 def discover_quobyte_quotas(section):
     """
     Discover one Service per Device
     """
     for quota in section:
         yield Service(item=quota)
+
 
 def check_quobyte_quotas(item, params, section):
     """
@@ -47,16 +54,18 @@ def check_quobyte_quotas(item, params, section):
     yield Metric("quota_used_bytes", used)
     yield Metric("quota_limit_bytes", limit)
 
-register.agent_section(
-    name="quobyte_quotas",
-    parse_function=parse_quobyte_quotas,
+
+agent_section_quobyte_quotas = AgentSection(
+    name = "quobyte_quotas",
+    parse_function = parse_quobyte_quotas,
 )
 
-register.check_plugin(
-    name="quobyte_quotas",
-    sections=["quobyte_quotas"],
-    service_name="Quota %s",
-    discovery_function=discover_quobyte_quotas,
-    check_function=check_quobyte_quotas,
-    check_default_parameters={}
+
+check_plugin_quobyte_quotas = CheckPlugin(
+    name = "quobyte_quotas",
+    sections = ["quobyte_quotas"],
+    service_name = "Quota %s",
+    discovery_function = discover_quobyte_quotas,
+    check_function = check_quobyte_quotas,
+    check_default_parameters = {},
 )

@@ -1,12 +1,19 @@
 #!/usr/bin/env python3
 
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
 
-from .agent_based_api.v1 import (
-    register,
+from cmk.agent_based_api.v2 import (
+    AgentSection,
+    CheckPlugin,
     Result,
     Service,
     State,
 )
+
 
 def parse_quobyte_services(string_table):
     """
@@ -18,13 +25,13 @@ def parse_quobyte_services(string_table):
     return parsed
 
 
-
 def discover_quobyte_services(section):
     """
     Discover one Service per Device
     """
     for service_id in section:
         yield Service(item=service_id)
+
 
 def check_quobyte_services(item, params, section):
     """
@@ -36,16 +43,18 @@ def check_quobyte_services(item, params, section):
         state = State.Crit
     yield Result(state=state, summary=f"Serice status: {status}")
 
-register.agent_section(
-    name="quobyte_services",
-    parse_function=parse_quobyte_services,
+
+agent_section_quobyte_services = AgentSection(
+    name = "quobyte_services",
+    parse_function = parse_quobyte_services,
 )
 
-register.check_plugin(
-    name="quobyte_services",
-    sections=["quobyte_services"],
-    service_name="Service %s",
-    discovery_function=discover_quobyte_services,
-    check_function=check_quobyte_services,
-    check_default_parameters={}
+
+check_plugin_quobyte_services = CheckPlugin(
+    name = "quobyte_services",
+    sections = ["quobyte_services"],
+    service_name = "Service %s",
+    discovery_function = discover_quobyte_services,
+    check_function = check_quobyte_services,
+    check_default_parameters = {},
 )

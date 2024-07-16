@@ -1,85 +1,55 @@
-from cmk.gui.i18n import _
-from cmk.gui.valuespec import (
+#!/usr/bin/env python3
+
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+
+from cmk.rulesets.v1 import Title, Help
+from cmk.rulesets.v1.form_specs import (
     Dictionary,
+    DictElement,
+    String,
     Password,
-    TextInput,
-    Integer,
-    Filesize,
 )
-from cmk.gui.plugins.wato import (
-    rulespec_registry,
-    HostRulespec,
-)
-from cmk.gui.plugins.wato.datasource_programs import (
-    RulespecGroupDatasourceProgramsHardware,
-)
+from cmk.rulesets.v1.form_specs.validators import LengthInRange
+from cmk.rulesets.v1.rule_specs import SpecialAgent, Topic
 
-from cmk.gui.watolib.rulespec_groups import (
-    RulespecGroupEnforcedServicesStorage,
-)
 
-from cmk.gui.plugins.wato.utils import (
-    CheckParameterRulespecWithItem,
-    CheckParameterRulespecWithoutItem,
-)
-
-from cmk.gui.plugins.wato.utils.simple_levels import SimpleLevels
-
-def _valuespec_special_agents_quobyte():
+def _parameter_form_special_agents_quobyte():
     return Dictionary(
-        title = _("Quobyte via WebAPI"),
-        help = _("This rule set selects the special agent for Quobyte"),
-        elements = [
-            ("api_url", TextInput(title = _("API Url"), allow_empty = False)),
-            ("username", TextInput(title = _("Username"), allow_empty = False)),
-            ("password", Password(title = _("Password"), allow_empty = False)),
-        ],
-        optional_keys=[],
+        title = Title("Quobyte via WebAPI"),
+        help_text = Help("This rule set selects the special agent for Quobyte"),
+        elements = {
+            "api_url": DictElement(
+                parameter_form = String(
+                    title = Title("API URL"),
+                    custom_validate=(LengthInRange(min_value=1),),
+                ),
+                required = True,
+            ),
+            "username": DictElement(
+                parameter_form = String(
+                    title = Title("Username"),
+                    custom_validate=(LengthInRange(min_value=1),),
+                ),
+                required = True,
+            ),
+            "password": DictElement(
+                parameter_form = Password(
+                    title = Title("Password"),
+                    custom_validate=(LengthInRange(min_value=1),),
+                ),
+                required = True,
+            ),
+        },
     )
 
 
-rulespec_registry.register(
-    HostRulespec(
-        group=RulespecGroupDatasourceProgramsHardware,
-        name="special_agents:quobyte",
-        valuespec=_valuespec_special_agents_quobyte,
-    )
-)
-
-def _parameter_valuespec_quobyte_volumes():
-    return Dictionary(
-        title=_("Quobyte Volume Levels"),
-        elements=[
-            (
-                "used_allocated_space_bytes",
-                SimpleLevels(Filesize, title=_("Allocated Space"), default_levels=(65.0, 90.0)),
-            ),
-            (
-                "used_logical_space_bytes",
-                SimpleLevels(Filesize, title=_("Used Logical Space "), default_levels=(65.0, 90.0)),
-            ),
-            (
-                "used_disk_space_bytes",
-                SimpleLevels(Filesize, title=_("Used Disk Space"), default_levels=(65.0, 90.0)),
-            ),
-            (
-                "file_count",
-                SimpleLevels(Integer, title=_("Total Count of Files"), default_levels=(0, 0)),
-            ),
-            (
-                "directory_count",
-                SimpleLevels(Integer, title=_("Total Count of Directories"), default_levels=(0, 0)),
-            ),
-        ],
-    )
-
-rulespec_registry.register(
-    CheckParameterRulespecWithItem(
-        check_group_name="quobyte_volumes",
-        group=RulespecGroupEnforcedServicesStorage,
-        match_type="dict",
-        item_spec=lambda: TextInput(title=_("Volume Name")),
-        parameter_valuespec=_parameter_valuespec_quobyte_volumes,
-        title=lambda: _("Quobyte Volumes"),
-    )
+rule_spec_quobyte = SpecialAgent(
+    name = "quobyte",
+    topic = Topic.STORAGE,
+    parameter_form = _parameter_form_special_agents_quobyte,
+    title = Title("Quobyte via WebAPI"),
 )

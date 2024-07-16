@@ -1,42 +1,60 @@
-from cmk.gui.plugins.metrics import metric_info, graph_info
+#!/usr/bin/env python3
 
-metric_info['directories_total'] = {
-    'title': "Total Directories",
-    'unit': "count",
-    'color': "blue",
-}
-metric_info['files_total'] = {
-    'title': "Total Files",
-    'unit': "count",
-    'color': "blue",
-}
-metric_info['disk_used'] = {
-    'title': "Diskspace Used",
-    'unit': "bytes",
-    'color': "blue",
-}
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
 
-metric_info['physical_used'] = {
-    'title': "Physical Used",
-    'unit': "bytes",
-    'color': "blue",
-}
+from cmk.graphing.v1.metrics import Metric, Title, Color, Unit, DecimalNotation, IECNotation
 
-metric_info['quota_used_bytes'] = {
-    'title': "Quota Usage",
-    'unit': "bytes",
-    'color': "16/a",
-}
+UNIT_NUMBER = Unit(DecimalNotation(""))
+UNIT_BYTES = Unit(IECNotation("B"))
 
-metric_info['quota_limit_bytes'] = {
-    'title': "Limit",
-    'unit': "bytes",
-    'color': "24/a",
-}
 
-graph_info['quobyte_quotas'] = {
-    'metrics': [
-        ('quota_used_bytes', "line"),
-        ('quota_limit_bytes', "line"),
-    ]
-}
+metric_directories_total = Metric(
+    name = "total_directories",
+    title = Title("Total Directories"),
+    unit = UNIT_NUMBER,
+    color = Color.BLUE,
+)
+
+
+metric_files_total = Metric(
+    name = "total_files",
+    title = Title("Total Files"),
+    unit = UNIT_NUMBER,
+    color = Color.BLUE,
+)
+
+
+metric_disk_used = Metric(
+    name = "diskspace_used_bytes",
+    title = Title("Diskspace Used"),
+    unit = UNIT_BYTES,
+    color = Color.BLUE,
+)
+
+
+metric_physical_used = Metric(
+    name = "physical_used_bytes",
+    title = Title("Physical Used"),
+    unit = UNIT_BYTES,
+    color = Color.BLUE,
+)
+
+
+metric_quota_used = Metric(
+    name = "quota_used_bytes",
+    title = Title("Quota Usage"),
+    unit = UNIT_BYTES,
+    color = Color.ORANGE,
+)
+
+
+metric_quota_limit = Metric(
+    name = "quota_limit_bytes",
+    title = Title("Limit"),
+    unit = UNIT_BYTES,
+    color = Color.YELLOW,
+)
