@@ -1,0 +1,75 @@
+#!/usr/bin/env python3
+
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+
+from argparse import ArgumentParser
+from datetime import datetime
+from re import search
+from requests import get
+from sys import argv, stdout
+
+
+class Videotext:
+    def __init__(self, url, pattern, timeout, warn, crit):
+        self.url = url
+        self.pattern = pattern
+        self.timeout = timeout
+        self.warn = warn
+        self.crit = crit
+
+
+    def request(self):
+        resp = get(
+            self.url,
+            self.timeout,
+        )
+
+        if resp.status_code == 200:
+            found = search(rf"{self.pattern}", resp.text.replace("\n", ''))
+            
+            if found:
+                return datetime.strptime(f"{datetime.now().year}-{datetime.now().month}-{datetime.now().day} {found.group(1)}", "%Y-%m-%d %H:%M")
+            else:
+                raise ValueError(f"Search pattern ({self.pattern}) not found")
+
+
+    def check(self):
+        try:
+            time = self.request()
+        except ValueError as ve:
+            stdout.write(f"UNKNOWN - {ve}\n")
+            return 3
+
+        if time:
+            diff = datetime.now() - time
+
+            if diff.seconds >= self.crit:
+                stdout.write(f"{diff.seconds}/{self.crit}s | time={diff.seconds}s;;;;\n")
+                return 2
+            elif diff.seconds >= self.warn:
+                stdout.write(f"{diff.seconds}/{self.warn}s | time={diff.seconds}s;;;;\n")
+                return 1
+            else:
+                stdout.write(f"{diff.seconds}s | time={diff.seconds}s;;;;\n")
+                return 0
+
+
+if __name__ == "__main__":
+    parser = ArgumentParser(
+        description="Check videotext for a timestamp"
+    )
+
+    parser.add_argument("-u", "--url", type=str)
+    parser.add_argument("-p", "--pattern", type=str)
+    parser.add_argument("-t", "--timeout", type=float)
+    parser.add_argument("-w", "--warn", type=float)
+    parser.add_argument("-c", "--crit", type=float)
+
+    args = parser.parse_args()
+
+    vt = Videotext(args.url, args.pattern, args.timeout, args.warn, args.crit)
+    vt.check()
