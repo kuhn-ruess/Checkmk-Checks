@@ -1,0 +1,22 @@
+{'author': 'Kuhn  & Ruess GmbH',
+ 'description': 'Unisphere PowerMax for 2.2\n'
+                '\n'
+                'Original from: Robert Steininger Flughafen Wien AG\n',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks',
+ 'files': {'agent_based': ['unisphere_powermax_alert.py',
+                           'unisphere_powermax_array_performance.py',
+                           'unisphere_powermax_director.py',
+                           'unisphere_powermax_health_check.py',
+                           'unisphere_powermax_health_score.py',
+                           'unisphere_powermax_masking_view.py',
+                           'unisphere_powermax_port_group.py',
+                           'unisphere_powermax_srp.py'],
+           'agents': ['special/agent_unisphere_powermax'],
+           'checks': ['agent_unisphere_powermax'],
+           'web': ['plugins/wato/agent_unisphere_powermax.py']},
+ 'name': 'unisphere_powermax',
+ 'title': 'Unisphere PowerMax',
+ 'version': '2.2.3',
+ 'version.min_required': '2.2.0p1',
+ 'version.packaged': '2.3.0b3',
+ 'version.usable_until': None}
