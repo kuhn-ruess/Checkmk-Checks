@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-"""
-Agent Quobyte
 
-2023-06 Kuhn & Rueß GmbH, bastian.kuhn@kuhn-ruess.de
 """
-import sys
-import requests
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+
+from sys import argv
+from requests import post
 from requests.auth import HTTPBasicAuth
+
 
 class Quobyte():
     """
@@ -33,8 +36,9 @@ class Quobyte():
             "id": "12346",
             'method': method
         }
-        response = requests.post(self.api_host, json=json_request, auth=self.auth, timeout=30)
+        response = post(self.api_host, json=json_request, auth=self.auth, timeout=30)
         return response.json()['result']
+
 
     def get_service_section(self):
         """
@@ -118,6 +122,7 @@ class Quobyte():
             for service, status in services:
                 print(f"{service} {status}")
             print("<<<<>>>>")
+
 
     def get_health_section(self):
         """
@@ -354,7 +359,7 @@ class Quobyte():
 
 
 if __name__ == "__main__":
-    qb = Quobyte(sys.argv[1], sys.argv[2], sys.argv[3])
+    qb = Quobyte(argv[1], argv[2], argv[3])
     qb.get_service_section()
     qb.get_health_section()
     qb.get_device_section()

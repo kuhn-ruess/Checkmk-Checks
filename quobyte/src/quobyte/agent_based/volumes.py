@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
 
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
 
-from .agent_based_api.v1 import (
-    register,
+from cmk.agent_based_api.v2 import (
+    AgentSection,
+    CheckPlugin,
     Result,
     Service,
     State,
@@ -25,12 +31,14 @@ def parse_quobyte_volumes(string_table):
             parsed[current_volume][line[0]] = int(line[1])
     return parsed
 
+
 def discover_quobyte_volumes(section):
     """
     Discover one Service
     """
     for volume in section:
         yield Service(item=volume)
+
 
 def check_levels(current, levels):
     """
@@ -82,17 +90,19 @@ def check_quobyte_volumes(item, params, section):
         yield Result(state=state, summary=f"Physical Used {render.bytes(data['used_disk_space_bytes'])}")
         yield Metric("physical_used", data['used_disk_space_bytes'])
 
-register.agent_section(
-    name="quobyte_volumes",
-    parse_function=parse_quobyte_volumes,
+
+agent_section_quobyte_volumes = AgentSection(
+    name = "quobyte_volumes",
+    parse_function = parse_quobyte_volumes,
 )
 
-register.check_plugin(
-    name="quobyte_volumes",
-    sections=["quobyte_volumes"],
-    service_name="Volume %s",
-    discovery_function=discover_quobyte_volumes,
-    check_function=check_quobyte_volumes,
-    check_default_parameters={},
-    check_ruleset_name="quobyte_volumes",
+
+check_plugin_quobyte_volumes = CheckPlugin(
+    name = "quobyte_volumes",
+    sections = ["quobyte_volumes"],
+    service_name = "Volume %s",
+    discovery_function = discover_quobyte_volumes,
+    check_function = check_quobyte_volumes,
+    check_default_parameters = {},
+    check_ruleset_name = "quobyte_volumes",
 )
