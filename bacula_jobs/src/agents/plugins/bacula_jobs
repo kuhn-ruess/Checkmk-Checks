@@ -31,7 +31,7 @@ if [ "$backend_type" = "pgsql" ]; then
         echo "psql executable cannot be found!" >&2
         exit 1
     fi
-    echo "Select JobId, Name, JobStatus, EndTime FROM Job WHERE EndTime BETWEEN NOW() - interval '30 days' AND NOW();" | sudo "$DB_HOST_OPT" -u "$dbuser" "$psql_bin" --tuples-only -AF $'\t'  "$dbname" "$dbuser"
+    echo "Select JobId, Name, JobStatus, EndTime FROM Job WHERE EndTime BETWEEN NOW() - interval '30 days' AND NOW();" | sudo "$DB_HOST_OPT" -u "$dbuser" "$psql_bin" --tuples-only -AF "$(printf '\t')"  "$dbname" "$dbuser"
 else
     # default: MySQL / MariaDB
     mysql_bin=$(which mysql)
