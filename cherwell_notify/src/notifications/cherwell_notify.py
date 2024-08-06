@@ -1,0 +1,347 @@
+#!/usr/bin/env python3
+# Cherwell
+
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+
+import sys
+import os
+import time
+import socket
+import requests
+from cmk.notification_plugins import utils
+from urllib3.exceptions import InsecureRequestWarning
+from urllib3 import disable_warnings
+disable_warnings(InsecureRequestWarning)
+
+
+class NotifyCherwell():
+    """
+    Cherwell Notification Class
+    """
+    def __init__(self):
+        """
+        Perpare Config and Params
+        """
+        context = utils.collect_context()
+        self.config = {
+            'api_url': context['PARAMETER_API_URL'],
+            'client_id': context['PARAMETER_CLIENT_ID'],
+            'token_url': context['PARAMETER_TOKEN_URL'],
+            'username': context['PARAMETER_USERNAME'],
+            'password': context['PARAMETER_PASSWORD']
+        }
+
+        self.cmk_server = context['PARAMETER_CMK_SERVER']
+        self.cmk_site =  context['PARAMETER_CMK_SITE']
+        self.automation_secret = context['PARAMETER_AUTOMATION_SECRET']
+
+        self.context = context
+        if "EC_ID" in context:
+            self.event_id = context["EC_ID"]
+        self.omd_root = context['OMD_ROOT']
+
+
+    def get_login_token(self):
+        """
+        Generate Token
+        """
+        token_file_path = f"/opt/omd/sites/{self.cmk_site}/tmp/cherwell_token"
+        load_token = False
+
+        if not os.path.isfile(token_file_path):
+            load_token = True
+        else:
+            mod_age_sec = time.time() - os.path.getmtime(token_file_path)
+            if mod_age_sec >= 900:
+                load_token = True
+
+        if load_token:
+            token_auth_data = {
+                'grant_type' : 'password',
+                'client_id' : self.config['client_id'],
+                'username' : self.config['username'],
+                'password' : self.config['password'],
+            }
+
+
+            response = requests.post(self.config['token_url'],
+                                     data=token_auth_data, verify=False, timeout=10)
+
+            token = response.json()['access_token']
+            open(token_file_path, 'w', encoding='utf-8').write(token)
+            return token
+
+        return str(open(token_file_path, "r", encoding='utf-8').read())
+
+
+    def ack_event(self, ticket_number):
+        """
+        acknowledge Event
+        """
+        username = 'automation'
+        password = self.automation_secret
+
+        headers = {
+            'Authorization': f"Bearer {username} {password}"
+        }
+        url=f'https://{self.cmk_server}/{self.cmk_site}/check_mk/api/1.0'
+        url += f'/objects/event_console/{self.event_id}/actions/update_and_acknowledge/invoke'
+        data={
+            "phase": "ack",
+            "site_id": self.cmk_site,
+            "change_comment": ticket_number,
+        }
+        response = requests.post(url, json=data, headers=headers, verify=False, timeout=10)
+        if response.status_code != 204:
+            print("ACK API Request Failed")
+            raise Exception(response.text)
+
+
+    def comment_event(self, ticket_number):
+        """
+        insert incident ID (from cherwell responce)
+        """
+        command = f"COMMAND UPDATE;{self.event_id};;0;{ticket_number};\n".encode("ascii")
+        mkevent_socket = f"{self.omd_root}/tmp/run/mkeventd/status"
+        print(f"EC Command: {command}")
+        print(f"EC socket: {mkevent_socket}")
+
+        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        sock.settimeout(3)
+        sock.connect(mkevent_socket)
+        sock.sendall(command)
+        sock.shutdown(socket.SHUT_WR)
+
+        #with open(mkevent_socket, "w") as socket:
+        #    socket.write(command)
+        #    socket.close()
+
+
+    def build_payload_insert(self):
+        """
+        Build Dict Object passed to Cherwell for insert
+        """
+        context = self.context
+
+        hostname = context['HOSTNAME']
+        contacts = context['CONTACTS']
+        event_time = context['SHORTDATETIME']
+        ev_date, ev_time = event_time.split()
+        year, month, day = ev_date.split('-')
+        event_time_formated = f"{day}.{month}.{year} - {ev_time}"
+        event_prio = "Undefined"
+        service_name = "Undefined"
+        event_id = "Undefined"
+        serverity = "Undefined"
+        count = "Undefined"
+        ec_rule = "Undefined"
+        plugin_output = "Undefined"
+
+
+        is_ec_notifcation = False
+
+        if context['NOTIFICATIONTYPE'] == "PROBLEM":
+            # Notification for Problems
+            if context['WHAT'] == "HOST":
+                # Host Notification
+                serverity = context['HOSTSTATE']
+                service_name = "HOSTPROBLEM"
+            else:
+                # Service or EC Notification
+                service_name = context['SERVICEDESC']
+                serverity = context['SERVICESTATE']
+                plugin_output = context['SERVICEOUTPUT']
+                # @TODO Testen, weil nicht sicher ob das auch EC Counter ist
+                count = context['SERVICEATTEMPT']
+                if context['SERVICECHECKCOMMAND'].startswith('ec-rule-'):
+                    is_ec_notifcation = True
+                    event_id = context['EC_ID']
+                    ec_rule = context['EC_RULE_ID']
+                    contacts = context['EC_CONTACT'] # Overwrite the normal Contacts
+
+                    # Special Case for EC Notification
+                    #context['EC_CONTACT_GROUPS']
+                    #context['EC_FACILITY']
+                    #context['EC_PHASE']
+                    #context['EC_PID']
+                    event_prio = context['EC_PRIORITY']
+
+        elif context['NOTIFICATIONTYPE'] == "RECOVERY":
+            # Notification for OK messages
+            # @TODO brauchen wir das??
+            # Wie wird das Recovery behandelt
+            if context['WHAT'] == "HOST":
+                pass
+            else:
+                service_name = context['SERVICEDESC']
+            raise Exception("Recovery not Implemented")
+
+
+        #subject = f"{hostname}} - {service_name} - {serverity}"
+        if is_ec_notifcation:
+            # Message for EC Events
+            description =\
+            f"cmk: {hostname} \n"\
+            f"Application: {service_name} \n"\
+            f"Event-ID: {event_id} \n"\
+            f"Zeitpunkt: {event_time_formated} \n"\
+            f"Nachricht: {serverity} - {plugin_output} \n"\
+            f"Counter: {count} \n"\
+            f"CMK-SLA: {event_prio} \n"\
+            f"Kontakt: {contacts} \n"\
+            f"Rule: {ec_rule} \n"\
+            f"Link Event: https://{self.cmk_server}/{self.cmk_site}"\
+            f"/check_mk/view.py?site={self.cmk_site}&event_id={event_id}&view_name=ec_event \n"\
+            f"Link Host: https://{self.cmk_server}/{self.cmk_site}"\
+            f"/check_mk/view.py?host={hostname}&view_name=host \n"
+        else:
+            # Message for Normal Notifications
+            description =\
+            f"cmk: {hostname} \n"\
+            f"Application: {service_name} \n"\
+            f"Zeitpunkt: {event_time_formated} \n"\
+            f"Nachricht: {serverity} - {plugin_output} \n"\
+            f"Counter: {count} \n"\
+            f"CMK-SLA: {event_prio} \n"\
+            f"Kontakt: {contacts} \n"\
+            f"Link Host: https://{self.cmk_server}/{self.cmk_site}"\
+            f"/check_mk/view.py?host={hostname}&view_name=host \n"
+
+
+        # pylint: disable=line-too-long
+        return {
+            "busObId": "6dd53665c0c24cab86870a21cf6434ae",
+            "cacheScope": "Tenant",
+            "fields": [
+                {
+                    # Beschreibung
+                    "dirty": True,
+                    "fieldId": "BO:6dd53665c0c24cab86870a21cf6434ae,FI:252b836fc72c4149915053ca1131d138",
+                    "value": description
+                },
+                {
+                    # Kunden-ID - ID fuer smprod Nagios
+                    "dirty": True,
+                    "fieldId": "BO:6dd53665c0c24cab86870a21cf6434ae,FI:933bd530833c64efbf66f84114acabb3e90c6d7b8f",
+                    "value": "93d7b62afaf761cf7bbdc04b71b1d71aba05d50032"
+                },
+                {
+                    # Erstellt von
+                    "dirty": False,
+                    "fieldId": "BO:6dd53665c0c24cab86870a21cf6434ae,FI:290114239acc43cd92a7ee58acdc1da2",
+                    "value": "CheckMK"
+                }
+                ,
+                {
+                    # KundeAnzeigename
+                    "fieldId": "BO:6dd53665c0c24cab86870a21cf6434ae,FI:93734aaff77b19d1fcfd1d4b4aba1b0af895f25788",
+                    "value": "smprod Nagios"
+                },
+                {
+                    # Kunden Firma ID
+                    "dirty": True,
+                    "fieldId": "BO:6dd53665c0c24cab86870a21cf6434ae,FI:93b84c5b177086a57eb8ef4441879ace414e3f4b06",
+                    "value": "93d62b1dff15b0696c37714b16b9d7149e9ac4aed4"
+                },
+                {
+                    # "Zugewiesener Service Kunde"
+                    "dirty": False,
+                    "fieldId": "BO:6dd53665c0c24cab86870a21cf6434ae,FI:93cda5e2bf48d1338d11404660b1a5b1b5ff52939e",
+                    "value": "IT Zentralen, Server Bronze, Bronze"
+                },
+                {
+                    # Betroffener Business Service
+                    "dirty": True,
+                    "fieldId": "BO:6dd53665c0c24cab86870a21cf6434ae,FI:9e0b434034e94781ab29598150f388aa",
+                    "value": "IT Zentralen"
+                },
+                {
+                    # Anfrageart
+                    "dirty": False,
+                    "fieldId": "BO:6dd53665c0c24cab86870a21cf6434ae,FI:1163fda7e6a44f40bb94d2b47cc58f46",
+                    "value": "Information Request"
+                }
+            ],
+            "persist": True
+        }
+
+
+    def build_payload_update(self, ticket_number):
+        """
+        Build Dict Object passed to Cherwell for Update
+        """
+        # pylint: disable=line-too-long
+        return {
+            "busObPublicId": ticket_number,
+            "busObId": "6dd53665c0c24cab86870a21cf6434ae",
+            "cacheScope": "Tenant",
+            "fields": [
+                {
+                    # Herkunft
+                    "dirty": True,
+                    "fieldId": "BO:6dd53665c0c24cab86870a21cf6434ae,FI:93670bdf8abe2cd1f92b1f490a90c7b7d684222e13",
+                    "value": "Ereignis"
+                },
+                {
+                    # Status
+                    "dirty": True,
+                    "fieldId": "BO:6dd53665c0c24cab86870a21cf6434ae,FI:5eb3234ae1344c64a19819eda437f18d",
+                    "value": "Neu"
+                }
+            ],
+            "persist": True
+        }
+
+
+    def notify(self):
+        """
+        Main part to sendout notification
+        """
+        login_token = self.get_login_token()
+        headers = {
+            'Authorization' : f"Bearer {login_token}",
+            'Content-Type' : "application/json",
+            'Accept' : "application/json",
+        }
+        payload = self.build_payload_insert()
+        url = self.config['api_url']
+        response = requests.post(url, headers=headers, json=payload, verify=False, timeout=10)
+        if response.status_code != 200:
+            print(response.json())
+            return 1
+        ticket_id = response.json()['busObPublicId']
+        if self.event_id:
+            print(f"Working on Event id: {self.event_id}")
+            try:
+                print(f"ACK RestAPI,  Event ID: {self.event_id}, Incident id: {ticket_id}")
+                self.ack_event(ticket_id)
+                print(f" -- Done {self.event_id}")
+            except:
+                # Wenn der CMK interne REST aufruf für ack.
+                # schief geht, wird der Fallback ueber den Socket versucht
+                print(f"ACK Socket Fallback,  Event ID: {self.event_id}, Incident id: {ticket_id}")
+                self.comment_event(ticket_id)
+                print(f" -- Done {self.event_id}")
+
+        print(f"Cherwell Incident id: {ticket_id}")
+        # Nicht alle values koennen beim Cherwell insert gesetzt werden.
+        # Manche Values erst nach der Erstellung.
+        if ticket_id:
+            print(f"Update Incident id: {ticket_id} values Status, Herkunft, ...")
+            payload = self.build_payload_update(ticket_id)
+            url = self.config['api_url']
+            response = requests.post(url, headers=headers, json=payload, verify=False, timeout=10)
+            if response.status_code == 200:
+                print(f"Update on Incident id: {ticket_id} done")
+            else:
+                print(response.json())
+        return 0
+
+
+if __name__ == "__main__":
+    notify = NotifyCherwell()
+    sys.exit(notify.notify())
