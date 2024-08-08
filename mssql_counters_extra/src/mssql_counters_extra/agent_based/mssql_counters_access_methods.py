@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
 
 #
 # MSSQL_SQL2012T:Access_Methods full_scans/sec None 292076 
@@ -7,8 +12,18 @@
 #
 
 from contextlib import suppress
-from .agent_based_api.v1 import get_rate, get_value_store, register, Service, Result, State, Metric, GetRateError
-import time
+from time import time
+
+from .agent_based_api.v2 import (
+    get_rate,
+    get_value_store,
+    register,
+    Service,
+    Result,
+    State,
+    Metric,
+    GetRateError
+)
 
 
 def discover_mssql_counters_access_methods(section):
@@ -23,11 +38,12 @@ def discover_mssql_counters_access_methods(section):
 def check_mssql_access_methods(item, params, section):
     if not section:
         return
+
     db = item
     obj_id = db + ":Access_Methods"
     instance = "None"
 
-    now = time.time()
+    now = time()
 
     value_store = get_value_store()
 
@@ -36,13 +52,14 @@ def check_mssql_access_methods(item, params, section):
         fscans = section[(obj_id, instance)]["full_scans/sec"]
         fscans_counter = "mssql_fscans.%s" % db
         fsrate = get_rate(
-                    value_store,
-                    fscans_counter,
-                    now,
-                    fscans,
-                )
+            value_store,
+            fscans_counter,
+            now,
+            fscans,
+        )
         finfotext = "%.2f full_scans/sec" % fsrate
         levels = params.get("AccessFullScans")
+
         if levels is not None:
             warn, crit = levels
             levelstext = " (warn/crit at %.2f/%.2f)" % levels
@@ -63,13 +80,14 @@ def check_mssql_access_methods(item, params, section):
         isearch = section[(obj_id, instance)]["index_searches/sec"]
         isearch_counter = "mssql_isearch.%s" % db
         israte = get_rate(
-                    value_store,
-                    isearch_counter,
-                    now,
-                    isearch
-                )
+            value_store,
+            isearch_counter,
+            now,
+            isearch
+        )
         iinfotext = "%.2f index_searches/sec" % israte
         levels = params.get("AccessIndexSearches")
+
         if levels is not None:
             warn, crit = levels
             levelstext = " (warn/crit at %.2f/%.2f)" % levels
@@ -92,6 +110,7 @@ def check_mssql_access_methods(item, params, section):
         index_hitratio_perc = (israte / (israte + fsrate)) * 100
         infotext = "Index hit ratio: %.2f%%" % index_hitratio_perc
         levels = params.get("index_hit_ratio")
+
         if levels is not None:
             warn, crit = levels
             levelstext = " (warn/crit below %.1f/%.1f%%)" % levels
@@ -109,16 +128,16 @@ def check_mssql_access_methods(item, params, section):
         raise GetRateError
 
 
-register.check_plugin(
-    name='mssql_counters_access_methods',
-    service_name='MSSQL %s Access Index Usage',
-    sections=['mssql_counters'],
-    discovery_function=discover_mssql_counters_access_methods,
-    check_function=check_mssql_access_methods,
-    check_ruleset_name="mssql_counters_access_methods",
-    check_default_parameters={
-        "AccessFullScans" :  (50.0, 100.0),
-        "AccessIndexSearches" :  (500.0, 1000.0),
-        "index_hit_ratio" :  (5.0, 1.0),
-    }
+check_plugin_mssql_counters_access_methods = CheckPlugin(
+    name = "mssql_counters_access_methods",
+    service_name = "MSSQL %s Access Index Usage",
+    sections = ["mssql_counters"],
+    discovery_function = discover_mssql_counters_access_methods,
+    check_function = check_mssql_access_methods,
+    check_ruleset_name = "mssql_counters_access_methods",
+    check_default_parameters = {
+        "AccessFullScans": (50.0, 100.0),
+        "AccessIndexSearches": (500.0, 1000.0),
+        "index_hit_ratio": (5.0, 1.0),
+    },
 )

@@ -1,61 +1,60 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
-from cmk.gui.plugins.wato.utils import (
-    CheckParameterRulespecWithItem,
-    rulespec_registry,
-    RulespecGroupCheckParametersApplications,
-)
-from cmk.gui.valuespec import (
-    TextInput,
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+
+from cmk.rulesets.v1 import Title
+from cmk.rulesets.v1.form_specs import (
     Dictionary,
-    Tuple,
-    Float,
+    DictElement,
+    SimpleLevels,
+    LevelDirection,
+    DefaultValue,
     Integer,
+    Float,
 )
+from cmk.rulesets.v1.rule_specs import CheckParameters, HostAndItemCondition, Topic
 
-def _item_spec_mssql_counters_connections():
-    return TextInput(
-        title=_("Instance"),
-    )
 
 def _parameter_valuespec_mssql_counters_connections():
     return Dictionary(
-        title="MSSQL Connections",
-        elements=[
-            ("user_connections",
-                Tuple(
-                    title="User connections",
-                    elements=[
-                        Integer(title="Warning at", default_value=100),
-                        Integer(title="Critical at", default_value=200),
-                    ],
-                )),
-            ("LogInConnects",
-                Tuple(
-                    title="Logins per second",
-                    elements=[
-                        Float(title="Warning at", default_value=2),
-                        Float(title="Critical at", default_value=10),
-                    ],
-                )),
-            ("LogOutConnects",
-                Tuple(
-                    title="Logouts per second",
-                    elements=[
-                        Float(title="Warning at", default_value=2),
-                        Float(title="Critical at", default_value=10),
-                    ],
-                )),
-        ],
+        title = Title("MSSQL user connections"),
+        elements = {
+            "user_connections": DictElement(
+                parameter_form = SimpleLevels(
+                    title = Title("User connections"),
+                    level_direction = LevelDirection.UPPER,
+                    form_spec_template = Integer(),
+                    prefill_fixed_levels = DefaultValue((100, 200)),
+                )
+            ),
+            "LogInConnects": DictElement(
+                parameter_form = SimpleLevels(
+                    title = Title("Logins per second"),
+                    level_direction = LevelDirection.UPPER,
+                    form_spec_template = Float(),
+                    prefill_fixed_levels = DefaultValue((2.0, 10.0)),
+                ),
+            ),
+            "LogOutConnects": DictElement(
+                parameter_form = SimpleLevels(
+                    title = Title("Logouts per second"),
+                    level_direction = LevelDirection.UPPER,
+                    form_spec_template = Float(),
+                    prefill_fixed_levels = DefaultValue((2.0, 10.0)),
+                ),
+            ),
+        },
     )
 
-rulespec_registry.register(
-    CheckParameterRulespecWithItem(
-        check_group_name="mssql_counters_connections",
-        group=RulespecGroupCheckParametersApplications,
-        item_spec=_item_spec_mssql_counters_connections,
-        parameter_valuespec=_parameter_valuespec_mssql_counters_connections,
-        title=lambda: _("MSSQL Connections"),
-    )
+
+rule_spec_mssql_counters_connections = CheckParameters(
+    name = "mssql_counters_connections",
+    topic = Topic.APPLICATIONS,
+    condition = HostAndItemCondition(item_title = Title("Instance")),
+    parameter_form = _parameter_valuespec_mssql_counters_connections,
+    title = Title("MSSQL user connections"),
 )

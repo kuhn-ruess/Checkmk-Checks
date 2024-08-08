@@ -1,53 +1,51 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
-from cmk.gui.plugins.wato.utils import (
-    CheckParameterRulespecWithItem,
-    rulespec_registry,
-    RulespecGroupCheckParametersApplications,
-)
-from cmk.gui.valuespec import (
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+
+from cmk.rulesets.v1 import Title
+from cmk.rulesets.v1.form_specs import (
     Dictionary,
-    Tuple,
+    DictElement,
+    SimpleLevels,
+    LevelDirection,
+    DefaultValue,
     Float,
-    TextInput,
 )
-
-def _item_spec_mssql_counters_work_files_tables():
-    return TextInput(
-        title=_("Instance"),
-    )
+from cmk.rulesets.v1.rule_specs import CheckParameters, HostAndItemCondition, Topic
 
 
 def _parameter_valuespec_mssql_counters_work_files_tables():
     return Dictionary(
-        title="MSSQL Work Files and Tables",
-        elements=[
-            ("WorkFiles",
-                Tuple(
-                    title="Work files created per second",
-                    elements=[
-                        Float(title="Warning at", default_value=100),
-                        Float(title="Critical at", default_value=200),
-                    ],
-                )),
-            ("WorkTables",
-                Tuple(
-                    title="Work tables created per second",
-                    elements=[
-                        Float(title="Warning at", default_value=200),
-                        Float(title="Critical at", default_value=400),
-                    ],
-                )),
-        ],
+        title = Title("MSSQL work files and tables"),
+        elements = {
+            "WorkFiles": DictElement(
+                parameter_form = SimpleLevels(
+                    title = Title("Work files created per second"),
+                    level_direction = LevelDirection.UPPER,
+                    form_spec_template = Float(),
+                    prefill_fixed_levels = DefaultValue((100.0, 200.0)),
+                ),
+            ),
+            "WorkTables": DictElement(
+                parameter_form = SimpleLevels(
+                    title = Title("Work tables created per second"),
+                    level_direction = LevelDirection.UPPER,
+                    form_spec_template = Float(),
+                    prefill_fixed_levels = DefaultValue((200.0, 400,0)),
+                ),
+            ),
+        },
     )
 
-rulespec_registry.register(
-    CheckParameterRulespecWithItem(
-        check_group_name="mssql_counters_work_files_tables",
-        group=RulespecGroupCheckParametersApplications,
-        item_spec=_item_spec_mssql_counters_work_files_tables,
-        parameter_valuespec=_parameter_valuespec_mssql_counters_work_files_tables,
-        title=lambda: _("MSSQL Work Files and Tables"),
-    )
+
+rule_spec_mssql_counters_work_files_tables = CheckParameters(
+    name = "mssql_counters_work_files_tables",
+    topic = Topic.APPLICATIONS,
+    condition = HostAndItemCondition(item_title = Title("Instance")),
+    parameter_form = _parameter_valuespec_mssql_counters_work_files_tables,
+    title = Title("MSSQL work files and tables"),
 )

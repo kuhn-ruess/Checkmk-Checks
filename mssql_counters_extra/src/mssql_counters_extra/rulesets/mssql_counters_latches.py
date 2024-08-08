@@ -1,62 +1,59 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
-from cmk.gui.plugins.wato.utils import (
-    CheckParameterRulespecWithItem,
-    rulespec_registry,
-    RulespecGroupCheckParametersApplications,
-)
-from cmk.gui.valuespec import (
-    TextInput,
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+
+from cmk.rulesets.v1 import Title
+from cmk.rulesets.v1.form_specs import (
     Dictionary,
-    Tuple,
-    Integer,
+    DictElement,
+    SimpleLevels,
+    LevelDirection,
+    DefaultValue,
+    Float,
 )
-
-def _item_spec_mssql_counters_latches():
-    return TextInput(
-        title=_("Instance"),
-    )
+from cmk.rulesets.v1.rule_specs import CheckParameters, HostAndItemCondition, Topic
 
 
 def _parameter_valuespec_mssql_counters_latches():
     return Dictionary(
-        title="MSSQL Latches",
-        elements=[
-            ("LatchWaits",
-                Tuple(
-                    title="Latch waits per second",
-                    elements=[
-                        Float(title="Warning at", default_value=100),
-                        Float(title="Critical at", default_value=200),
-                    ],
-                )),
-            ("LatchWaitTime",
-                Tuple(
-                    title="Total latch wait time (ms)",
-                    elements=[
-                        Float(title="Warning at", default_value=200),
-                        Float(title="Critical at", default_value=400),
-                    ],
-                )),
-            ("LatchAverage",
-                Tuple(
-                    title="Average latch wait time (ms",
-                    elements=[
-                        Float(title="Warning at", default_value=20),
-                        Float(title="Critical at", default_value=40),
-                    ],
-                )),
-        ],
+        title = Title("MSSQL latches"),
+        elements = {
+            "LatchWaits": DictElement(
+                parameter_form = SimpleLevels(
+                    title = Title("Latch waits per second"),
+                    level_direction = LevelDirection.UPPER,
+                    form_spec_template = Float(),
+                    prefill_fixed_levels = DefaultValue((100.0, 200.0)),
+                ),
+            ),
+            "LatchWaitTime": DictElement(
+                parameter_form = SimpleLevels(
+                    title = Title("Total latch wait time (ms)"),
+                    level_direction = LevelDirection.UPPER,
+                    form_spec_template = Float(),
+                    prefill_fixed_levels = DefaultValue((200.0, 400.0)),
+                ),
+            ),
+            "LatchAverage": DictElement(
+                parameter_form = SimpleLevels(
+                    title = Title("Average latch wait time (ms)"),
+                    level_direction = LevelDirection.UPPER,
+                    form_spec_template = Float(),
+                    prefill_fixed_levels = DefaultValue((20.0, 40.0)),
+                ),
+            ),
+        },
     )
 
 
-rulespec_registry.register(
-    CheckParameterRulespecWithItem(
-        check_group_name="mssql_counters_latches",
-        group=RulespecGroupCheckParametersApplications,
-        item_spec=_item_spec_mssql_counters_latches,
-        parameter_valuespec=_parameter_valuespec_mssql_counters_latches,
-        title=lambda: _("MSSQL Latches"),
-    )
+rule_spec_mssql_counters_latches = CheckParameters(
+    name = "mssql_counters_latches",
+    topic = Topic.APPLICATIONS,
+    condition = HostAndItemCondition(item_title = Title("Instance")),
+    parameter_form = _parameter_valuespec_mssql_counters_latches,
+    title = Title("MSSQL latches"),
 )

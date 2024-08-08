@@ -1,8 +1,24 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
-from .agent_based_api.v1 import get_rate, get_value_store, register, Service, Result, State, Metric, render
-import time
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+
+from time import time
+
+from .agent_based_api.v2 import (
+    get_rate,
+    get_value_store,
+    register,
+    Service,
+    Result,
+    State,
+    Metric,
+    render
+)
+
 
 def _check_memory_usage(db, params, section):
     obj_id = db + ":Memory_Manager"
@@ -15,6 +31,7 @@ def _check_memory_usage(db, params, section):
     value = 100 * (totmem / tarmem)
     targig= tarmem / 1048576    
     infotext = "%.2f %% MemoryUsage of %.2f GB TargetMem" % (value,targig)
+
     if levels is not None:
         warn, crit = levels
         levelstext = " (warn, crit at %d/%d%%)" % (warn, crit)
@@ -38,6 +55,7 @@ def _check_memory_grants(db, params, section):
 
     mgrants = section[(obj_id, instance)]["memory_grants_pending"]
     infotext = "%d memory_grants_pending" % mgrants 
+
     if levels is not None:
         warn, crit = levels
         levelstext = " (warn, crit at %s/%s)" % (warn, crit)
@@ -60,6 +78,7 @@ def _check_page_life_expectancy(db, params, section):
 
     page_life_expectancy = section[(obj_id, instance)]["page_life_expectancy"]
     infotext = "page_life_expectancy is %s"  % render.timespan(page_life_expectancy)
+
     if levels != None:
         yield Metric("perf_page_life_expectancy", page_life_expectancy, levels=levels)
         warn, crit = levels
@@ -79,7 +98,7 @@ def _check_lazy_writes(db, params, section):
     obj_id = db + ":Buffer_Manager"
     instance = "None"
 
-    now = time.time()
+    now = time()
 
     value_store = get_value_store()
     levels = params.get("LazyWrites")
@@ -89,12 +108,13 @@ def _check_lazy_writes(db, params, section):
     lwrites = section[(obj_id, instance)]["lazy_writes/sec"]
     lwrites_counter = "mssql_lazy_writes.%s" % db
     value = get_rate(
-                value_store,
-                lwrites_counter,
-                now,
-                lwrites,
-            )
+        value_store,
+        lwrites_counter,
+        now,
+        lwrites,
+    )
     infotext = "%.2f lazy_writes/sec" %value
+
     if levels is not None:
         warn, crit = levels
         levelstext = " (warn, crit at %s/%s)" % (warn, crit)
@@ -134,17 +154,17 @@ def check_mssql_counters_memory(item, params, section):
     yield from _check_memory_usage(item, params, section)
 
 
-register.check_plugin(
-    name='mssql_counters_memory',
-    service_name="MSSQL Memory %s",
-    sections=['mssql_counters'],
-    check_function=check_mssql_counters_memory,
-    discovery_function=discover_mssql_counters_memory,
-    check_ruleset_name="mssql_counters_memory",
-    check_default_parameters={
+check_plugin_mssql_counter_memory = CheckPlugin(
+    name = "mssql_counters_memory",
+    service_name = "MSSQL Memory %s",
+    sections = ["mssql_counters"],
+    check_function = check_mssql_counters_memory,
+    discovery_function = discover_mssql_counters_memory,
+    check_ruleset_name = "mssql_counters_memory",
+    check_default_parameters = {
         "LazyWrites" : (20.0, 50.0),
         "page_life_expectancy" : (300, 120),
         "MemoryGrantsPending" : (3, 10),
         "MemoryUsage" : (80.0, 90.0),
-    }
+    },
 )
