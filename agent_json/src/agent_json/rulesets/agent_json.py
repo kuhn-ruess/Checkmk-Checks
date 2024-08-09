@@ -2,7 +2,7 @@
 
 """
 Kuhn & Rueß GmbH
-Consulting and Development
+Consuling and Development
 https://kuhn-ruess.de
 """
 
@@ -12,18 +12,15 @@ from cmk.rulesets.v1.form_specs import (
     DictElement,
     String,
     Password,
-    TimeSpan,
-    TimeMagnitude,
-    DefaultValue,
 )
 from cmk.rulesets.v1.form_specs.validators import LengthInRange
 from cmk.rulesets.v1.rule_specs import SpecialAgent, Topic
 
 
-def _parameter_form_special_agents_quobyte():
+def _parameter_form_special_agent_json():
     return Dictionary(
-        title = Title("Quobyte via WebAPI"),
-        help_text = Help("This rule set selects the special agent for Quobyte"),
+        title = Title("Agent JSON"),
+        help_text = Help("This rule set selects the special agent who parses json"),
         elements = {
             "api_url": DictElement(
                 parameter_form = String(
@@ -42,24 +39,16 @@ def _parameter_form_special_agents_quobyte():
             "password": DictElement(
                 parameter_form = Password(
                     title = Title("Password"),
-                    custom_validate=(LengthInRange(min_value=1),),
                 ),
                 required = True,
-            ),
-            "timeout": DictElement(
-                parameter_form = TimeSpan(
-                    title = Title("Timeout"),
-                    displayed_magnitudes=[TimeMagnitude.MILLISECOND, TimeMagnitude.SECOND],
-                    prefill = DefaultValue(2.5),
-                ),
             ),
         },
     )
 
 
-rule_spec_quobyte = SpecialAgent(
-    name = "quobyte",
-    topic = Topic.STORAGE,
-    parameter_form = _parameter_form_special_agents_quobyte,
-    title = Title("Quobyte via WebAPI"),
+rule_spec_agent_json = SpecialAgent(
+    name = "json",
+    topic = Topic.SERVER_HARDWARE,
+    parameter_form = _parameter_form_special_agent_json,
+    title = Title("Agent JSON"),
 )

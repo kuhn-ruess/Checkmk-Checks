@@ -16,26 +16,25 @@ from cmk.server_side_calls.v1 import (
 )
 
 
-class QuobyteParams(BaseModel):
+class AgentJSONParams(BaseModel):
     api_url: str
     username: str
     password: Secret
-    timeout: float
 
 
-def generate_quobyte_command(params: QuobyteParams, host_config: HostConfig):
+
+def generate_agent_json_command(params: AgentJSONParams, host_config: HostConfig):
     yield SpecialAgentCommand(
         command_arguments = (
             params.api_url
             params.username,
             params.password.unsafe(),
-            params.timeout,
         )
     )
 
 
-special_agent_quobyte = SpecialAgentConfig(
-    name = "quobyte",
-    parameter_parser = QuobyteParams.model_validate,
-    commands_function = generate_quobyte_command,
+special_agent_json = SpecialAgentConfig(
+    name = "json",
+    parameter_parser = AgentJSONParams.model_validate,
+    commands_function = generate_agent_json_command,
 )

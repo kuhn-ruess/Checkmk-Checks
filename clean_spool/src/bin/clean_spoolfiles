@@ -1,0 +1,105 @@
+#!/usr/bin/env python3
+
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+
+from os import environ, listdir, stat, unlink
+from os.path import isfile
+
+path = f"{environ['OMD_ROOT']}/var/check_mk/notify/spool"
+files_unsorted = listdir(f"{path}")
+
+files = list(map(lambda f: (stat(f"{path}/{f}")[9], f), files_unsorted))
+files.sort(key=lambda tup: tup[0])
+
+entries = {}
+entries.setdefault("Hosts", {})
+entries["Hosts"].setdefault("Downtime", {})
+entries["Hosts"].setdefault("State", {})
+entries.setdefault("Services", {})
+entries["Services"].setdefault("Downtime", {})
+entries["Services"].setdefault("State", {})
+
+stats = {}
+stats.setdefault("Hosts", {})
+stats["Hosts"]["Downtime"] = 0
+stats["Hosts"]["State"] = 0
+stats.setdefault("Services", {})
+stats["Services"]["Downtime"] = 0
+stats["Services"]["State"] = 0
+
+for file in files:
+    with open(f"{path}/{file[1]}", "r") as data:
+        info = eval(data.read())
+        data.close()
+
+    info = info["context"]
+
+    if info["WHAT"] == "HOST":
+        if info["NOTIFICATIONTYPE"] == "DOWNTIMESTART":
+            entries["Hosts"]["Downtime"][info["HOSTNAME"]] = file[1]
+
+        elif info["NOTIFICATIONTYPE"] == "DOWNTIMEEND":
+            if info["HOSTNAME"] in entries["Hosts"]["Downtime"].keys():
+                if isfile(f"{path}/{entries['Hosts']['Downtime'][info['HOSTNAME']]}"):
+                    unlink(f"{path}/{entries['Hosts']['Downtime'][info['HOSTNAME']]}")
+
+                if isfile(f"{path}/{file[1]}"):
+                    unlink(f"{path}/{file[1]}")
+
+                del entries["Hosts"]["Downtime"][info["HOSTNAME"]]
+                stats["Hosts"]["Downtime"] += 1
+
+        elif info["NOTIFICATIONTYPE"] == "PROBLEM":
+            entries["Hosts"]["State"][info["HOSTNAME"]] = file[1]
+
+        elif info["NOTIFICATIONTYPE"] == "RECOVERY":
+            if info["HOSTNAME"] in entries["Hosts"]["State"].keys():
+                if isfile(f"{path}/{entries['Hosts']['State'][info['HOSTNAME']]}"):
+                    unlink(f"{path}/{entries['Hosts']['State'][info['HOSTNAME']]}")
+
+                if isfile(f"{path}/{file[1]}"):
+                    unlink(f"{path}/{file[1]}")
+
+                del entries["Hosts"]["State"][info["HOSTNAME"]]
+                stats["Hosts"]["State"] += 1
+
+    elif info["WHAT"] == "SERVICE":
+        name = f"{info['HOSTNAME']}###{info['SERVICEDESC']}"
+
+        if info["NOTIFICATIONTYPE"] == "DOWNTIMESTART":
+            entries["Services"]["Downtime"][name] = file[1]
+
+        elif info["NOTIFICATIONTYPE"] == "DOWNTIMEEND":
+            if name in entries["Services"]["Downtime"].keys():
+                if isfile(f"{path}/{entries['Services']['Downtime'][name]}"):
+                    unlink(f"{path}/{entries['Services']['Downtime'][name]}")
+
+                if isfile(f"{path}/{file[1]}"):
+                    unlink(f"{path}/{file[1]}")
+
+                del entries["Hosts"]["Services"][name]
+                stats["Services"]["Downtime"] += 1
+
+        elif info["NOTIFICATIONTYPE"] == "PROBLEM":
+            entries["Services"]["State"][name] = file[1]
+
+        elif info["NOTIFICATIONTYPE"] == "RECOVERY":
+            if name in entries["Services"]["State"].keys():
+                if isfile(f"{path}/{entries['Services']['State'][name]}"):
+                    unlink(f"{path}/{entries['Services']['State'][name]}")
+
+                if isfile(f"{path}/{file[1]}"):
+                    unlink(f"{path}/{file[1]}")
+
+                del entries["Services"]["State"][name]
+                stats["Services"]["State"] += 1
+
+print(f"#"*80)
+print(f"# {'Hosts':35}#    # {'Services':35}#")
+print(f"# Deleted downtimes: {stats['Hosts']['Downtime']:15} #    # Deleted downtimes: {stats['Services']['Downtime']:15} #")
+print(f"#    Deleted states: {stats['Hosts']['State']:15} #    #    Deleted states: {stats['Services']['State']:15} #")
+print(f"#"*80)
