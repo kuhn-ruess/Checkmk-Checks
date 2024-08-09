@@ -20,6 +20,7 @@ class QuobyteParams(BaseModel):
     api_url: str
     username: str
     password: Secret
+    timeout: float
 
 
 def generate_quobyte_command(params: QuobyteParams, host_config: HostConfig):
@@ -28,6 +29,7 @@ def generate_quobyte_command(params: QuobyteParams, host_config: HostConfig):
             params.api_url
             params.username,
             params.password.unsafe(),
+            params.timeout,
         )
     )
 

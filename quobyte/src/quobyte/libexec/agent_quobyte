@@ -18,12 +18,13 @@ class Quobyte():
 
     volume_names_map = {}
 
-    def __init__(self, api_host, user, password):
+    def __init__(self, api_host, user, password, timeout):
         """
         Init
         """
         self.api_host = api_host
         self.auth = HTTPBasicAuth(user, password)
+        self.timeout = float(tiemout)
 
 
     def request(self, method):
@@ -36,7 +37,7 @@ class Quobyte():
             "id": "12346",
             'method': method
         }
-        response = post(self.api_host, json=json_request, auth=self.auth, timeout=30)
+        response = post(self.api_host, json=json_request, auth=self.auth, timeout=self.timeout)
         return response.json()['result']
 
 
@@ -359,7 +360,7 @@ class Quobyte():
 
 
 if __name__ == "__main__":
-    qb = Quobyte(argv[1], argv[2], argv[3])
+    qb = Quobyte(argv[1], argv[2], argv[3], argv[4])
     qb.get_service_section()
     qb.get_health_section()
     qb.get_device_section()

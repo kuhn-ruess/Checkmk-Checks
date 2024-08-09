@@ -12,6 +12,9 @@ from cmk.rulesets.v1.form_specs import (
     DictElement,
     String,
     Password,
+    TimeSpan,
+    TimeMagnitude,
+    DefaultValue,
 )
 from cmk.rulesets.v1.form_specs.validators import LengthInRange
 from cmk.rulesets.v1.rule_specs import SpecialAgent, Topic
@@ -42,6 +45,13 @@ def _parameter_form_special_agents_quobyte():
                     custom_validate=(LengthInRange(min_value=1),),
                 ),
                 required = True,
+            ),
+            "timeout": DictElement(
+                parameter_form = TimeSpan(
+                    title = Title("Timeout"),
+                    displayed_magnitudes=[TimeMagnitude.MILLISECOND, TimeMagnitude.SECOND],
+                    prefill = DefaultValue(2.5),
+                ),
             ),
         },
     )
