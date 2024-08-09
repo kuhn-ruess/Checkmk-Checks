@@ -1,66 +1,61 @@
 #!/usr/bin/env python3
+
 """
-Agent Servicecounter
-
-2024-03 Kuhn & Rueß GmbH, bastian.kuhn@kuhn-ruess.de
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
 """
-import sys
-import requests
-import json
 
-import cmk.utils.site
-from cmk.utils.site import omd_site
+from json import dumps
+from os import environ
+from requests import get
+from sys import argv
 
+from cmk.utils.site import get_apache_port, omd_site
 
-OLD_CHECKMK = False
-
-try:
-    from cmk.utils.crypto.secrets import AutomationUserSecret
-except ImportError:
-    from cmk.utils.paths import profile_dir
-    OLD_CHECKMK = True
 
 class AgentServicecounter():
     """
     Agent Json
     """
 
+    def get_user(self):
+        """
+        Get automation user and secret
+        """
+        with open(f"{environ.get('OMD_ROOT')}/var/check_mk/web/automation/automation.secret", "r") as f:
+            data = f.read()
+            f.close()
+
+        self._username = "automation"
+        self._secret = data.strip()
+
 
     def __init__(self):
         """
         Init
         """
-        self.config = [ x.split('|') for x in sys.argv[1:]]
-
-        self._username = 'automation'
-
-        if OLD_CHECKMK:
-            self._secret = (profile_dir / self._username / "automation.secret").read_text(
-                encoding="utf-8")
-        else:
-            self._secret = AutomationUserSecret(self._username).read()
-
-        self._site_url = "http://localhost:%d/%s" % (
-            cmk.utils.site.get_apache_port(),
-            omd_site(),
-        )
+        self.timeout = float(argv[1])
+        self.config = [ x.split("|") for x in argv[2:]]
+        self.get_user()
+        self._site_url = f"http://localhost:{get_apache_port()}/{omd_site()}/check_mk/api/1.0"
 
 
     def get(self, url, params):
         """
         Simple Get
         """
-        full_url = f"{self._site_url}"\
-                    + "/check_mk/api/1.0/"\
-                    + url
+        content = get(
+            f"{self._site_url}{url}",
+            params = params,
+            headers = {"Authorization": f"Bearer {self._username} {self._secret}"},
+            timeout = self.timeout,
+        )
 
-        return requests.get(
-                full_url,
-                headers={"Authorization":
-                         f"Bearer {self._username} {self._secret.strip()}"},
-                timeout=30,
-                params=params).json()
-
+        if content.status_code == 200 or content.status_code == 204:
+            return content.json()
+        else:
+            return {}
 
 
     def get_services(self):
@@ -70,21 +65,27 @@ class AgentServicecounter():
         print("<<<local>>>")
         for service_name, service_output in self.config:
             expr = []
-            expr.append({
-                "op": "and", "expr": [
-                    {"op": "=", "left": "description", "right": f"{service_name}"},
-                    {"op": "~", "left": "plugin_output", "right": f"{service_output}"}
-                ]
-            })
+            expr.append(
+                {
+                    "op": "and", "expr": [
+                        {"op": "=", "left": "description", "right": f"{service_name}"},
+                        {"op": "~", "left": "plugin_output", "right": f"{service_output}"}
+                    ]
+                }
+            )
 
-            params={
-                "query":
-                str(json.dumps({
-                   "op": "or",
-                   "expr": expr,
-                }))
+            params = {
+                "query": str(
+                    dumps(
+                        {
+                            "op": "or",
+                            "expr": expr,
+                        }
+                    )
+                )
             }
-            url = "domain-types/service/collections/all"
+
+            url = "/domain-types/service/collections/all"
             count = len(self.get(url, params)['value'])
             print(f"0 \"Count {service_name} {service_output}\" count={count} Found {count} times")
 

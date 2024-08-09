@@ -1,18 +1,14 @@
-{'author': 'Kuhn  & Ruess GmbH',
- 'description': 'This Check is configured using a Special Agent, where you can '
-                'set Patterns for Service Names and the wanted Output.\n'
-                '\n'
-                'This Way, you can count for Example Agents Versions, and '
-                'thanks to the metric you can view that on a Dashboard. \n'
-                '\n'
-                'z.B. Agentcounter (Count..*Agent..*)\n',
+{'author': 'Kuhn & Rueß GmbH',
+ 'description': 'This special agent will search for services and in service '
+                'output for pattern to count. This counting will be added as a '
+                'metric and can be shown on dashboards.\n',
  'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
- 'files': {'agents': ['special/agent_service_counter'],
-           'checks': ['service_counter_agent'],
-           'web': ['plugins/wato/service_counter.py']},
+ 'files': {'cmk_addons_plugins': ['service_counter/libexec/agent_service_counter',
+                                  'service_counter/rulesets/service_counter.py',
+                                  'service_counter/server_side_calls/service_counter.py']},
  'name': 'service_counter',
- 'title': 'Count Services to get Performance Metrics',
- 'version': '1.0.1',
- 'version.min_required': '2.2.0p0',
- 'version.packaged': '2.2.0p27',
+ 'title': 'Count pattern in services for metrics',
+ 'version': '2.0.0',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.3.0p9',
  'version.usable_until': None}

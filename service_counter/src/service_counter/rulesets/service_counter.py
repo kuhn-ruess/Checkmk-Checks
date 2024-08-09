@@ -1,62 +1,77 @@
+#!/usr/bin/env python3
+
 """
-Service Counter
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
 """
-from cmk.gui.i18n import _
-from cmk.gui.valuespec import (
+
+from cmk.rulesets.v1 import Title, Help
+from cmk.rulesets.v1.form_specs import (
     Dictionary,
-    ListOf,
-    Tuple,
-    TextInput
+    DictElement,
+    List,
+    String,
+    TimeSpan,
+    TimeMagnitude,
+    DefaultValue,
 )
-
-try:
-    # Checkmk 2.2
-    from cmk.gui.plugins.wato.datasource_programs import (
-        RulespecGroupDatasourceProgramsApps,
-    )
-    from cmk.gui.plugins.wato import (
-        HostRulespec,
-        rulespec_registry,
-    )
-except ImportError:
-    # Pre Checkmk 2.2
-    from cmk.gui.wato import RulespecGroupDatasourceProgramsApps
-    from cmk.gui.watolib.rulespecs  import HostRulespec, rulespec_registry
+from cmk.rulesets.v1.form_specs.validators import LengthInRange
+from cmk.rulesets.v1.rule_specs import SpecialAgent, Topic
 
 
-def _valuespec_special_agents_service_counter():
+def _valuespec_special_agent_service_counter():
     """
     Service Counter Special Agent Konfiguration
     """
 
     return Dictionary(
-        title = _("Count and Sum Services"),
-        help = _("This rule set selects the special agent for Service Counter"),
-        elements = [
-            ("service_filters", ListOf(
-                valuespec=Tuple(
-                    elements=[
-                        TextInput(
-                            title="Name of Service",
-                            allow_empty=False,
-                        ),
-                        TextInput(
-                            title="Service Pattern",
-                            allow_empty= False,
-                        )
-                    ],
-                )
-
-            )),
-        ],
-        optional_keys=[],
+        title = Title("Service counter"),
+        help_text = Help("This rule activates special agent for service counting"),
+        elements = {
+            "service_filters": DictElement(
+                parameter_form = List(
+                    title = Title("Services"),
+                    help_text = Help("Pair of service names and service output pattern for counting"),
+                    custom_validate=(LengthInRange(min_value=1),),
+                    element_template = Dictionary(
+                        elements = {
+                            "name": DictElement(
+                                parameter_form = String(
+                                    title = Title("Complete name of Service"),
+                                    help_text = Help("Service name like Check_MK Agent, ..."),
+                                    custom_validate=(LengthInRange(min_value=1),),
+                                ),
+                                required = True,
+                            ),
+                            "pattern": DictElement(
+                                parameter_form = String(
+                                    title = Title("Service output pattern for counting"),
+                                    help_text = Help("Pattern, which will be searched in agent output for counting"),
+                                    custom_validate=(LengthInRange(min_value=1),),
+                                ),
+                                required = True,
+                            ),
+                        },
+                    )
+                ),
+                required = True,
+            ),
+            "timeout": DictElement(
+                parameter_form = TimeSpan(
+                    title = Title("Timeout"),
+                    displayed_magnitudes=[TimeMagnitude.MILLISECOND, TimeMagnitude.SECOND],
+                    prefill = DefaultValue(2.5),
+                ),
+                required = True,
+            ),
+        },
     )
 
 
-rulespec_registry.register(
-    HostRulespec(
-        group=RulespecGroupDatasourceProgramsApps,
-        name="special_agents:service_counter",
-        valuespec=_valuespec_special_agents_service_counter,
-    )
+rule_spec_service_counter = SpecialAgent(
+    name = "service_counter",
+    topic = Topic.APPLICATIONS,
+    parameter_form = _valuespec_special_agent_service_counter,
+    title = Title("Service counter"),
 )
