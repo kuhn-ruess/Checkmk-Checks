@@ -111,39 +111,39 @@ class PmaxConnector:
           start = result['from']
           end = result['to']
           retResult.extend(result['result'])
-  
+
         return retResult
       except Exception as e:
         raise ConnectionError(e)
-  
+
     def getSymmetrix(self):
       try:
-        retVal = self.get('/sloprovisioning/symmetrix')
+        retVal = self.get(f'/{API_VERSION}/sloprovisioning/symmetrix')
         retData = {
           key: {} for key in retVal.json()['symmetrixId']
         }
         return retData
       except Exception as e:
         raise ConnectionError(e)
-  
+
     def getSymmetrixInfo(self):
       for symId in self.getSymmetrix():
-        symmInfo = self.get('/90/system/symmetrix/{}'.format(symId)).json()
+        symmInfo = self.get(f'/{API_VERSION}/system/symmetrix/{symId}').json()
         self.symmetrixInfo[symId] = symmInfo
-  
+
     def getSymmetrixName(self, symmetrixId):
       if len(self.symmetrixInfo) == 0:
         self.getSymmetrixInfo()
       return self.symmetrixInfo.get(symmetrixId, {}).get('display_name', str(symmetrixId))
-  
+
     def isSymentrixLocal(self, symmetrixId):
       if len(self.symmetrixInfo) == 0:
         self.getSymmetrixInfo()
       return self.symmetrixInfo.get(symmetrixId, {}).get('local', str(symmetrixId))
-  
+
     def getHost(self):
         return self.host
-  
+
     def getVersion(self):
       try:
         retVal = self.get('/version')
