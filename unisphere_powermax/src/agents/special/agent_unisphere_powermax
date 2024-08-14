@@ -1,147 +1,156 @@
 #!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
+"""
+Agent Unisphere
+"""
 
-import requests
 import argparse
-from requests.auth import HTTPBasicAuth
 import sys
 import os
 import json
 import threading
 from queue import Queue
-from pprint import pprint
 import time
 from random import randint
 import re
 import inspect
+
+import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
+
+API_VERSION = 100 # from 91
+API_VERSION_2 = 84 # from 84
+
 def camel_to_snake(name):
-  name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
-  return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
+    name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
 
 
 class ConnectionError(Exception):
-  def __init__(self, *args, **kwargs):
-    Exception.__init__(self, *args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        Exception.__init__(self, *args, **kwargs)
 
 class PmaxConnector:
-  '''
-  Class to handle connections to PowerMAX
-  '''
-
-  def __init__(self, username, password, host, sslVerify=True):
     '''
-    Initialize the Connector for PowerMAX access
-    :param username: Username for authentication
-    :param password: Password for authentication
-    :param host: Hostname/IP-Address for creating a base url
+    Class to handle connections to PowerMAX
     '''
-    self.header = {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    }
 
-    self.auth = requests.auth.HTTPBasicAuth(username, password)
-    self.baseUrl = 'https://{}/univmax/restapi'.format(host)
-    self.host = host
-    self.timeout = 90
-    self.sslVerify = sslVerify
-    self.symmetrixInfo = {}
+    def __init__(self, username, password, host, sslVerify=True):
+        '''
+        Initialize the Connector for PowerMAX access
+        :param username: Username for authentication
+        :param password: Password for authentication
+        :param host: Hostname/IP-Address for creating a base url
+        '''
+        self.header = {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+        self.auth = requests.auth.HTTPBasicAuth(username, password)
+        self.baseUrl = 'https://{}/univmax/restapi'.format(host)
+        self.host = host
+        self.timeout = 90
+        self.sslVerify = sslVerify
+        self.symmetrixInfo = {}
 
-  def get(self, url, timeout=False):
-    '''
-    GET call to URL
-    '''
-    resp = {}
-    if timeout:
-      resp = requests.get(self.baseUrl + url , headers=self.header, verify=self.sslVerify, auth=self.auth, timeout=self.timeout)
-    else:
-      resp = requests.get(self.baseUrl + url , headers=self.header, verify=self.sslVerify, auth=self.auth)
+    def get(self, url, timeout=False):
+        '''
+        GET call to URL
+        '''
+        resp = {}
+        if timeout:
+            # @TODO timeout VS self.timeout????
+            resp = requests.get(self.baseUrl + url ,
+                                headers=self.header, verify=self.sslVerify,
+                                auth=self.auth, timeout=self.timeout)
+        else:
+            resp = requests.get(self.baseUrl + url ,
+                                headers=self.header, verify=self.sslVerify,
+                                auth=self.auth)
 
-    if resp.status_code >= 200 and resp.status_code < 300:
-      return resp
-    else:
-      raise ConnectionError("ERROR in GET Method, StatusCode: {} - {}".format(resp.status_code, resp.text))
-
-
-  def post(self, url, data):
-    '''
-    POST call to URL with data as payload
-    '''
-    resp = requests.post(self.baseUrl + url, headers=self.header, verify=self.sslVerify, json=data, auth=self.auth, timeout=self.timeout)
-
-    if resp.status_code >= 200 and resp.status_code < 300:
-      return resp
-    else:
-      raise ConnectionError("ERROR in POST Method, StatusCode: {} - {}".format(resp.status_code, resp.text))
+        if resp.status_code >= 200 and resp.status_code < 300:
+            return resp
+        raise ConnectionError("ERROR in GET Method, StatusCode: {} - {}".format(resp.status_code, resp.text))
 
 
-  def iterate(self, retData):
-    try:
-      result = retData['resultList']
-      start = result['from']
-      end = result['to']
-      itid = retData['id']
-      count = retData['count']
-      maxPageSize = retData['maxPageSize']
+    def post(self, url, data):
+      '''
+      POST call to URL with data as payload
+      '''
+      resp = requests.post(self.baseUrl + url, headers=self.header, verify=self.sslVerify, json=data, auth=self.auth, timeout=self.timeout)
 
-      retResult = result['result']
+      if resp.status_code >= 200 and resp.status_code < 300:
+        return resp
+      else:
+        raise ConnectionError("ERROR in POST Method, StatusCode: {} - {}".format(resp.status_code, resp.text))
 
-      while end < count:
-        start = start + maxPageSize
-        end = end + maxPageSize
-        if end > count:
-          end = count
 
-        if end < start:
-          break
-        retVal = self.get('/common/Iterator/{}/page?from={}&to={}'.format(itid, start, end))
-        result = retVal.json()
+    def iterate(self, retData):
+      try:
+        result = retData['resultList']
         start = result['from']
         end = result['to']
-        retResult.extend(result['result'])
+        itid = retData['id']
+        count = retData['count']
+        maxPageSize = retData['maxPageSize']
 
-      return retResult
-    except Exception as e:
-      raise ConnectionError(e)
+        retResult = result['result']
 
-  def getSymmetrix(self):
-    try:
-      retVal = self.get('/sloprovisioning/symmetrix')
-      retData = {
-        key: {} for key in retVal.json()['symmetrixId']
-      }
-      return retData
-    except Exception as e:
-      raise ConnectionError(e)
+        while end < count:
+          start = start + maxPageSize
+          end = end + maxPageSize
+          if end > count:
+            end = count
 
-  def getSymmetrixInfo(self):
-    for symId in self.getSymmetrix():
-      symmInfo = self.get('/90/system/symmetrix/{}'.format(symId)).json()
-      self.symmetrixInfo[symId] = symmInfo
-
-  def getSymmetrixName(self, symmetrixId):
-    if len(self.symmetrixInfo) == 0:
-      self.getSymmetrixInfo()
-    return self.symmetrixInfo.get(symmetrixId, {}).get('display_name', str(symmetrixId))
-
-  def isSymentrixLocal(self, symmetrixId):
-    if len(self.symmetrixInfo) == 0:
-      self.getSymmetrixInfo()
-    return self.symmetrixInfo.get(symmetrixId, {}).get('local', str(symmetrixId))
-
-  def getHost(self):
-      return self.host
-
-  def getVersion(self):
-    try:
-      retVal = self.get('/version')
-      retData = retVal.json().get('version')
-      return retData
-    except Exception as e:
-      raise ConnectionError(e)
+          if end < start:
+            break
+          retVal = self.get('/common/Iterator/{}/page?from={}&to={}'.format(itid, start, end))
+          result = retVal.json()
+          start = result['from']
+          end = result['to']
+          retResult.extend(result['result'])
+  
+        return retResult
+      except Exception as e:
+        raise ConnectionError(e)
+  
+    def getSymmetrix(self):
+      try:
+        retVal = self.get('/sloprovisioning/symmetrix')
+        retData = {
+          key: {} for key in retVal.json()['symmetrixId']
+        }
+        return retData
+      except Exception as e:
+        raise ConnectionError(e)
+  
+    def getSymmetrixInfo(self):
+      for symId in self.getSymmetrix():
+        symmInfo = self.get('/90/system/symmetrix/{}'.format(symId)).json()
+        self.symmetrixInfo[symId] = symmInfo
+  
+    def getSymmetrixName(self, symmetrixId):
+      if len(self.symmetrixInfo) == 0:
+        self.getSymmetrixInfo()
+      return self.symmetrixInfo.get(symmetrixId, {}).get('display_name', str(symmetrixId))
+  
+    def isSymentrixLocal(self, symmetrixId):
+      if len(self.symmetrixInfo) == 0:
+        self.getSymmetrixInfo()
+      return self.symmetrixInfo.get(symmetrixId, {}).get('local', str(symmetrixId))
+  
+    def getHost(self):
+        return self.host
+  
+    def getVersion(self):
+      try:
+        retVal = self.get('/version')
+        retData = retVal.json().get('version')
+        return retData
+      except Exception as e:
+        raise ConnectionError(e)
 
 def gatherIds(connector, url, key):
     retVal = connector.get(url)
@@ -187,8 +196,6 @@ def writeToCache(name, data):
     cacheFile = '/tmp/{}_{}.cache'.format(sys.argv[0].split('/')[-1], name)
     with open(cacheFile, 'w') as f:
         f.write(data)
-    
-    
 
 def getSrpInfo(connector, args):
     print('<<<unisphere_powermax_srp:sep(30)>>>')
@@ -197,9 +204,9 @@ def getSrpInfo(connector, args):
         if args.enableRemoteSymChecks == False and connector.isSymentrixLocal(symId) == False:
             continue
 
-        srpIds = connector.get('/91/sloprovisioning/symmetrix/{}/srp'.format(symId)).json().get('srpId', [])
+        srpIds = connector.get(f'/{API_VERSION}/sloprovisioning/symmetrix/{symId}/srp').json().get('srpId', [])
         for srpId in srpIds:
-            srpData = connector.get('/91/sloprovisioning/symmetrix/{}/srp/{}'.format(symId, srpId)).json()
+            srpData = connector.get(f'/{API_VERSION}/sloprovisioning/symmetrix/{symId}/srp/{srpId}').json()
             print("SYMMETRIX_{}_{}\x1e{}".format(connector.getSymmetrixName(symId), srpId, json.dumps(srpData)))
 
 def getDirectorInfo(connector, args):
@@ -208,9 +215,9 @@ def getDirectorInfo(connector, args):
     for symId in symmetrix.keys():
         if args.enableRemoteSymChecks == False and connector.isSymentrixLocal(symId) == False:
             continue
-        directorIds = connector.get('/91/system/symmetrix/{}/director'.format(symId)).json().get('directorId', [])
+        directorIds = connector.get(f'/{API_VERSION}/system/symmetrix/{symId}/director').json().get('directorId', [])
         for directorId in directorIds:
-            directorData = connector.get('/91/system/symmetrix/{}/director/{}'.format(symId, directorId)).json()
+            directorData = connector.get(f'/{API_VERSION}/system/symmetrix/{symId}/director/{directorId}').json()
             print("SYMMETRIX_{}_{}\x1e{}".format(connector.getSymmetrixName(symId), directorId, json.dumps(directorData)))
 
 def getHealthScoreInfo(connector, args):
@@ -219,7 +226,7 @@ def getHealthScoreInfo(connector, args):
     for symId in symmetrix.keys():
         if args.enableRemoteSymChecks == False and connector.isSymentrixLocal(symId) == False:
             continue
-        healthScoreData = connector.get('/91/system/symmetrix/{}/health'.format(symId)).json()
+        healthScoreData = connector.get(f'/{API_VERSION}/system/symmetrix/{symId}/health').json()
         for metric in healthScoreData.get('health_score_metric', []):
             if metric.get('metric', None) is None:
                 continue
@@ -233,11 +240,11 @@ def getHealthCheckInfo(connector, args):
         if args.enableRemoteSymChecks == False and connector.isSymentrixLocal(symId) == False:
             continue
         try:
-            healthChecks = connector.get('/91/system/symmetrix/{}/health/health_check'.format(symId)).json()
+            healthChecks = connector.get(f'/{API_VERSION}/system/symmetrix/{symId}/health/health_check').json()
         except:
             continue
         for healthCheckId in healthChecks.get('health_check_id', []):
-            healthCheck = connector.get('/91/system/symmetrix/{}/health/health_check/{}'.format(symId, healthCheckId)).json()
+            healthCheck = connector.get(f'/{API_VERSION}/system/symmetrix/{symId}/health/health_check/{healthCheckId}').json()
             for testResult in healthCheck.get('testResult', []):
                 if testResult.get('item_name', None) is None:
                     continue
@@ -295,12 +302,15 @@ def getPortGroupInfo(connector, args):
     for symId in symmetrix.keys():
         if args.enableRemoteSymChecks == False and connector.isSymentrixLocal(symId) == False:
             continue
-        portGroups = connector.get('/91/sloprovisioning/symmetrix/{}/portgroup'.format(symId)).json().get('portGroupId', [])
+        portGroups = connector.get(f'/{API_VERSION}/sloprovisioning/symmetrix/{symId}/portgroup').json().get('portGroupId', [])
         for portGroup in portGroups:
             portsInfo = []
-            ports = connector.get('/91/sloprovisioning/symmetrix/{}/portgroup/{}'.format(symId, portGroup)).json().get('symmetrixPortKey', [])
+            ports = connector.get(f'/{API_VERSION}/sloprovisioning/symmetrix/'\
+                                  f'{symId}/portgroup/{portGroup}').json().get('symmetrixPortKey', [])
             for port in ports:
-                portStatusInfo = connector.get('/84/sloprovisioning/symmetrix/{}/director/{}/port/{}'.format(symId, port['directorId'], port['portId'])).json()
+                portStatusInfo = \
+                        connector.get(f'/{API_VERSION_2}/sloprovisioning/symmetrix/{symId}'\
+                                      f'/director/{port["directorId"]}/port/{port["portId"]}').json()
                 if args.randomFailures:
                    if randint(0,1000) % 3 == 0:
                        portStatusInfo['symmetrixPort']['port_status'] = 'OFF'
@@ -310,7 +320,7 @@ def getPortGroupInfo(connector, args):
 
 def getAlertInfo(connector, args):
     print('<<<unisphere_powermax_alerts:sep(30)>>>')
-    alertInfo = connector.get('/91/system/alert_summary').json()
+    alertInfo = connector.get(f'/{API_VERSION}/system/alert_summary').json()
     if alertInfo.get('serverAlertSummary', None) is not None:
         print("Server Alert Summary\x1e{}".format(json.dumps(alertInfo.get('serverAlertSummary'))))
     for symSummary in alertInfo.get('symmAlertSummary', []):
@@ -323,7 +333,8 @@ def getAlertInfo(connector, args):
 
         for key in symSummary:
             if 'summary' in key.lower():
-                print("SYMMETRIX_{}_{}\x1e{}".format(connector.getSymmetrixName(symId), camel_to_snake(key), json.dumps(symSummary.get(key))))
+                print("SYMMETRIX_{}_{}\x1e{}".format(connector.getSymmetrixName(symId),
+                                                     camel_to_snake(key), json.dumps(symSummary.get(key))))
 
 def getMaskingViewInfo(connector, args):
     cacheName = "{}_{}".format(inspect.currentframe().f_code.co_name, connector.getHost())
@@ -333,7 +344,7 @@ def getMaskingViewInfo(connector, args):
     if cachedData is not None:
         print(cachedData)
         return
-    
+
     queryQueue = Queue()
     resultQueue = Queue()
     symmetrix  = connector.getSymmetrix()
@@ -342,29 +353,33 @@ def getMaskingViewInfo(connector, args):
     mvMap = {}
     portMap = {}
     for symId in symmetrix.keys():
-        maskingViews = connector.get('/84/sloprovisioning/symmetrix/{}/maskingview'.format(symId)).json().get('maskingViewId', [])
+        maskingViews = \
+                connector.get(f'/{API_VERSION_2}/sloprovisioning/symmetrix/{symId}/maskingview').json().get('maskingViewId', [])
         if args.enableRemoteSymChecks == False and connector.isSymentrixLocal(symId) == False:
             continue
         volumeInfos = []
         for maskingView in maskingViews:
-            maskingViewConnectionInfo = connector.get('/84/sloprovisioning/symmetrix/{}/maskingview/{}/connections'.format(symId, maskingView)).json().get('maskingViewConnection', [])
+            maskingViewConnectionInfo = \
+                    connector.get(f'/{API_VERSION_2}/sloprovisioning/symmetrix/"'
+                                  f'{symId}/maskingview/{maskingView}/connections').json().get('maskingViewConnection', [])
             volumes=set([x.get('volumeId') for x in maskingViewConnectionInfo])
             ports=set([x.get('dir_port') for x in maskingViewConnectionInfo])
 
             for volume in volumes:
                 if mvMap.get(volume, None) is not None:
                     continue
-                queryQueue.put(('SYMMETRIX_{}_{}'.format(connector.getSymmetrixName(symId), volume), '/84/sloprovisioning/symmetrix/{}/volume/{}'.format(symId, volume), maskingView))
+                queryQueue.put(('SYMMETRIX_{connector.getSymmetrixName(symId)}_{volume}'
+                                f'/{API_VERSION_2}/sloprovisioning/symmetrix/{symId}/volume/{volume}', maskingView))
                 mvMap[volume] = True
-                #volumeInfo = connector.get('/84/sloprovisioning/symmetrix/{}/volume/{}'.format(symId, volume)).json()
-                #volumeInfos.append(volumeInfo)
 
             for port in ports:
                 if portMap.get(port, None) is not None:
                     continue
                 director = port.split(':')[0]
                 portId = port.split(':')[1]
-                queryQueue.put(('SYMMETRIX_{}_{}'.format(connector.getSymmetrixName(symId), port), '/84/sloprovisioning/symmetrix/{}/director/{}/port/{}'.format(symId, director, portId), maskingView))
+                queryQueue.put((f'SYMMETRIX_{connector/getSymmetrixName(symId)}_{port}',
+                                f'/{API_VERSION_2}/sloprovisioning/symmetrix/{symId}/director/{director}/port/{portId}',
+                                maskingView))
                 portMap[port] = True
 
     threads = []
@@ -401,7 +416,6 @@ def getMaskingViewInfo(connector, args):
     writeToCache(cacheName, agentData)
     print(agentData)
 
-             
 dataSources = [ getSrpInfo,
                 getDirectorInfo,
                 getHealthScoreInfo,
@@ -428,11 +442,9 @@ if __name__ == '__main__':
         parser.add_argument('--disable%s' % (source.__name__), help='disable %s metrics' % (source.__name__), action='store_true')
 
     args = parser.parse_args()
-    
 
     print("<<<check_mk>>>")
     print("Version: agent_unisphere_powermax-1.0")
-        
     pmax = PmaxConnector(args.user, args.password, "%s:%s" % (args.hostname, args.port), not args.noCertCheck)
 
     pmax.getVersion()
