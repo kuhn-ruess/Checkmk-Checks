@@ -24,7 +24,7 @@ class Quobyte():
         """
         self.api_host = api_host
         self.auth = HTTPBasicAuth(user, password)
-        self.timeout = float(tiemout)
+        self.timeout = float(timeout)
 
 
     def request(self, method):
