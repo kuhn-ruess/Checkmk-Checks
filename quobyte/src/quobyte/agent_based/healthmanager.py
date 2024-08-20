@@ -6,7 +6,7 @@ Consulting and Development
 https://kuhn-ruess.de
 """
 
-from cmk.agent_based_api.v2 import (
+from cmk.agent_based.v2 import (
     AgentSection,
     CheckPlugin,
     Result,

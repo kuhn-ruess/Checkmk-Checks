@@ -26,7 +26,7 @@ class QuobyteParams(BaseModel):
 def generate_quobyte_command(params: QuobyteParams, host_config: HostConfig):
     yield SpecialAgentCommand(
         command_arguments = (
-            params.api_url
+            params.api_url,
             params.username,
             params.password.unsafe(),
             params.timeout,
