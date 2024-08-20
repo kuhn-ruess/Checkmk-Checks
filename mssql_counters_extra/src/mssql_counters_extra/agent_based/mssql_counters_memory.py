@@ -9,9 +9,11 @@ https://kuhn-ruess.de
 from time import time
 
 from cmk.agent_based.v2 import (
+    AgentSection,
+    CheckPlugin,
+    Result,
     get_rate,
     get_value_store,
-    register,
     Service,
     Result,
     State,
