@@ -14,7 +14,7 @@ https://kuhn-ruess.de
 from contextlib import suppress
 from time import time
 
-from .agent_based_api.v2 import (
+from cmk.agent_based.v2 import (
     get_rate,
     get_value_store,
     register,
