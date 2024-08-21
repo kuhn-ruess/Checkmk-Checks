@@ -1,0 +1,13 @@
+{'author': 'Kuhn & Ruess GmbH',
+ 'description': 'Monitoring of CMDB Syncer Jobs',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/tree/master/cmdb_syncer',
+ 'files': {'cmk_addons_plugins': ['cmdb_syncer/agent_based/service.py',
+                                  'cmdb_syncer/libexec/agent_cmdb_syncer',
+                                  'cmdb_syncer/rulesets/agent.py',
+                                  'cmdb_syncer/server_side_calls/cmdb_syncer.py']},
+ 'name': 'cmdb_syncer',
+ 'title': 'CMDB Syncer Monitoring',
+ 'version': '1.0.0',
+ 'version.min_required': '2.3.0p1',
+ 'version.packaged': '2.3.0p1',
+ 'version.usable_until': None}
