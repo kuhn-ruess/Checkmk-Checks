@@ -52,6 +52,11 @@ def discover_docker_images(section_docker_images, section_docker_containers):
 
 def check_docker_images(item, section_docker_images, section_docker_containers):
     value_store = get_value_store()
+    if section_docker_containers:
+        docker_containers = section_docker_containers.values()
+    else:
+        docker_containers = []
+
     for line in section_docker_images:
 
         if line[0] == item:
@@ -61,7 +66,7 @@ def check_docker_images(item, section_docker_images, section_docker_containers):
                 (key, value) = kv.split("=", 1)
                 image[key] = value
 
-            image_containers = get_running_image_containers(image["ImageID"], section_docker_containers.values())
+            image_containers = get_running_image_containers(image["ImageID"], section_docker_containers)
             image["Running_containers"] = len(image_containers)
             image["Memory_used"] = sum(float(c["Memory_used"]) for c in image_containers)
             with suppress(GetRateError):
