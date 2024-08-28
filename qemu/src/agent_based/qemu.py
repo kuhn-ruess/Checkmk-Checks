@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 # +-----------------------------------------------------------------+
 # |                                                                 |
@@ -28,6 +28,8 @@
 # 4 i-4B9008BE running 2048 4.0 2.7
 # 5 i-44F608B6 running 2048 0.0 0.7
 
+from .agent_based_api.v1 import Metric, register, Result, Service, State
+
 
 def qemu_fix_vmname(name):
     # Reason for this not clear yet
@@ -36,11 +38,12 @@ def qemu_fix_vmname(name):
     return name
 
 
-def inventory_qemu(info):
+def discover_qemu(info):
     for line in info:
         if line[2] == "running":
             vm = qemu_fix_vmname(line[1])
-            yield vm, {}
+            yield Service(item=vm)
+
 
 def check_qemu(item, params, info):
     perfdata = []
@@ -63,29 +66,34 @@ def check_qemu(item, params, info):
                 perfdata.append(("memory_usage", current_mem))
 
                 if params:
-                    cpu_state = 0
-                    mem_state = 0
+                    cpu_state = State.OK
+                    mem_state = State.OK
                     if params.get('cpu'):
                         cpu_warn, cpu_crit = params['cpu']
                         if current_cpu >= cpu_crit:
-                            cpu_state = 2
+                            cpu_state = State.CRIT
                         elif current_cpu >= cpu_warn:
-                            cpu_state = 1
+                            cpu_state = State.WARN
 
                     if params.get('mem'):
                         mem_warn, mem_crit = params['mem']
                         if current_mem >= mem_crit:
-                            mem_state = 2
+                            mem_state = State.CRIT
                         elif current_cpu >= mem_warn:
-                            mem_state = 1
-                    state = max(mem_state, cpu_state)
+                            mem_state = State.WARN
+                    state = State.worst(mem_state, cpu_state)
 
-            return  state, ", ".join(infotext), perfdata
+            yield Result(state=state, summary=", ".join(infotext))
+            for p in perfdata:
+                yield Metric(p[0], p[1])
 
-check_info["qemu"] = {
-    "check_function" : check_qemu,
-    "inventory_function" : inventory_qemu,
-    "service_description" : "VM %s",
-    "has_perfdata" : True,
-    "group" : "qemu",
-}
+
+register.agent_section(name = "qemu")
+
+
+register.check_plugin(
+    name = "qemu",
+    service_name = "VM %s",
+    discovery_function = discover_qemu,
+    check_function = check_qemu,
+)
