@@ -2,11 +2,11 @@
  'description': u'Check Qemu/ KVM',
  'download_url': 'https://kuhn-ruess.de/en/checkmk_checks.html',
  'files': {'agents': ['bakery/qemu', 'plugins/qemu'],
-           'checks': ['qemu'],
+           'agent_based': ['qemu.py'],
            'web': ['plugins/wato/qemu.py']},
  'name': 'qemu',
  'num_files': 4,
  'title': u'Qemu / KVM',
- 'version': '2.0.2',
+ 'version': '3.0.0',
  'version.min_required': '2.0.0',
  'version.packaged': '2.2.0p3'}
