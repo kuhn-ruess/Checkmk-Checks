@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 # +-----------------------------------------------------------------+
 # |                                                                 |
@@ -23,17 +23,22 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-def inventory_performance(parsed):
-    for instance, data in parsed.items():
-        if 'Threads_created' in data and 'Connections' in data:
-            yield f"{instance} Thread Cache", (80, 90)
+from .agent_based_api.v1 import Metric, register, Result, Service, State
 
-def check_performance(item, params, parsed):
+
+def discover_mysql_performance(section):
+    for instance, data in section.items():
+        if 'Threads_created' in data and 'Connections' in data:
+            yield Service(item=f"{instance} Thread Cache", parameters={"levels": (80, 90)})
+
+
+def check_mysql_performance(item, params, section):
     splitted = item.split()
     instance = splitted[0]
-    if instance not in parsed:
-        return 3, "Instance Data not found in output"
-    data = parsed[instance]
+    if instance not in section:
+        yield Result(state=State.UNKNOWN, summary="Instance Data not found in output")
+        return
+    data = section[instance]
     what = " ".join(splitted[1:])
     if what == "Thread Cache":
         created = float(data['Threads_created'])
@@ -43,21 +48,24 @@ def check_performance(item, params, parsed):
         except ZeroDivisionError:
             hitrate = 0
 
-        warn, crit = params
-        state = 0
+        # TODO
+        warn, crit = 80, 90
+
+        state = State.OK
         if hitrate >= crit:
-            state = 2
+            state = State.CRIT
         elif hitrate >= warn:
-            state = 1
-        return state, "Thread Cache Hitrate: %s" % hitrate, [("percent", hitrate)]
+            state = State.WARN
+        yield Result(state=state, summary="Thread Cache Hitrate: %s" % hitrate)
+        yield Metric("percent", hitrate)
 
 
-
-check_info["mysql.performance"] = {
-    'check_function': check_performance,
-    'inventory_function': inventory_performance,
-    'service_description': "MySQL %s",
-    'group' : "mysql_performance",
-    'has_perfdata' : True,
-}
-
+register.check_plugin(
+    name = "mysql_performance",
+    sections = ["mysql"],
+    service_name = "MySQL %s",
+    discovery_function = discover_mysql_performance,
+    check_function = check_mysql_performance,
+    check_default_parameters = {},
+    check_ruleset_name = "mysql_tchitrate",
+)

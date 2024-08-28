@@ -1,6 +1,6 @@
 {'author': u'Kuhn & Rueß GmbH',
  'description': '''
-This Check is based on my mysql status check i created years ago. It now supports the current Checkmk Version and not longer needs a plugin since it works no as subcheck for the normal Checkmk Mysql Monitoring.
+This Check is based on my mysql status check I created years ago. It now supports the Checkmk up to version 2.3 and not longer needs an agent plugin since it works as a subcheck for the normal Checkmk Mysql Monitoring.
 Monitored Vars:
 
     Aborted_clients
@@ -47,13 +47,13 @@ Monitored Vars:
     Open_files
 ''',
  'download_url': 'https://kuhn-ruess.de/en/checkmk_checks.html',
- 'files': {'checkman': ['mysql.status'],
-           'checks': ['mysql.status'],
+ 'files': {'checkman': ['mysql_status'],
+           'agent_based': ['mysql_status.py'],
            'web': ['plugins/perfometer/mysql_status.py',
                    'plugins/wato/mysql_status.py']},
  'name': 'mysql_status',
  'num_files': 5,
  'title': u'Check for MySQL Status Variables',
- 'version': '4.0.4',
+ 'version': '5.0.0',
  'version.min_required': '2.0.0',
- 'version.packaged': '2.0.0'}
+ 'version.packaged': '2.2.0'}
