@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 # pylint: disable=undefined-variable
 """
@@ -26,6 +26,9 @@ Subcheck mysql.status for Check_MK Mysql Checks
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
+
+import time
+from .agent_based_api.v1 import get_rate, get_value_store, Metric, register, Result, Service, State
 
 # mysql_status_vars = {
 #     "variable name" : ("Gauge|Counter|Voolean"), IS_NEGATIV),
@@ -73,36 +76,38 @@ mysql_status_inventory = { #pylint: disable=invalid-name
     "Key_blocks_unused"                 : ("Gauge", True),
     "Threads_cached"                    : ("Gauge", True),
     "Open_tables"                       : ("Gauge", False),
-    "Open_files"                       : ("Gauge", False),
+    "Open_files"                        : ("Gauge", False),
 }
 
 
-def check_mysql_status(item, params, parsed):
+def check_mysql_status(item, params, section):
     """
     Check Function
     """
     instance, key = item.split()
-    if instance not in parsed:
-        return 3, "Instance Data not found in output"
+    if instance not in section:
+        yield Result(state=State.UNKNOWN, summary="Instance Data not found in output")
+        return
 
-    data = parsed[instance]
+    data = section[instance]
+
     def check_level(val, warn, crit, is_n, params):
         """
         Internal Helper to do the Check
         """
-        state = 0
+        state = State.OK
         if 'levels' in params:
             warn, crit = params['levels']
             if is_n:
                 if val <= crit:
-                    state = 2
+                    state = State.CRIT
                 elif val <= warn:
-                    state = 1
+                    state = State.WARN
             else:
                 if val >= crit:
-                    state = 2
+                    state = State.CRIT
                 elif val >= warn:
-                    state = 1
+                    state = State.WARN
         return state
 
     warn, crit = None, None
@@ -112,44 +117,52 @@ def check_mysql_status(item, params, parsed):
             value_type, is_negativ = mysql_status_inventory[key]
 
             if value_type == "Counter":
-                per_sec = get_rate("mysql_status." + key, time.time(), value)
+                my_store = get_value_store()
 
-                perfdata.append((key, "%d" % per_sec, warn, crit))
+                per_sec = get_rate(my_store, "mysql_status." + key, time.time(), value)
+
+                perfdata.append((key, per_sec, warn, crit))
                 message = "rate is %d/s" % (per_sec)
 
                 state = check_level(per_sec, warn, crit, is_negativ, params)
 
             elif value_type == "Boolean":
-                state = 0
+                state = State.OK
                 message = "%s is %s" % (key, value)
                 if 'target_state' in params:
                     target_state = params['target_state']
                     if value != target_state:
-                        state = 2
+                        state = State.CRIT
                     message += " but should be %s" % target_state
 
             elif value_type == "Gauge":
-                perfdata.append((key, "%d" % value, warn, crit))
+                perfdata.append((key, value, warn, crit))
                 message = "Current %d" % value
 
                 state = check_level(value, warn, crit, is_negativ, params)
 
-            if state != 0 and value_type != "Boolean":
+            if state != State.OK and value_type != "Boolean":
                 warn, crit = params['levels']
                 message += ", Levels at (%s/ %s)" % (warn, crit)
 
-            return state, message, perfdata
+            yield Result(state=state, summary=message)
+            for p in perfdata:
+                yield Metric(p[0], p[1], levels=(p[2], p[3]))
 
-def inventory_mysql_status(parsed):
-    for key, items in parsed.items():
+
+def discover_mysql_status(section):
+    for key, items in section.items():
         for item in items:
             if item in mysql_status_inventory.keys():
-                yield "{} {}".format(key, item), {}
+                yield Service(item="{} {}".format(key, item))
 
-check_info['mysql.status'] = {
-    "check_function"          : check_mysql_status,
-    "inventory_function"      : inventory_mysql_status,
-    "service_description"     : "MySQL Status %s",
-    "has_perfdata"            : True,
-    "group"                   : "mysql_status",
-}
+
+register.check_plugin(
+    name = "mysql_status",
+    sections = ["mysql"],
+    service_name = "MySQL Status %s",
+    discovery_function = discover_mysql_status,
+    check_function = check_mysql_status,
+    check_default_parameters = {},
+    check_ruleset_name = "mysql_status",
+)
