@@ -1,10 +1,10 @@
 {'author': u'Kuhn & Rueß GmbH',
  'description': u'Monitor Mysql Performance',
  'download_url': 'https://kuhn-ruess.de/en/checkmk_checks.html',
- 'files': {'checks': ['mysql.performance'], 'web': ['plugins/wato/mysql.py']},
+ 'files': {'agent_based': ['mysql_performance.py'], 'web': ['plugins/wato/mysql.py']},
  'name': 'mysql_performance',
  'num_files': 2,
  'title': u'Mysql Performance Checks',
- 'version': '1.0.5',
- 'version.min_required': '1.2.8',
- 'version.packaged': '1.5.0p3'}
+ 'version': '2.0.0',
+ 'version.min_required': '2.0.0',
+ 'version.packaged': '2.2.0'}
