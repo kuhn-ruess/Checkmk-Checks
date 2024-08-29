@@ -38,16 +38,16 @@ def qemu_fix_vmname(name):
     return name
 
 
-def discover_qemu(info):
-    for line in info:
+def discover_qemu(section):
+    for line in section:
         if line[2] == "running":
             vm = qemu_fix_vmname(line[1])
             yield Service(item=vm)
 
 
-def check_qemu(item, params, info):
+def check_qemu(item, params, section):
     perfdata = []
-    for line in info:
+    for line in section:
         vm = qemu_fix_vmname(line[1])
         if vm == item:
             status = line[2]
@@ -96,4 +96,6 @@ register.check_plugin(
     service_name = "VM %s",
     discovery_function = discover_qemu,
     check_function = check_qemu,
+    check_default_parameters = {"cpu": None, "mem": None},
+    check_ruleset_name = "qemu",
 )
