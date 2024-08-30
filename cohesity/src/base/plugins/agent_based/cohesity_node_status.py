@@ -15,7 +15,9 @@ def parse_cohesity_node_status(string_table):
         section.setdefault(item, {})
 
         status = row[1]
-        services = (row[2:][0]).split(',')
+        services = []
+        if row[2:]:
+            services = (row[2:][0]).split(',')
         section[item][status] = services
     return section
 
