@@ -39,15 +39,22 @@ class CMDBSYncer():
         response = requests.get(url, headers=headers, timeout=self.timeout)
         try:
             return response.json()['result']
-        except KeyError:
-            return {'error', 'not_found'}
+        except (KeyError, TypeError):
+            return {'error': 'not_found'}
 
     def get_service(self, service_name):
         """
         Get Latest Service Log Entry
         """
         print(f"[[[{service_name}]]]")
-        print(json.dumps(self.request(f'syncer/services/{service_name}')))
+        response = self.request(f'syncer/services/{service_name}')
+        print(json.dumps(response))
+
+    def get_cron(self):
+        """
+        Get Latest Service Log Entry
+        """
+        print(json.dumps(self.request('syncer/cron/')))
 
 
 if __name__ == "__main__":
@@ -56,11 +63,16 @@ if __name__ == "__main__":
     parser.add_argument("--password")
     parser.add_argument("--timeout")
     parser.add_argument("--services")
+    parser.add_argument("--fetch_cron")
 
     args = parser.parse_args()
 
     syncer = CMDBSYncer(args.api_url, args.password, args.timeout)
 
-    print("<<<cmdb_syncer_service:sep(0)>>>")
-    for service in args.services.split(';'):
-        syncer.get_service(service)
+    if args.services:
+        print("<<<cmdb_syncer_service:sep(0)>>>")
+        for service in args.services.split(';'):
+            syncer.get_service(service)
+    if args.fetch_cron:
+        print("<<<cmdb_syncer_cron:sep(0)>>>")
+        syncer.get_cron()

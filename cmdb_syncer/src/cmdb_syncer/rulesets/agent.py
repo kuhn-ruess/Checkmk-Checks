@@ -13,9 +13,8 @@ from cmk.rulesets.v1.form_specs import (
     String,
     List,
     Password,
-    TimeSpan,
-    TimeMagnitude,
     DefaultValue,
+    BooleanChoice,
 )
 from cmk.rulesets.v1.form_specs.validators import LengthInRange
 from cmk.rulesets.v1.rule_specs import SpecialAgent, Topic
@@ -51,7 +50,14 @@ def _parameter_form_special_agents_cmdb_syncer():
                     title=Title("Services"),
                     element_template=String(),
                 ),
-                required=True,
+                required=False,
+            ),
+            'fetch_cron': DictElement(
+                parameter_form=BooleanChoice(
+                    title=Title("Fetch Cronjobs"),
+                    label=Title("Fetch and Monitor Cronjobs"),
+                ),
+                required=False,
             ),
         },
     )
