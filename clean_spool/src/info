@@ -1,10 +1,15 @@
 {'author': 'Kuhn & Rueß GmbH',
- 'description': 'Clean spool files of Checkmk, if problem and ok state are '
-                'both available for downtimes and states.\n',
+ 'description': 'In case you use the Notification spooler, and have an '
+                'outburst of Notification, these will block the spooler some '
+                'time to process them. At this time, it can happen that '
+                'Recovery Notifications are sent, but stuck behind the Problem '
+                'Notification, which are still not sent out. \xa0This Script '
+                'checks the Spool directory and deletes all Notifications who '
+                'met these criteria.\n',
  'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
  'files': {'bin': ['clean_spoolfiles']},
  'name': 'clean_spool',
- 'title': 'Clean spool files of Checkmk',
+ 'title': 'Clean spool files of Checkmk Notification Spooler',
  'version': '1.0.0',
  'version.min_required': '2.3.0b1',
  'version.packaged': '2.3.0p9',
