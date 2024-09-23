@@ -9,6 +9,7 @@ https://kuhn-ruess.de
 from sys import argv
 from requests import post
 from requests.auth import HTTPBasicAuth
+from json import JSONDecodeError
 
 
 class AgentJson():
@@ -21,8 +22,9 @@ class AgentJson():
         Init
         """
         self.api_host = api_host
-        self.auth = HTTPBasicAuth(user, password)
-
+        self.auth = None
+        if user:
+            self.auth = HTTPBasicAuth(user, password)
 
     def get_json(self):
         """
@@ -43,5 +45,8 @@ class AgentJson():
 
 
 if __name__ == "__main__":
-    aj = AgentJson(argv[1], argv[2], argv[3])
-    aj.get_json()
+    try:
+        aj = AgentJson(argv[1], argv[2], argv[3])
+        aj.get_json()
+    except JSONDecodeError as error:
+        print(f"Cannot parse API response: {error}")

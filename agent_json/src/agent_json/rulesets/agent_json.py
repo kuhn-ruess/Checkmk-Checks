@@ -34,13 +34,13 @@ def _parameter_form_special_agent_json():
                     title = Title("Username"),
                     custom_validate=(LengthInRange(min_value=1),),
                 ),
-                required = True,
+                required = False,
             ),
             "password": DictElement(
                 parameter_form = Password(
                     title = Title("Password"),
                 ),
-                required = True,
+                required = False,
             ),
         },
     )

@@ -7,6 +7,7 @@ https://kuhn-ruess.de
 """
 
 from pydantic import BaseModel
+from typing import Optional
 
 from cmk.server_side_calls.v1 import (
     HostConfig,
@@ -18,17 +19,23 @@ from cmk.server_side_calls.v1 import (
 
 class AgentJSONParams(BaseModel):
     api_url: str
-    username: str
-    password: Secret
-
+    username: Optional[str] = None
+    password: Optional[Secret] = False
 
 
 def generate_agent_json_command(params: AgentJSONParams, host_config: HostConfig):
+    password = ""
+    if params.password:
+        password = params.password.unsafe()
+    user = ""
+    if params.username:
+        user = params.username
+
     yield SpecialAgentCommand(
         command_arguments = (
-            params.api_url
-            params.username,
-            params.password.unsafe(),
+            params.api_url,
+            user,
+            password,
         )
     )
 
