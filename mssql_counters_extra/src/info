@@ -13,7 +13,7 @@
                                   'mssql_counters_extra/rulesets/mssql_counters_work_files_tables.py']},
  'name': 'mssql_counters_extra',
  'title': 'MSSQL extra counters',
- 'version': '2.0.3',
+ 'version': '2.0.4',
  'version.min_required': '2.3.0b1',
  'version.packaged': '2.3.0p9',
  'version.usable_until': None}

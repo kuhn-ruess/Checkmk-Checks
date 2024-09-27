@@ -7,6 +7,7 @@ https://kuhn-ruess.de
 """
 
 from pydantic import BaseModel
+from typing import Optional
 from cmk.server_side_calls.v1 import (
     ActiveCheckCommand,
     ActiveCheckConfig,
@@ -16,13 +17,13 @@ from cmk.server_side_calls.v1 import (
 class VideotextParams(BaseModel):
     url: str
     pattern: str
-    timeout: float | None = None
-    warn: float | None = None
-    crit: float | None = None
+    timeout: Optional[float] = None
+    warn: Optional[float] = None
+    crit: Optional[float] = None
 
 
 
-def videotext_arguments(params, host_config):
+def videotext_arguments(params, host_params):
     yield ActiveCheckCommand(
         service_description = "Videotext",
         command_arguments = (

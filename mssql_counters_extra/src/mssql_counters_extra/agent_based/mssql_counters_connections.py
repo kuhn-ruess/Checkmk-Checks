@@ -68,7 +68,7 @@ def check_mssql_counters_connections(item, params, section):
         )
         yield from check_levels(
             value=logins_per_sec,
-            levels_upper=params.get("LogInConnects"),
+            levels_upper=('fixed', params.get("LogInConnects")),
             metric_name="logins_per_sec",
             label="Logins/sec",
         )
@@ -85,7 +85,7 @@ def check_mssql_counters_connections(item, params, section):
         )
         yield from check_levels(
             value=logouts_per_sec,
-            levels_upper=params.get("LogOutConnects"),
+            levels_upper=('fixed', params.get("LogOutConnects")),
             metric_name="logouts_per_sec",
             label="Logouts/sec",
         )

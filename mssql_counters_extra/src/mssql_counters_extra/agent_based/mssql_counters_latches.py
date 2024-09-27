@@ -81,7 +81,7 @@ def check_mssql_latches(item, params, section):
         )
         yield from check_levels(
             value=latch_wait_time,
-            levels_upper=params.get("LatchWaitTime"),
+            levels_upper=('fixed', params.get("LatchWaitTime")),
             metric_name="latch_wait_time",
             label="Latch wait time"
         )
@@ -98,7 +98,7 @@ def check_mssql_latches(item, params, section):
         )
         yield from check_levels(
             value=latch_wait_time,
-            levels_upper=params.get("LatchAverage"),
+            levels_upper=('fixed', params.get("LatchAverage")),
             metric_name="avg_latch_wait_time",
             label="Average latch wait time"
         )
