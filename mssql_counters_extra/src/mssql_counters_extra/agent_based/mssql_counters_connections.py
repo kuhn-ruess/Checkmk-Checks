@@ -53,7 +53,7 @@ def check_mssql_counters_connections(item, params, section):
     uconn = section[(obj_id, instance)]["user_connections"]
     yield from check_levels(
         value=uconn,
-        levels_upper=params.get("user_connections"),
+        levels_upper=('fixed', params.get("user_connections")),
         label="User Connections",
     )
 

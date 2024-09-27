@@ -64,7 +64,7 @@ def check_mssql_latches(item, params, section):
         )
         yield from check_levels(
             value=latch_waits,
-            levels_upper=params.get("LatchWaits"),
+            levels_upper=('fixed', params.get("LatchWaits")),
             metric_name="latch_waits_per_sec",
             label="Latch waits/sec"
         )
