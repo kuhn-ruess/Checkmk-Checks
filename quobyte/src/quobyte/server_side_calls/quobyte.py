@@ -8,6 +8,8 @@ https://kuhn-ruess.de
 
 from pydantic import BaseModel
 
+from typing import Optional
+
 from cmk.server_side_calls.v1 import (
     HostConfig,
     Secret,
@@ -20,7 +22,7 @@ class QuobyteParams(BaseModel):
     api_url: str
     username: str
     password: Secret
-    timeout: float
+    timeout: Optional[float] = None
 
 
 def generate_quobyte_command(params: QuobyteParams, host_config: HostConfig):
