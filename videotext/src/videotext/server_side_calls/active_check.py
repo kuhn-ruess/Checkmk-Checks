@@ -32,11 +32,11 @@ def videotext_arguments(params, host_params):
             "-p",
             params.pattern,
             "-t",
-            params.timeout if params.timeout else "2.5",
+            str(params.timeout) if params.timeout else "2.5",
             "-w",
-            params.warn if params.warn else "900.0",
+            str(params.warn) if params.warn else "900.0",
             "-c",
-            params.crit if params.crit else "1200.0",
+            str(params.crit) if params.crit else "1200.0",
         )
     )
 
