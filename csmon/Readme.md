@@ -4,6 +4,8 @@ All Objects from there, will appear as Piggyback Data.
 
 ## Configuration
 
+WARNING: If you upgrade to the 2.0 Version of the Plugin, build for Checkmk 2.3 please first delete your config and recreate it after update
+
 ### Configure Special Agent
 
 <img width="639" alt="image" src="https://github.com/kuhn-ruess/Checkmk-Checks/assets/899110/e65b5f8b-23d7-44c1-9769-6d5bba7499f9">

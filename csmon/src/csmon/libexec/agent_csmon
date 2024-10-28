@@ -2,17 +2,27 @@
 """
 Checkmk Special Agent for CSMON
 """
+import argparse
+
 import requests
-import sys
 from requests.auth import HTTPBasicAuth
 
 from urllib3.exceptions import InsecureRequestWarning
 from urllib3 import disable_warnings
+
 disable_warnings(InsecureRequestWarning)
 
-hostname = sys.argv[1]
-username = sys.argv[2]
-password = sys.argv[3]
+
+parser = argparse.ArgumentParser(description="IBM Special Agent")
+parser.add_argument("--hostname")
+parser.add_argument("--username")
+parser.add_argument("--password")
+
+args = parser.parse_args()
+
+hostname = args.hostname
+username = args.username
+password = args.password
 
 auth = HTTPBasicAuth(username, password)
 
