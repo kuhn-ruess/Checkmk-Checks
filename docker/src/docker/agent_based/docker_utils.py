@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
-# -*- encoding: utf-8; py-indent-offset: 4 -*-
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
 
-from cmk.base.plugins.agent_based.agent_based_api.v1 import GetRateError
+from cmk.agent_based.v2 import GetRateError
 
 def get_docker_container_cpu(value_store, container):
+    """
+    Get Docker Container CPU
+    """
     last_state = value_store.get("usage_counters")
     current_state = {
             "cpu_usage" : float(container["CPU_usage"]),

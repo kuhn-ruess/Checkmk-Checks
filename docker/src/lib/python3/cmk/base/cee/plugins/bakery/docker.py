@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+
 
 from pathlib import Path
 
@@ -11,6 +17,9 @@ from .bakery_api.v1 import (
 
 
 def _get_check_docker_config_lines(conf):
+    """
+    Get Config Lines
+    """
     config = []
 
     config.append(f"timeout={conf.get('timeout', 30)}")
@@ -28,6 +37,9 @@ def _get_check_docker_config_lines(conf):
 
 
 def get_check_docker_files(conf):
+    """
+    Get Files
+    """
     yield Plugin(
         base_os = OS.LINUX,
         source = Path("check_docker.py"),

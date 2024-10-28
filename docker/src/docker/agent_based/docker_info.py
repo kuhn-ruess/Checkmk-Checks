@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
-# -*- encoding: utf-8; py-indent-offset: 4 -*-
-#
-# Check status of docker service
-# Service is CRIT if its status is not up
-#
-# Author: lars.getwan@metrosystems.net
-#
-# 
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+
 # Plugin output:
 #
 # <<<docker_info:sep(58)>>>
@@ -16,15 +14,18 @@
 # file_descriptors:29
 # events_listeners:0
 
-from cmk.base.plugins.agent_based.agent_based_api.v1 import (
+from cmk.agent_based.v2 import (
+    CheckPlugin,
     Metric,
-    register,
     Result,
     Service,
     State,
 )
 
 def discover_docker_info(section):
+    """
+    Discover Docker Info
+    """
     for line in section:
         if line[0] == "service":
             yield Service()
@@ -32,6 +33,9 @@ def discover_docker_info(section):
 
 
 def check_docker_info(section):
+    """
+    Check Docker Info
+    """
     for line in section:
         if  line[0] == "service":
             service = line[1]
@@ -49,7 +53,7 @@ def check_docker_info(section):
                     yield Metric(line[0], int(line[1]))
 
 
-register.check_plugin(
+docker_info_plugin = CheckPlugin(
     name="docker_info",
     service_name="Docker Info",
     discovery_function=discover_docker_info,

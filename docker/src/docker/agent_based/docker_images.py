@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-# -*- encoding: utf-8; py-indent-offset: 4 -*-
-#
-# Check status of docker images
-# Service is always OK. Just for collecting data in phase 1
-#
-# Author: lars.getwan@metrosystems.net
-#
-# 
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+
+
+Docker Image Monitoring
+"""
 # Plugin output:
 #
 # <<<docker_images:sep(59)>>>
@@ -14,23 +14,30 @@
 # ubuntu:latest;Running_containers=2;Diskspace_used=119174159;CPU_pct=0.000000;Memory_used=561152
 # hello-world:latest;Running_containers=0;Diskspace_used=1840;CPU_pct=0.000000;Memory_used=0
 
-from cmk.base.plugins.agent_based.agent_based_api.v1 import (
+from contextlib import suppress
+from cmk.agent_based.v2 import (
+    CheckPlugin,
     Metric,
-    register,
     Result,
     Service,
     State,
     get_value_store,
     GetRateError,
 )
+
 from .docker_utils import get_docker_container_cpu
-from contextlib import suppress
 
 def get_running_image_containers(image_id, containers):
+    """
+    Get running Images or Containers
+    """
     return [c for c in containers if c.get("ImageID") == image_id and c.get("State") == "running"]
 
 
 def get_docker_image_cpu(value_store, image_containers):
+    """
+    Get Image CPU
+    """
     raise_get_rate_error = False
     cpu_perc = 0
     for container in image_containers:
@@ -44,18 +51,20 @@ def get_docker_image_cpu(value_store, image_containers):
     return cpu_perc
 
 
-def discover_docker_images(section_docker_images, section_docker_containers):
+def discover_docker_images(section_docker_images, _section_docker_containers):
+    """
+    Discover Docker Images
+    """
     if section_docker_images is not None:
         for line in section_docker_images:
             yield Service(item=line[0])
 
 
 def check_docker_images(item, section_docker_images, section_docker_containers):
+    """
+    Check Docker Images
+    """
     value_store = get_value_store()
-    if section_docker_containers:
-        docker_containers = section_docker_containers.values()
-    else:
-        docker_containers = []
 
     for line in section_docker_images:
 
@@ -66,20 +75,21 @@ def check_docker_images(item, section_docker_images, section_docker_containers):
                 (key, value) = kv.split("=", 1)
                 image[key] = value
 
-            image_containers = get_running_image_containers(image["ImageID"], section_docker_containers)
+            image_containers = get_running_image_containers(image["ImageID"],
+                                                            section_docker_containers)
+
             image["Running_containers"] = len(image_containers)
             image["Memory_used"] = sum(float(c["Memory_used"]) for c in image_containers)
             with suppress(GetRateError):
                 image["CPU_pct"] = get_docker_image_cpu(value_store, image_containers)
 
-            for var in image.keys():
-                value = image[var]
+            for var, value in image.items():
                 if var == 'Stats':
-                    yield Result(state=State.WARN, summary="Note: %s" % value)
+                    yield Result(state=State.WARN, summary=f"Note: {value}")
                 elif var == 'ImageID':
                     continue
                 else:
-                    yield Result(state=State.OK, summary="%s = %.2f" % (var, float(value)))
+                    yield Result(state=State.OK, summary="{var} = {float(value):.2f}")
 
                 if var in ['CPU_pct']:
                     yield Metric(var, float(value), boundaries=(0, 100))
@@ -88,7 +98,7 @@ def check_docker_images(item, section_docker_images, section_docker_containers):
                     yield Metric(var, float(value))
 
 
-register.check_plugin(
+docker_images_plugin = CheckPlugin(
     name='docker_images',
     sections=['docker_images', 'docker_containers'],
     service_name="Docker Image %s",
