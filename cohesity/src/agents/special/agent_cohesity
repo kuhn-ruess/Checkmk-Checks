@@ -17,15 +17,16 @@ def usage():
     Print Usage
     """
     print("Cohesity Special Agent for Checkmk")
-    print("./agent_cohesity.py <VIP> <USERNAME> <PASSWORD>")
+    print("./agent_cohesity.py <VIP> <USERNAME> <PASSWORD> <DOMAIN>")
     sys.exit(0)
 
-if len(sys.argv) != 4:
+if len(sys.argv) != 5:
     usage()
 
 CLUSTER_VIP = sys.argv[1]
 USERNAME = sys.argv[2]
 PASSWORD = sys.argv[3]
+DOMAIN = sys.argv[4]
 API_URL = f'https://{CLUSTER_VIP}/irisservices/api/v1'
 
 def get_header():
@@ -35,7 +36,8 @@ def get_header():
 
     creds = json.dumps({
         "password": PASSWORD,
-        "username": USERNAME
+        "username": USERNAME,
+        "domain": DOMAIN
     })
 
     header = {

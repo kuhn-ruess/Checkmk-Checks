@@ -28,7 +28,7 @@
 
 
 def agent_cohesity_arguments(params, hostname, ipaddress):
-    args = '%s %s %s' % (ipaddress, params['user'], params['password'])
+    args = "'%s' '%s' '%s' '%s'" % (ipaddress, params['user'], params['password'], params['domain'])
     return args
 
 special_agent_info['cohesity'] = agent_cohesity_arguments
