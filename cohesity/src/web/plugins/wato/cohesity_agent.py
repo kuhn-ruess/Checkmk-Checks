@@ -22,6 +22,7 @@ def _valuespec_special_agents_cohesity():
         elements = [
             ("user", TextAscii(title = _("Username"), allow_empty = False)),
             ("password", Password(title = _("Password"), allow_empty = False)),
+            ("domain", TextAscii(title = _("Domain"), default_value = "LOCAL", allow_empty = False)),
         ],
         optional_keys=[],
     )
