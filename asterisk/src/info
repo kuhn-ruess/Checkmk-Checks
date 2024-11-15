@@ -4,10 +4,11 @@
                 'Python package asterisk-ami must be installed. Please execute '
                 'as siteuser: pip3 install asterisk-ami >= 0.1.7\n',
  'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
- 'files': {'gui': ['notifications/asterisk.py'], 'notifications': ['asterisk']},
+ 'files': {'cmk_addons_plugins': ['asterisk/rulesets/asterisk.py'],
+           'notifications': ['asterisk']},
  'name': 'asterisk',
  'title': 'Asterisk notification script',
- 'version': '1.0.0',
- 'version.min_required': '2.2.0b1',
- 'version.packaged': '2.2.0p36',
+ 'version': '2.0.0',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.3.0p20',
  'version.usable_until': None}
