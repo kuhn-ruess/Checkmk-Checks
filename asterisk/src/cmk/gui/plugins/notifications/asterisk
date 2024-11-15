@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+# Asterisk (call via AMI)
+
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+
+from sys import stdout, exit
+
+from cmk.notification_plugins import utils
+
+try:
+    from asterisk.ami import AMIClient
+except ModuleNotFoundError:
+    stdout.write("Missing Python package asterisk-ami!\nPlease install it as siteuser: >>>pip3 install asterisk-ami<<<.")
+    exit(1)
+
+context      = utils.collect_context()
+host_ip      = context["PARAMETER_HOST"]
+host_port    = int(context["PARAMETER_PORT"])
+host_timeout = int(context["PARAMETER_TIMEOUT"])
+
+username = context["PARAMETER_USERNAME"]
+password = context["PARAMETER_PASSWORD_2"]
+
+channel          = context["PARAMETER_CHANNEL"]
+channel_exten    = context["PARAMETER_EXTEN"]
+channel_prio     = int(context["PARAMETER_PRIORITY"])
+channel_context  = context["PARAMETER_CONTEXT"]
+channel_callerid = context["PARAMETER_CALLERID"]
+
+client = AMIClient(address=host_ip, port=host_port, timeout=host_timeout)
+future = client.login(username=username, secret=password)
+if future.response.is_error():
+    stdout.write(str(future.response))
+    exit(1)
+
+
+from asterisk.ami import SimpleAction
+
+action = SimpleAction(
+    'Originate',
+    Channel=channel,
+    Exten=channel_exten,
+    Priority=channel_prio,
+    Context=channel_context,
+    CallerID=channel_callerid,
+)
+future = client.send_action(action)
+if future.response.is_error():
+    stdout.write(str(future.response))
+    exit(1)
+
+future = client.logoff()
+if future.response.is_error():
+    stdout.write(str(future.response))
+    exit(1)
+
+exit(0)
