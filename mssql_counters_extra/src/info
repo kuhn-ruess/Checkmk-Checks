@@ -11,7 +11,7 @@
                                   'mssql_counters_extra/rulesets/mssql_counters_latches.py',
                                   'mssql_counters_extra/rulesets/mssql_counters_memory.py',
                                   'mssql_counters_extra/rulesets/mssql_counters_work_files_tables.py']},
- 'name': 'mssql_counters_extra',
+ 'name': 'mssql_counters_ext',
  'title': 'MSSQL extra counters',
  'version': '2.0.6',
  'version.min_required': '2.3.0b1',
