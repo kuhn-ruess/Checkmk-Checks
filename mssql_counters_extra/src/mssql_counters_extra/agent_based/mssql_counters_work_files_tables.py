@@ -59,9 +59,9 @@ def check_mssql_work_files_tables(item, params, section):
     levels = params.get("WorkFiles")
 
     if levels is not None:
-        warn, crit = levels
-        levelstext = " (warn/crit at %.2f/%.2f)" % levels
-        yield Metric("perf_WorkFiles", value, levels=levels)
+        warn, crit = levels[1]
+        levelstext = " (warn/crit at %.2f/%.2f)" % levels[1]
+        yield Metric("perf_WorkFiles", value, levels=levels[1])
         if value >= crit: 
             yield Result(state=State.CRIT, summary=infotext+levelstext)
         elif value >= warn:
@@ -84,9 +84,9 @@ def check_mssql_work_files_tables(item, params, section):
     levels = params.get("WorkTables")
 
     if levels is not None:
-        warn, crit = levels
-        levelstext = " (warn/crit at %.2f/%.2f)" % levels
-        yield Metric("perf_WorkTables", value, levels=levels)
+        warn, crit = levels[1]
+        levelstext = " (warn/crit at %.2f/%.2f)" % levels[1]
+        yield Metric("perf_WorkTables", value, levels=levels[1])
         if value >= crit: 
             yield Result(state=State.CRIT, summary=infotext+levelstext)
         elif value >= warn:
@@ -106,7 +106,7 @@ check_plugin_mssql_countes_work_files_tables = CheckPlugin(
     discovery_function = discover_mssql_work_files_tables,
     check_ruleset_name = "mssql_counters_work_files_tables",
     check_default_parameters = {
-        "WorkFiles" : (100.0, 200.0),
-        "WorkTables" : (200.0, 400.0),
+        "WorkFiles" : ('fixed', (100.0, 200.0)),
+        "WorkTables" : ('fixed', (200.0, 400.0)),
     },
 )

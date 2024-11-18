@@ -64,7 +64,7 @@ def check_mssql_latches(item, params, section):
         )
         yield from check_levels(
             value=latch_waits,
-            levels_upper=('fixed', params.get("LatchWaits")),
+            levels_upper=params.get("LatchWaits"),
             metric_name="latch_waits_per_sec",
             label="Latch waits/sec"
         )
@@ -81,7 +81,7 @@ def check_mssql_latches(item, params, section):
         )
         yield from check_levels(
             value=latch_wait_time,
-            levels_upper=('fixed', params.get("LatchWaitTime")),
+            levels_upper=params.get("LatchWaitTime"),
             metric_name="latch_wait_time",
             label="Latch wait time"
         )
@@ -98,7 +98,7 @@ def check_mssql_latches(item, params, section):
         )
         yield from check_levels(
             value=latch_wait_time,
-            levels_upper=('fixed', params.get("LatchAverage")),
+            levels_upper=params.get("LatchAverage"),
             metric_name="avg_latch_wait_time",
             label="Average latch wait time"
         )
@@ -115,8 +115,8 @@ check_plugin_mssql_counters_latches = CheckPlugin(
     check_function = check_mssql_latches,
     check_ruleset_name = "mssql_counters_latches",
     check_default_parameters = {
-        "LatchWaits" : (100.0, 200.0),
-        "LatchWaitTime" : (200.0, 400.0),
-        "LatchAverage" : (20.0, 40.0),
+        "LatchWaits" : ('fixed', (100.0, 200.0)),
+        "LatchWaitTime" :('fixed',  (200.0, 400.0)),
+        "LatchAverage" :('fixed',  (20.0, 40.0)),
     },
 )

@@ -53,7 +53,7 @@ def check_mssql_counters_connections(item, params, section):
     uconn = section[(obj_id, instance)]["user_connections"]
     yield from check_levels(
         value=uconn,
-        levels_upper=('fixed', params.get("user_connections")),
+        levels_upper=params.get("user_connections"),
         label="User Connections",
     )
 
@@ -68,7 +68,7 @@ def check_mssql_counters_connections(item, params, section):
         )
         yield from check_levels(
             value=logins_per_sec,
-            levels_upper=('fixed', params.get("LogInConnects")),
+            levels_upper=params.get("LogInConnects"),
             metric_name="logins_per_sec",
             label="Logins/sec",
         )
@@ -85,7 +85,7 @@ def check_mssql_counters_connections(item, params, section):
         )
         yield from check_levels(
             value=logouts_per_sec,
-            levels_upper=('fixed', params.get("LogOutConnects")),
+            levels_upper=params.get("LogOutConnects"),
             metric_name="logouts_per_sec",
             label="Logouts/sec",
         )
@@ -99,8 +99,8 @@ check_plugin_mssql_counters_connections = CheckPlugin(
     check_function = check_mssql_counters_connections,
     check_ruleset_name = "mssql_counters_connections",
     check_default_parameters = {
-        "user_connections" : (100, 200),
-        "LogInConnects" : (2.0, 10.0),
-        "LogOutConnects" : (2.0, 10.0),
+        "user_connections" : ('fixed', (100, 200)),
+        "LogInConnects" : ('fixed', (2.0, 10.0)),
+        "LogOutConnects" : ('fixed', (2.0, 10.0)),
     },
 )

@@ -63,9 +63,9 @@ def check_mssql_access_methods(item, params, section):
         levels = params.get("AccessFullScans")
 
         if levels is not None:
-            warn, crit = levels
-            levelstext = " (warn/crit at %.2f/%.2f)" % levels
-            yield Metric("perf_AccessFullScans", fsrate, levels=levels)
+            warn, crit = levels[1]
+            levelstext = " (warn/crit at %.2f/%.2f)" % levels[1]
+            yield Metric("perf_AccessFullScans", fsrate, levels=levels[1])
             if fsrate >= crit:
                 yield Result(state=State.CRIT, summary=finfotext + levelstext)
             elif fsrate >= warn:
@@ -91,9 +91,9 @@ def check_mssql_access_methods(item, params, section):
         levels = params.get("AccessIndexSearches")
 
         if levels is not None:
-            warn, crit = levels
-            levelstext = " (warn/crit at %.2f/%.2f)" % levels
-            yield Metric("perf_AccessIndexSearches" , israte, levels=levels)
+            warn, crit = levels[1]
+            levelstext = " (warn/crit at %.2f/%.2f)" % levels[1]
+            yield Metric("perf_AccessIndexSearches" , israte, levels=levels[1])
             if israte >= crit:
                 yield Result(state=State.CRIT, summary=iinfotext + levelstext)
             elif israte > warn:
@@ -114,9 +114,9 @@ def check_mssql_access_methods(item, params, section):
         levels = params.get("index_hit_ratio")
 
         if levels is not None:
-            warn, crit = levels
-            levelstext = " (warn/crit below %.1f/%.1f%%)" % levels
-            yield Metric("index_hitratio", index_hitratio_perc, levels=levels)
+            warn, crit = levels[1]
+            levelstext = " (warn/crit below %.1f/%.1f%%)" % levels[1]
+            yield Metric("index_hitratio", index_hitratio_perc, levels=levels[1])
             if index_hitratio_perc < crit:
                 yield Result(state=State.CRIT, summary=infotext + levelstext)
             elif index_hitratio_perc < warn:
@@ -138,8 +138,8 @@ check_plugin_mssql_counters_access_methods = CheckPlugin(
     check_function = check_mssql_access_methods,
     check_ruleset_name = "mssql_counters_access_methods",
     check_default_parameters = {
-        "AccessFullScans": (50.0, 100.0),
-        "AccessIndexSearches": (500.0, 1000.0),
-        "index_hit_ratio": (5.0, 1.0),
+        "AccessFullScans": ('fixed', (50.0, 100.0)),
+        "AccessIndexSearches":('fixed',  (500.0, 1000.0)),
+        "index_hit_ratio": ('fixed', (5.0, 1.0)),
     },
 )

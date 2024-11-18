@@ -35,7 +35,7 @@ def _check_memory_usage(db, params, section):
     infotext = "%.2f %% MemoryUsage of %.2f GB TargetMem" % (value,targig)
 
     if levels is not None:
-        warn, crit = levels
+        warn, crit = levels[1]
         levelstext = " (warn, crit at %d/%d%%)" % (warn, crit)
         yield Metric("perf_MemoryUsage", value, levels=(warn, crit))
         if value >= crit:
@@ -59,7 +59,7 @@ def _check_memory_grants(db, params, section):
     infotext = "%d memory_grants_pending" % mgrants 
 
     if levels is not None:
-        warn, crit = levels
+        warn, crit = levels[1]
         levelstext = " (warn, crit at %s/%s)" % (warn, crit)
         yield Metric("perf_MemoryGrantsPending", mgrants, levels=(warn, crit))
         if mgrants >= crit: 
@@ -82,8 +82,8 @@ def _check_page_life_expectancy(db, params, section):
     infotext = "page_life_expectancy is %s"  % render.timespan(page_life_expectancy)
 
     if levels != None:
-        yield Metric("perf_page_life_expectancy", page_life_expectancy, levels=levels)
-        warn, crit = levels
+        yield Metric("perf_page_life_expectancy", page_life_expectancy, levels=levels[1])
+        warn, crit = levels[1]
         levelstext =  " (warn / crit below %s/%s)" % (render.timespan(warn), render.timespan(crit))
         if page_life_expectancy < crit:
             yield Result(state=State.CRIT, summary=infotext + levelstext)
@@ -118,7 +118,7 @@ def _check_lazy_writes(db, params, section):
     infotext = "%.2f lazy_writes/sec" %value
 
     if levels is not None:
-        warn, crit = levels
+        warn, crit = levels[1]
         levelstext = " (warn, crit at %s/%s)" % (warn, crit)
         yield Metric("perf_LazyWrites", value, levels=(warn, crit))
         if value >= crit: 
@@ -164,9 +164,9 @@ check_plugin_mssql_counter_memory = CheckPlugin(
     discovery_function = discover_mssql_counters_memory,
     check_ruleset_name = "mssql_counters_memory",
     check_default_parameters = {
-        "LazyWrites" : (20.0, 50.0),
-        "page_life_expectancy" : (300, 120),
-        "MemoryGrantsPending" : (3, 10),
-        "MemoryUsage" : (80.0, 90.0),
+        "LazyWrites" : ('fixed', (20.0, 50.0)),
+        "page_life_expectancy" : ('fixed', (300, 120)),
+        "MemoryGrantsPending" : ('fixed', (3, 10)),
+        "MemoryUsage" : ('fixed', (80.0, 90.0)),
     },
 )
