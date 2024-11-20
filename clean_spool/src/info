@@ -10,7 +10,7 @@
  'files': {'bin': ['clean_spoolfiles']},
  'name': 'clean_spool',
  'title': 'Clean spool files of Checkmk Notification Spooler',
- 'version': '1.0.0',
+ 'version': '1.0.1',
  'version.min_required': '2.3.0b1',
  'version.packaged': '2.3.0p9',
  'version.usable_until': None}

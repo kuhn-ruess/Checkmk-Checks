@@ -31,14 +31,24 @@ stats.setdefault("Services", {})
 stats["Services"]["Downtime"] = 0
 stats["Services"]["State"] = 0
 
+count_skip = 0
+total_count = 0
 for file in files:
-    with open(f"{path}/{file[1]}", "r") as data:
-        info = eval(data.read())
-        data.close()
+    total_count += 1
+
+
+    try:
+        with open(f"{path}/{file[1]}", "r") as data:
+            info = eval(data.read())
+            data.close()
+    except (FileNotFoundError, SyntaxError):
+        count_skip += 1
+        print(f"Skipped {count_skip}: {path}{file[1]}")
+        continue
 
     info = info["context"]
 
-    if info["WHAT"] == "HOST":
+    if info.get("WHAT") == "HOST":
         if info["NOTIFICATIONTYPE"] == "DOWNTIMESTART":
             entries["Hosts"]["Downtime"][info["HOSTNAME"]] = file[1]
 
@@ -67,7 +77,7 @@ for file in files:
                 del entries["Hosts"]["State"][info["HOSTNAME"]]
                 stats["Hosts"]["State"] += 1
 
-    elif info["WHAT"] == "SERVICE":
+    elif info.get("WHAT") == "SERVICE":
         name = f"{info['HOSTNAME']}###{info['SERVICEDESC']}"
 
         if info["NOTIFICATIONTYPE"] == "DOWNTIMESTART":
@@ -97,9 +107,12 @@ for file in files:
 
                 del entries["Services"]["State"][name]
                 stats["Services"]["State"] += 1
+    else:
+        print(f"Invalid File {path}{file[1]}")
 
 print(f"#"*80)
 print(f"# {'Hosts':35}#    # {'Services':35}#")
 print(f"# Deleted downtimes: {stats['Hosts']['Downtime']:15} #    # Deleted downtimes: {stats['Services']['Downtime']:15} #")
 print(f"#    Deleted states: {stats['Hosts']['State']:15} #    #    Deleted states: {stats['Services']['State']:15} #")
+print(f"# Total Files: {total_count}\t\t\t\t\t\t\t #")
 print(f"#"*80)
