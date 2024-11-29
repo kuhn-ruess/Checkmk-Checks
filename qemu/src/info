@@ -7,6 +7,6 @@
  'name': 'qemu',
  'num_files': 4,
  'title': u'Qemu / KVM',
- 'version': '3.0.2',
+ 'version': '3.0.3',
  'version.min_required': '2.0.0',
  'version.packaged': '2.2.0p3'}
