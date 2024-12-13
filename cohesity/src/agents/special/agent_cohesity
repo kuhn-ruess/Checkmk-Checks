@@ -115,8 +115,8 @@ def get_alerts():
     """
     Query API Alerts
     """
-    time_to = int(datetime.datetime.utcnow().timestamp())
-    time_from = time_to - 86400
+    time_to = int(datetime.datetime.now().timestamp() * 1_000_000)
+    time_from = time_to - (86400 * 1_000_000)
     url = f"/public/stats/alerts?startTimeUsecs={time_from}&endTimeUsecs={time_to}"
     print("<<<cohesity_alerts>>>")
     for key, value in get_url(url).items():
