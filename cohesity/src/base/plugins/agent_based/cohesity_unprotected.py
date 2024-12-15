@@ -1,6 +1,7 @@
 # 2021 created by Sven Rueß, sritd.de
 
 from .agent_based_api.v1 import (
+    Metric,
     register,
     Service,
     Result,
@@ -49,6 +50,7 @@ def check_cohesity_unprotected(section):
             details=f"Size of protected objects: {render.bytes(section['protectedSizeBytes'])}"
         )
 
+    yield Metric(name="unprotected_objects", value=section["numObjectsUnprotected"])
 
 register.check_plugin(
     name="cohesity_unprotected",

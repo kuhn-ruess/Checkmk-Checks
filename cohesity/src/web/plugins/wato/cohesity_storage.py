@@ -5,6 +5,7 @@ from cmk.gui.valuespec import (
     Dictionary,
     Tuple,
     Filesize,
+    Percentage,
 )
 from cmk.gui.plugins.wato import (
     CheckParameterRulespecWithoutItem,
@@ -24,12 +25,20 @@ def _parameter_valuespec_cohesity_storage():
                     Filesize(title=_("Critical at")),
                 ],
             )),
+            ("levels %", Tuple(
+                title=_("Maximum percent size of cluster filesystem"),
+                help=_("Please configure levels for maximum percent used filesystem size of cluster."),
+                elements=[
+                    Percentage(title=_("Warning at")),
+                    Percentage(title=_("Critical at")),
+                ],
+            )),
         ],
     )
 
 
 rulespec_registry.register(
-    CheckParameterRulespecWithItem(
+    CheckParameterRulespecWithoutItem(
         check_group_name="cohesity_storage",
         group=RulespecGroupCheckParametersApplications,
         match_type="dict",

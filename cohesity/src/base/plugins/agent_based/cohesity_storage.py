@@ -1,6 +1,7 @@
 # 2021 created by Sven Rueß, sritd.de
 
 from .agent_based_api.v1 import (
+    Metric,
     register,
     Service,
     Result,
@@ -34,6 +35,7 @@ def discovery_cohesity_storage(section):
 
 def check_cohesity_storage(params, section):
     (warn, crit) = params.get("levels", (None, None))
+    (warn_pct, crit_pct) = params.get("levels %", (None, None))
     used_storage = None
     total_storage = None
 
@@ -51,7 +53,17 @@ def check_cohesity_storage(params, section):
             state=State.CRIT,
             summary=text,
         )
+    elif None is not crit_pct and percent_used >= crit_pct:
+        yield Result(
+            state=State.CRIT,
+            summary=text,
+        )
     elif None is not warn and used_storage >= warn:
+        yield Result(
+            state=State.WARN,
+            summary=text,
+        )
+    elif None is not warn_pct and percent_used >= warn_pct:
         yield Result(
             state=State.WARN,
             summary=text,
@@ -62,6 +74,8 @@ def check_cohesity_storage(params, section):
             summary=text,
         )
 
+    yield Metric(name="used_storage", value=used_storage, levels=(warn, crit), boundaries=(0, total_storage))
+    yield Metric(name="percent_used", value=percent_used, levels=(warn_pct, crit_pct), boundaries=(0, 100))
 
 register.check_plugin(
     name="cohesity_storage_usage",

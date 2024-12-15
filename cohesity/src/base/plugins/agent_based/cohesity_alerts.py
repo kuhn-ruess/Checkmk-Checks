@@ -11,7 +11,7 @@ from .agent_based_api.v1 import (
 def parse_cohesity_alerts(string_table):
     section = {}
     for row in string_table:
-        item = ''.join(map(lambda x: x if x.islower() else " "+x, row[0][3:]))
+        item = row[0][3:4] + ''.join(map(lambda x: x if x.islower() else " "+x, row[0][4:]))
 
         try:
             alerts = int(row[1])
@@ -32,22 +32,33 @@ def discovery_cohesity_alerts(section):
     yield Service()
 
 def check_cohesity_alerts(section):
-    failed = []
+    numCriticalAlerts = section['Critical Alerts']
+    numWarningAlerts = section['Warning Alerts']
+    numInfoAlerts = section['Info Alerts']
 
+    text = f"{numCriticalAlerts} Critical {numWarningAlerts} Warning {numInfoAlerts} Info"
+
+    stats=f"Alert stats:"
     for item in section:
-        if section[item] > 0:
-            failed.append(item)
+        stats=f"{stats}\n{item} {section[item]}"
 
-    if len(failed) > 0:
-        yield Result(
-            state=State.CRIT,
-            summary=f"{len(failed)} existing alerts",
-            details=f"Existing alerts: {', '.join(failed)}"
-        )
+    if numCriticalAlerts > 0:
+        state=State.CRIT
+        text=f"Existing alerts: {text}"
+    elif numWarningAlerts > 0:
+        state=State.WARN
+        text=f"Existing alerts: {text}"
+    elif numInfoAlerts > 0:
+        state=State.OK
+        text=f"Info alerts: {text}"
     else:
-        yield Result(
-            state=State.OK,
-            summary=f"There are no alarms"
+        state=State.OK
+        text=f"No alert: {text}"
+    
+    yield Result(
+        state=state,
+        summary=text,
+        details=stats,
         )
 
 
