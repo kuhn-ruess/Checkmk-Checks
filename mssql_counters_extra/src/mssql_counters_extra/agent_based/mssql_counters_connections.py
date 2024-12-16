@@ -54,6 +54,7 @@ def check_mssql_counters_connections(item, params, section):
     yield from check_levels(
         value=uconn,
         levels_upper=params.get("user_connections"),
+        metric_name="user_connections",
         label="User Connections",
     )
 
