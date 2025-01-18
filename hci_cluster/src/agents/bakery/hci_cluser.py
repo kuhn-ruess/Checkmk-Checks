@@ -20,6 +20,9 @@ def _get_lines(conf: Dict[str, str]) -> List[str]:
     return [
         "$domain = \"{}\"".format(conf['domain']),
         "$cluster_filter = \"{}\"".format(conf['cluster_filter']),
+        "$FilterTyp = \"{}\"".format(conf['filter_type']),
+        "$IncludePattern = \"{}\"".format(conf['include_pattern']),
+        "$ExcludePattern = \"{}\"".format(conf['exclude_pattern']),
     ]
 
 

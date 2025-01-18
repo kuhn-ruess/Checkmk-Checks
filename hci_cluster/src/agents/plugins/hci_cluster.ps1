@@ -2,13 +2,36 @@ $CMK_VERSION = "2.0.0"
 $MK_CONFDIR = $env:MK_CONFDIR
 
 $CONFIG_FILE="${MK_CONFDIR}\hci_cluster.cfg.ps1"
+
 if (test-path -path "${CONFIG_FILE}" ) {
      . "${CONFIG_FILE}"
 } else {
     exit
+    Write-Output "Fault"
 }
 
-$Clusters=get-cluster -Domain $domain -Name $cluster_filter
+
+$Clusters=get-cluster -Domain $domain
+
+switch ($FilterTyp)
+{
+
+Inclusion
+{
+    $Clusters = $Clusters | Where-Object {
+        $_.Name -match $IncludePattern  # Iclude only clusters matching the pattern
+    }
+}
+
+Exclusion
+{
+    $Clusters = $Clusters | Where-Object {
+        $_.Name -notmatch $ExcludePattern  # Exclude clusters matching the pattern
+    }
+}
+
+}
+
 
 foreach ($Cluster in $Clusters){
     Write-Output  "<<<<$cluster>>>>"
@@ -47,6 +70,7 @@ foreach ($Cluster in $Clusters){
             Write-Output  "<<<hci_s2d_volume_performance:sep(58)>>>"
             Get-Volume -FriendlyName $using:NodeName | Get-ClusterPerf | Format-List 
         }
+        Start-Sleep -Seconds 6
     }
 }
 Write-Output "<<<<>>>>"

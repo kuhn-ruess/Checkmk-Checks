@@ -14,6 +14,9 @@ def _valuespec():
                        elements=[
                            ("domain", TextAscii(title=_("Domain"), allow_empty=False)),
                            ("cluster_filter", TextAscii(title=_("Cluster Filter"), help="Use * as a Wildcard", allow_empty=False)),
+                           ("filter_type", TextAscii(title=_("Filter Type"), help="Exclusion or Inclusion", allow_empty=False)),
+                           ("include_pattern", TextAscii(title=_("Include Pattern"), help="Excample: HCI", allow_empty=False)),
+                           ("exclude_pattern", TextAscii(title=_("Exclude Pattern"), help="Excample: SQL", allow_empty=False)),
                        ],
                        required_keys=["domain", "cluster_filter"]),
             FixedValue(None,
