@@ -1,7 +1,7 @@
 from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import RulespecGroupMonitoringAgentsAgentPlugins
 from cmk.gui.plugins.wato import rulespec_registry, HostRulespec
 
-from cmk.gui.valuespec import Alternative, Dictionary, FixedValue, TextAscii
+from cmk.gui.valuespec import Alternative, Dictionary, FixedValue, TextAscii, DropdownChoice
 
 
 
@@ -13,12 +13,18 @@ def _valuespec():
             Dictionary(title=_("Deploy HCI Cluster plugin"),
                        elements=[
                            ("domain", TextAscii(title=_("Domain"), allow_empty=False)),
-                           ("cluster_filter", TextAscii(title=_("Cluster Filter"), help="Use * as a Wildcard", allow_empty=False)),
-                           ("filter_type", TextAscii(title=_("Filter Type"), help="Exclusion or Inclusion", allow_empty=False)),
-                           ("include_pattern", TextAscii(title=_("Include Pattern"), help="Excample: HCI", allow_empty=False)),
-                           ("exclude_pattern", TextAscii(title=_("Exclude Pattern"), help="Excample: SQL", allow_empty=False)),
+                           ("filter_type", DropdownChoice(title=_("Filter Type"),
+                                                          help="Exclusion or Inclusion",
+                                                          choices=[
+                                                            ("None", "No Filter"),
+                                                            ("Inclusion", "Inclusion Filter"),
+                                                            ("Exclusion", "Exclusion Filter"),
+                                                          ],
+                                                          default_value="None")),
+                           ("filter_pattern", TextAscii(title=_("Filter Pattern"),
+                                                                help="Excample: HCI", allow_empty=True)),
                        ],
-                       required_keys=["domain", "cluster_filter"]),
+                       required_keys=["domain", "filter_type"]),
             FixedValue(None,
                        title=_("Do not deploy plugin"),
                        totext=_("(disabled)")),

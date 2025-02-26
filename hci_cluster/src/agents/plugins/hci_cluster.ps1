@@ -1,42 +1,40 @@
 $CMK_VERSION = "2.0.0"
 $MK_CONFDIR = $env:MK_CONFDIR
 
-$CONFIG_FILE="${MK_CONFDIR}\hci_cluster.cfg.ps1"
+$CONFIG_FILE = "${MK_CONFDIR}\hci_cluster.cfg.ps1"
 
 if (test-path -path "${CONFIG_FILE}" ) {
-     . "${CONFIG_FILE}"
-} else {
+    . "${CONFIG_FILE}"
+}
+else {
     exit
     Write-Output "Fault"
 }
 
 
-$Clusters=get-cluster -Domain $domain
+$clusters = Get-Cluster -Domain $Domain -ErrorAction Stop
 
-switch ($FilterTyp)
-{
+switch ($FilterTyp) {
 
-Inclusion
-{
-    $Clusters = $Clusters | Where-Object {
-        $_.Name -match $IncludePattern  # Iclude only clusters matching the pattern
+    Inclusion {
+        $Clusters = $Clusters | Where-Object {
+            $_.Name -match $FilterPattern  # Iclude only clusters matching the pattern
+        }
     }
-}
 
-Exclusion
-{
-    $Clusters = $Clusters | Where-Object {
-        $_.Name -notmatch $ExcludePattern  # Exclude clusters matching the pattern
+    Exclusion {
+        $Clusters = $Clusters | Where-Object {
+            $_.Name -notmatch $FilterPattern  # Exclude clusters matching the pattern
+        }
     }
-}
 
 }
 
 
-foreach ($Cluster in $Clusters){
+foreach ($Cluster in $Clusters) {
     Write-Output  "<<<<$cluster>>>>"
     Write-Output "<<<hci_cluster_resources:sep(58)>>>"
-    Get-ClusterResource -Cluster $Cluster | ? {$_.ResourceType -NotLike 'Virtual Machine*' -and $_.Name -notlike '*Cau*'}  | Format-List
+    Get-ClusterResource -Cluster $Cluster | ? { $_.ResourceType -NotLike 'Virtual Machine*' -and $_.Name -notlike '*Cau*' }  | Format-List
     Write-Output  "<<<hci_cluster_nodes:sep(58)>>>"
     Get-ClusterNode -cluster $Cluster | Format-List
     Write-Output  "<<<hci_cluster_performance:sep(58)>>>"
@@ -58,15 +56,15 @@ foreach ($Cluster in $Clusters){
 }
 
 
-foreach ($Cluster in $Clusters){
+foreach ($Cluster in $Clusters) {
     $Nodes = (get-clusternode -Cluster $Cluster | ? State -eq 'Up')
 
-    foreach ($Node in $Nodes){
+    foreach ($Node in $Nodes) {
         $NodeName = $Node.Name
 
         Write-Output  "<<<<$NodeName>>>>"
 
-       Invoke-Command -ComputerName $Node.Name -ScriptBlock {
+        Invoke-Command -ComputerName $Node.Name -ScriptBlock {
             Write-Output  "<<<hci_s2d_volume_performance:sep(58)>>>"
             Get-Volume -FriendlyName $using:NodeName | Get-ClusterPerf | Format-List 
         }
