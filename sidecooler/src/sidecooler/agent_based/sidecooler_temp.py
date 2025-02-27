@@ -65,16 +65,22 @@ def check_sidecooler_temp(item, params, section):
         name = "temp_cold_"
 
     for which in ("mean", "top", "center", "bottom"):
-        warn, crit = params[which]
-
-        if data[which] >= crit:
-            yield Result(state=State.CRIT, summary=f"{which.capitalize()}: {data[which]}°C")
-        elif data[which] >= warn:
-            yield Result(state=State.WARN, summary=f"{which.capitalize()}: {data[which]}°C")
-        else:
+        if params[which][0] == "no_levels":
             yield Result(state=State.OK, summary=f"{which.capitalize()}: {data[which]}°C")
+            yield Metric(name=f"{name}{which}", value=data[which])
+        else:
+            print(params[which])
+            warn, crit = params[which][1]
+            print(f"{warn, crit}")
 
-        yield Metric(name=f"{name}{which}", value=data[which], levels=params[which])
+            if data[which] >= crit:
+                yield Result(state=State.CRIT, summary=f"{which.capitalize()}: {data[which]}°C")
+            elif data[which] >= warn:
+                yield Result(state=State.WARN, summary=f"{which.capitalize()}: {data[which]}°C")
+            else:
+                yield Result(state=State.OK, summary=f"{which.capitalize()}: {data[which]}°C")
+
+            yield Metric(name=f"{name}{which}", value=data[which], levels=params[which][1])
 
 
 snmp_section_sidecooler_temp = SimpleSNMPSection(
@@ -105,9 +111,9 @@ check_plugin_sidecooler_temp = CheckPlugin(
     check_function = check_sidecooler_temp,
     check_ruleset_name = "sidecooler_temp",
     check_default_parameters = {
-        "mean": (30, 35),
-        "top": (30, 35),
-        "center": (30, 35),
-        "bottom": (30, 35),
+        "mean": ("fixed", (30, 35)),
+        "top": ("fixed", (30, 35)),
+        "center": ("fixed", (30, 35)),
+        "bottom": ("fixed", (30, 35)),
     },
 )
