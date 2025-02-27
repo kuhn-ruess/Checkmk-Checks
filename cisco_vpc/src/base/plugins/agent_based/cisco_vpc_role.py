@@ -1,12 +1,12 @@
-#!/usr/bin/env python3                                                                       
-                                                                                             
-from .agent_based_api.v1 import (                                                            
-    register,                                                                                
-    Result,                                                                                  
-    Service,                                                                                 
-    SNMPTree,                                                                                
-    startswith,                                                                              
-    State,                                                                                   
+#!/usr/bin/env python3
+
+from .agent_based_api.v1 import (
+    register,
+    Result,
+    Service,
+    SNMPTree,
+    matches,
+    State,
 )
 
 
@@ -19,7 +19,7 @@ register.snmp_section(
                 "3", # CISCO-VPC-MIB::cVpcDualActiveDetectionStatus
             ],
         ),
-    detect=startswith(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.9.12.3.1.3.1955"),
+    detect=matches(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.9.12.3.1.3.\d{4}"),
 )
 
 
