@@ -40,3 +40,12 @@ graph_sidecooler_coldwater = Graph(
         "coldwater_return",
     ],
 )
+
+graph_sidecooler_valve = Graph(
+    name = "sidecooler_valve",
+    title = Title("Valve position"),
+    simple_lines = [
+        "valve_set",
+        "valve_current",
+    ],
+)

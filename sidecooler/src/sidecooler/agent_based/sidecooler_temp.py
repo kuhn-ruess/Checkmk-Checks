@@ -69,9 +69,7 @@ def check_sidecooler_temp(item, params, section):
             yield Result(state=State.OK, summary=f"{which.capitalize()}: {data[which]}°C")
             yield Metric(name=f"{name}{which}", value=data[which])
         else:
-            print(params[which])
             warn, crit = params[which][1]
-            print(f"{warn, crit}")
 
             if data[which] >= crit:
                 yield Result(state=State.CRIT, summary=f"{which.capitalize()}: {data[which]}°C")

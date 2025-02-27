@@ -82,3 +82,17 @@ metric_coldwater_return = Metric(
     unit = UNIT_NUMBER,
     color = Color.RED,
 )
+
+metric_coldwater_supply = Metric(
+    name = "valve_set",
+    title = Title("Valve set"),
+    unit = UNIT_NUMBER,
+    color = Color.BLUE,
+)
+
+metric_coldwater_return = Metric(
+    name = "valve_current",
+    title = Title("Valve current"),
+    unit = UNIT_NUMBER,
+    color = Color.RED,
+)

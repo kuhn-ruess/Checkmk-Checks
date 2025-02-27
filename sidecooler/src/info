@@ -5,7 +5,8 @@
                 '- Fans\n'
                 '- Supply\n'
                 '- Tempratures\n'
-                '- Coldwater\n',
+                '- Coldwater\n'
+                '- Valve\n',
  'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
  'files': {'cmk_addons_plugins': ['sidecooler/agent_based/sidecooler_alerts.py',
                                   'sidecooler/agent_based/sidecooler_coldwater.py',
@@ -15,10 +16,11 @@
                                   'sidecooler/agent_based/sidecooler_temp.py',
                                   'sidecooler/graphing/graphs.py',
                                   'sidecooler/graphing/metrics.py',
-                                  'sidecooler/rulesets/temp.py']},
+                                  'sidecooler/rulesets/temp.py',
+                                  'sidecooler/agent_based/sidecooler_valve.py']},
  'name': 'sidecooler',
  'title': 'Sidecooler checks',
- 'version': '2.0.1',
+ 'version': '2.0.2',
  'version.min_required': '2.3.0b1',
  'version.packaged': '2.3.0p13',
  'version.usable_until': None}
