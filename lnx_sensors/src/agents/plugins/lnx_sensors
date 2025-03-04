@@ -1,0 +1,17 @@
+#!/bin/bash
+
+##############################
+# Kuhn & Rueß GmbH           #
+# Consulting and Development #
+# https://kuhn-ruess.de      #
+##############################
+
+inpath() {
+    # replace "if type [somecmd]" idiom
+    # 'command -v' tends to be more robust vs 'which' and 'type' based tests
+    command -v "${1:?No command to test}" >/dev/null 2>&1
+}
+
+if inpath sensors; then
+    echo '<<<lnx_sensors>>>'
+    sensors --no-adapter -j
