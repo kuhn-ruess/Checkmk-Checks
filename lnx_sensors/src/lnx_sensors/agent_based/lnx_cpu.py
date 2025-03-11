@@ -75,9 +75,9 @@ def check_lnx_cpus(item, params, section):
 
 
 check_plugin_lnx_cpus = CheckPlugin(
-    name = "lnx_cpus",
+    name = "lnx_cpu",
     sections = ["lnx_sensors"],
-    service_name = "Temperature %s",
+    service_name = "Temperature CPU %s",
     discovery_function = discover_lnx_cpus,
     discovery_ruleset_name = "discover_lnx_sensors",
     discovery_default_parameters = {},

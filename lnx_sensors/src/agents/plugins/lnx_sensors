@@ -15,3 +15,4 @@ inpath() {
 if inpath sensors; then
     echo '<<<lnx_sensors>>>'
     sensors --no-adapter -j
+fi

@@ -11,7 +11,7 @@
            'lib': ['python3/cmk/base/cee/plugins/bakery/lnx_sensors.py']},
  'name': 'lnx_sensors',
  'title': 'Monitoring Linux sensors',
- 'version': '1.0.0',
+ 'version': '1.0.1',
  'version.min_required': '2.3.0b1',
  'version.packaged': '2.3.0p25',
  'version.usable_until': None}
