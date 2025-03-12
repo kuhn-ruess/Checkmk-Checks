@@ -1,0 +1,14 @@
+{'author': 'Kuhn & Ruess GmbH',
+ 'description': 'This check is based on the Included Alertmanager Check in '
+                'Checkmk.\n'
+                'The only Difference is, that you can remap the Alert '
+                'Severities in case the are not using the default Names.\n',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks',
+ 'files': {'cmk_addons_plugins': ['kr_alertmanager/agent_based/alertmanager.py',
+                                  'kr_alertmanager/rulesets/alertmanager.py']},
+ 'name': 'alertmanager_extended',
+ 'title': 'Alertmanager with Severtiy Mapping',
+ 'version': '1.0.0',
+ 'version.min_required': '2.3.0p1',
+ 'version.packaged': '2.3.0p25',
+ 'version.usable_until': None}
