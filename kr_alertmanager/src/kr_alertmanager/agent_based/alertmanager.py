@@ -137,7 +137,7 @@ def _create_group_service(group_name: str, group: Group, params: DiscoveryParams
 
 def _get_rule_state(rule: Rule, params: CheckParams) -> State:
     mapping = _get_mapping(rule, params)
-    return State(mapping[str(rule.status)]) if mapping else default_state_mapping[rule.status]
+    return State(mapping[str(rule.status)]) if mapping else default_state_mapping.get(rule.status, State.OK)
 
 
 def parse_alertmanager(string_table: StringTable) -> Section:
@@ -159,7 +159,7 @@ def parse_alertmanager(string_table: StringTable) -> Section:
 
 
 agent_section_alertmanager = AgentSection(
-    name="alertmanager",
+    name="alertmanager_custom",
     parse_function=parse_alertmanager,
     supersedes=['alertmanger'],
 )
@@ -208,7 +208,7 @@ def check_alertmanager_rules(item: str, params: CheckParams, section: Section) -
 
 check_plugin_alertmanager_rules = CheckPlugin(
     name="alertmanager_rules_custom",
-    sections=["alertmanager"],
+    sections=["alertmanager_custom"],
     service_name="Alert Rule %s",
     check_function=check_alertmanager_rules,
     check_ruleset_name="alertmanager_rule_state_custom",
@@ -253,7 +253,7 @@ def check_alertmanager_groups(item: str, params: CheckParams, section: Section) 
 
 check_plugin_alertmanager_groups = CheckPlugin(
     name="alertmanager_groups_custom",
-    sections=["alertmanager"],
+    sections=["alertmanager_custom"],
     service_name="Alert Rule Group %s",
     check_function=check_alertmanager_groups,
     check_ruleset_name="alertmanager_rule_state_custom",
@@ -296,7 +296,7 @@ def check_alertmanager_summary(params: CheckParams, section: Section) -> CheckRe
 
 check_plugin_alertmanager_summary = CheckPlugin(
     name="alertmanager_summary_custom",
-    sections=["alertmanager"],
+    sections=["alertmanager_custom"],
     service_name="Alertmanager Summary",
     check_function=check_alertmanager_summary,
     check_ruleset_name="alertmanager_rule_state_summary_custom",
