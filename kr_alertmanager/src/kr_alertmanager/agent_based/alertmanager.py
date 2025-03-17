@@ -9,7 +9,7 @@ from enum import StrEnum
 from typing import NamedTuple, TypedDict
 
 from cmk.agent_based.v2 import (
-    AgentSection,
+    #AgentSection,
     CheckPlugin,
     CheckResult,
     DiscoveryResult,
@@ -158,11 +158,11 @@ def parse_alertmanager(string_table: StringTable) -> Section:
     return section
 
 
-agent_section_alertmanager = AgentSection(
-    name="alertmanager_custom",
-    parse_function=parse_alertmanager,
-    supersedes=['alertmanger'],
-)
+#agent_section_alertmanager = AgentSection(
+#    name="alertmanager",
+#    parse_function=parse_alertmanager,
+#    supersedes=['alertmanger'],
+#)
 
 #   .--Rules---------------------------------------------------------------.
 #   |                         ____        _                                |
@@ -208,7 +208,7 @@ def check_alertmanager_rules(item: str, params: CheckParams, section: Section) -
 
 check_plugin_alertmanager_rules = CheckPlugin(
     name="alertmanager_rules_custom",
-    sections=["alertmanager_custom"],
+    sections=["alertmanager"],
     service_name="Alert Rule %s",
     check_function=check_alertmanager_rules,
     check_ruleset_name="alertmanager_rule_state_custom",
@@ -253,7 +253,7 @@ def check_alertmanager_groups(item: str, params: CheckParams, section: Section) 
 
 check_plugin_alertmanager_groups = CheckPlugin(
     name="alertmanager_groups_custom",
-    sections=["alertmanager_custom"],
+    sections=["alertmanager"],
     service_name="Alert Rule Group %s",
     check_function=check_alertmanager_groups,
     check_ruleset_name="alertmanager_rule_state_custom",
@@ -296,7 +296,7 @@ def check_alertmanager_summary(params: CheckParams, section: Section) -> CheckRe
 
 check_plugin_alertmanager_summary = CheckPlugin(
     name="alertmanager_summary_custom",
-    sections=["alertmanager_custom"],
+    sections=["alertmanager"],
     service_name="Alertmanager Summary",
     check_function=check_alertmanager_summary,
     check_ruleset_name="alertmanager_rule_state_summary_custom",
