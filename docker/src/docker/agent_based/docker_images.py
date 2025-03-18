@@ -23,15 +23,19 @@ from cmk.agent_based.v2 import (
     State,
     get_value_store,
     GetRateError,
+    AgentSection,
 )
 
 from .docker_utils import get_docker_container_cpu
+
+def parse_docker_images(string_table):
+    return string_table
 
 def get_running_image_containers(image_id, containers):
     """
     Get running Images or Containers
     """
-    return [c for c in containers if c.get("ImageID") == image_id and c.get("State") == "running"]
+    return [c for c in containers.values() if c.get("ImageID") == image_id and c.get("State") == "running"]
 
 
 def get_docker_image_cpu(value_store, image_containers):
@@ -51,7 +55,7 @@ def get_docker_image_cpu(value_store, image_containers):
     return cpu_perc
 
 
-def discover_docker_images(section_docker_images, _section_docker_containers):
+def discover_docker_images(section_docker_images, section_docker_containers):
     """
     Discover Docker Images
     """
@@ -89,7 +93,7 @@ def check_docker_images(item, section_docker_images, section_docker_containers):
                 elif var == 'ImageID':
                     continue
                 else:
-                    yield Result(state=State.OK, summary="{var} = {float(value):.2f}")
+                    yield Result(state=State.OK, summary=f"{var} = {float(value):.2f}")
 
                 if var in ['CPU_pct']:
                     yield Metric(var, float(value), boundaries=(0, 100))
@@ -97,8 +101,12 @@ def check_docker_images(item, section_docker_images, section_docker_containers):
                 if var in ['Diskspace_used', 'Memory_used', 'Running_containers']:
                     yield Metric(var, float(value))
 
+agent_section_docker_images = AgentSection(
+    name="docker_images",
+    parse_function=parse_docker_images,
+)
 
-docker_images_plugin = CheckPlugin(
+check_plugin_docker_images = CheckPlugin(
     name='docker_images',
     sections=['docker_images', 'docker_containers'],
     service_name="Docker Image %s",

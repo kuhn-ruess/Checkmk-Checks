@@ -99,7 +99,7 @@ def check_docker_containers(item, section):
                     yield Result(state=State.OK, summary=f"{var} = {value}")
 
 
-docker_container_plugin = CheckPlugin(
+check_plugin_docker_containers = CheckPlugin(
     name='docker_containers',
     service_name="Docker Container %s",
     discovery_function=discover_docker_containers,

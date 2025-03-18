@@ -20,41 +20,49 @@ from cmk.agent_based.v2 import (
     Result,
     Service,
     State,
+    AgentSection,
 )
+
+
+def parse_docker_info(string_table):
+    """
+    Parser
+    """
+    if string_table[0][0] == 'service':
+        return dict(string_table)
 
 def discover_docker_info(section):
     """
     Discover Docker Info
     """
-    for line in section:
-        if line[0] == "service":
-            yield Service()
-            break
+    yield Service()
 
 
 def check_docker_info(section):
     """
     Check Docker Info
     """
-    for line in section:
-        if  line[0] == "service":
-            service = line[1]
 
-            if service == "up":
-                yield Result(state=State.OK, summary="service = up")
-            else:
-                yield Result(state=State.CRIT, summary=f"service = {service}")
+    if section['service'] == "up":
+        yield Result(state=State.OK, summary="service = up")
+    else:
+        yield Result(state=State.CRIT, summary=f"service = {service}")
 
-        for var in ("version", "images", "go_routines", "file_descriptors", "events_listeners"):
-            if line[0] == var:
-                yield Result(state=State.OK, summary=f"{line[0]} = {line[1]}")
+    for key, value in section.items():
+        if key in ("version", "images", "go_routines", "file_descriptors", "events_listeners"):
+            yield Result(state=State.OK, summary=f"{key} = {value}")
 
-                if isinstance(line[1], int):
-                    yield Metric(line[0], int(line[1]))
+            if isinstance(value, int):
+                yield Metric(value, int(key))
 
-
-docker_info_plugin = CheckPlugin(
+agent_section_docker = AgentSection(
     name="docker_info",
+    parse_function=parse_docker_info,
+)
+
+check_plugin_docker = CheckPlugin(
+    name="docker_info",
+    sections = ['docker_info'],
     service_name="Docker Info",
     discovery_function=discover_docker_info,
     check_function=check_docker_info,
