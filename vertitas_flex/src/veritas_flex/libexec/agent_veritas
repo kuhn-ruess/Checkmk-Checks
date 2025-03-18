@@ -1,0 +1,183 @@
+#!/usr/bin/env python3
+
+import requests
+import json
+import logging
+import argparse
+
+
+class FlexApi:
+    def __init__(self):
+        self.log_file = '/tmp/checkMK_flex.log'
+        self.url = ''
+        self.session = None
+        self.username = ''
+        self.headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        }
+        self._token = None
+        self._refresh_token = None
+
+    def setup_logging(self, verbose):
+        """Initialisiert das Logging basierend auf der Konfiguration."""
+        logging_level = logging.INFO
+        if verbose:
+            logging_level = logging.DEBUG
+        logging.basicConfig(
+            filename=self.log_file,
+            level=logging_level,
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+
+    def do_login(self, username, password):
+        auth = {
+            "password": password,
+            "username": username,
+            "revocable": True,
+            "time-to-live": 30
+        }
+        self.session = requests.Session()
+        self.session.headers.update(self.headers)
+        login_url = ''.join([self.url, 'v1/login'])
+        try:
+            r = self.session.post(login_url, data=json.dumps(auth), timeout=5)
+            logging.debug(f'HttpResponse: {r.text}')
+            r.raise_for_status()
+        except requests.exceptions.SSLError as e:
+            print(f'SSL error occurred please check certificate for {self.url}')
+            raise SystemExit(e)
+        except requests.exceptions.ConnectionError as e:
+            raise SystemExit(e)
+        except requests.exceptions.HTTPError as e:
+            print('HTTP error code in range 400-599 detected.\
+      Please check if server is running correctly or authentication is correct')
+            raise SystemExit(e)
+        except requests.exceptions.RequestException as e:
+            raise SystemExit(e)
+        self._token = r.json().get('token')
+        self._refresh_token = r.json().get('refreshToken')
+
+        if self._token:
+            self.session.headers.update({'X-Auth-Token': self._token})
+        if self._refresh_token:
+            self.session.headers.update({'refresh-token': self._refresh_token})
+        else:
+            self.session.headers.update({'refresh-token': ''})
+        logging.debug(f'Login Token: {self._token}')
+        logging.debug(f'Refresh Token: {self._refresh_token}')
+
+    def get_nodes(self):
+        # api/v1/nodes
+        node_url = ''.join([self.url, 'v1/nodes'])
+        nodes = []
+        try:
+            r = self.session.get(node_url)
+            json_body = r.json()
+            for node in json_body:
+                nodes.append(node.get('name'))
+        except requests.exceptions.RequestException as e:
+            self.do_logout()
+            print(f'cannot get instances from flex appliance {self.url}')
+            raise SystemExit(e)
+        return nodes
+
+    def get_instances(self):
+        instances = []
+        instance_url = ''.join([self.url, 'v3/instances'])
+        try:
+            r = self.session.get(instance_url)
+            json_body = r.json()
+            for instance in json_body:
+                _hostname = instance.get('hostname')
+                _node = instance.get('state')[0].get('node')
+                _status = instance.get('state')[0].get('status')
+                instances.append({'hostname': _hostname, 'node': _node, 'status': _status})
+        except requests.exceptions.RequestException as e:
+            self.do_logout()
+            print(f'cannot get instances from flex appliance {self.url}')
+            raise SystemExit(e)
+        return instances
+
+    def get_hardware_health(self):
+        health_status = []
+        for node in self.get_nodes():
+            hardware_health_url = ''.join([self.url, 'v1/nodes/', node, '/health/hardware'])
+            logging.debug(f'API URL: {hardware_health_url}')
+            try:
+                r = self.session.get(hardware_health_url)
+                logging.debug(f'Hardware Health API Call Response: {r.text}')
+                json_body = r.json()
+                if len(json_body.keys()) == 2:
+                    state = 0
+                    health_status.append(f'{state} "{node} Hardware Health" - Hardware is healthy')
+                else:
+                    state = 2
+                    health_status.append(f'{state} "{node} Hardware Health" - State of hardware is'
+                                         f' degraded please check!')
+            except requests.exceptions.RequestException as e:
+                self.do_logout()
+                print(f'cannot get hardware_status from flex appliance {self.url}')
+                raise SystemExit(e)
+        return health_status
+
+    def get_services_health(self):
+        health_status = []
+        for node in self.get_nodes():
+            services_health_url = ''.join([self.url, 'v1/nodes/', node, '/health/services'])
+            logging.debug(f'API URL: {services_health_url}')
+            try:
+                r = self.session.get(services_health_url)
+                logging.debug(f'Services Health API Call Response: {r.text}')
+                json_body = r.json()
+                logging.debug(f'Json Body: {json_body}')
+                if len(json_body.keys()) == 3:
+                    state = 0
+                    health_status.append(f'{state} "{node} Services Health" - Services are healthy')
+                else:
+                    state = 2
+                    health_status.append(f'{state} "{node} Services Health" - State of services is degraded please check!')
+            except requests.exceptions.RequestException as e:
+                print(f'cannot get services_status from flex appliance {self.url}')
+                raise SystemExit(e)
+        return health_status
+
+    def do_logout(self):
+        logout_url = ''.join([self.url, 'v1/logout'])
+        r = self.session.post(logout_url)
+        logging.debug(f'Logout API Call Response: {r.text}')
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        prog='./agent_veritas',
+        description='FlexAPI monitoring script')
+    parser.add_argument('url')
+    parser.add_argument('-u', '--username', required=True)
+    parser.add_argument('-p', '--password', required=True)
+    parser.add_argument('-d', '--debug',
+                        action='store_true')
+    args = parser.parse_args()
+    flex = FlexApi()
+    flex.setup_logging(args.debug)
+    flex.url = f'https://{args.url}/api/'
+    flex.do_login(args.username, args.password)
+    hardware_health = flex.get_hardware_health()
+    for state in hardware_health:
+        print(state)
+    services_health = flex.get_services_health()
+    for state in services_health:
+        print(state)
+    instances = flex.get_instances()
+    for instance in instances:
+        if instance['status'] == 'ONLINE':
+            state = 0
+        else:
+            state = 2
+        print(str(state) + " " + instance['hostname'] + " - " + "is " + instance['status'])
+
+
+#  flex.do_logout()
+
+if __name__ == '__main__':
+    main()
