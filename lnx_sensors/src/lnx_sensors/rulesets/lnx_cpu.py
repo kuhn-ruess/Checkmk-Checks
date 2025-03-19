@@ -10,9 +10,8 @@ from cmk.rulesets.v1 import Help, Title
 from cmk.rulesets.v1.form_specs import (
     Dictionary,
     DictElement,
-    List,
-    MatchingScope,
-    RegularExpression,
+    MultipleChoice,
+    MultipleChoiceElement,
 )
 from cmk.rulesets.v1.form_specs.validators import LengthInRange
 from cmk.rulesets.v1.rule_specs import (
@@ -24,23 +23,18 @@ from cmk.rulesets.v1.rule_specs import (
 def _valuespec_discovery_rule_lnx_sensors():
     return Dictionary(
         elements={
-            "cpu_filters": DictElement(
-                parameter_form = List(
-                    title=Title("CPU names"),
-                    element_template = Dictionary(
-                        elements = {
-                            "name": DictElement(
-                                 parameter_form = RegularExpression(
-                                     title = Title("RegEx name of CPU"),
-                                     help_text = Help("Service name like Core0, Core(0-4), ..."),
-                                     predefined_help_text=MatchingScope.INFIX,
-                                     custom_validate=(LengthInRange(min_value=1),),
-                                 ),
-                                 required = True,
-                            ),
-                        },
-                    ),
+            "filters": DictElement(
+                parameter_form = MultipleChoice(
+                    title=Title("Sensors to discover"),
+                    help_text = Help("Which items to discovery."),
+                    elements = [
+                        MultipleChoiceElement(
+                            name="cpu",
+                            title=Title("CPU"),
+                        ),
+                    ],
                 ),
+                required = True,
             ),
         },
     )

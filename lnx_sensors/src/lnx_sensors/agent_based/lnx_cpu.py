@@ -7,7 +7,6 @@ https://kuhn-ruess.de
 """
 
 from json import loads
-from re import search
 
 from cmk.agent_based.v2 import (
     AgentSection,
@@ -40,6 +39,7 @@ def parse_lnx_sensors(string_table):
 
 agent_section_lnx_sensors = AgentSection(
     name = "lnx_sensors",
+    supersedes = ["lnx_thermal"],
     parse_function = parse_lnx_sensors,
 )
 
@@ -49,12 +49,12 @@ def discover_lnx_cpus(params, section):
     Discover CPUs
     """
     searches = []
-    if "cpu_filters" in params.keys():
-        searches = params["cpu_filters"]
+    if "filters" in params.keys():
+        searches = params["filters"]
 
-    for name, _levels in section["cpu"].items():
-        for string in searches:
-            if search(string["name"], name):
+    for search in searches:
+        if search in section.keys():
+            for name, _levels in section[search].items():
                 yield Service(item=name)
 
 
