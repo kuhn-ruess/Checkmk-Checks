@@ -9,7 +9,7 @@
                                   'csmon/server_side_calls/agent.py']},
  'name': 'csmon_connector',
  'title': 'CSMON SAP Monitoring Connector',
- 'version': '2.0.0',
+ 'version': '2.0.1',
  'version.min_required': '2.3.0',
  'version.packaged': '2.3.0p18',
 }

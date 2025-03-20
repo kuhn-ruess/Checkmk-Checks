@@ -40,6 +40,13 @@ CONFIG = {
     "user_password" : quote_plus(sys.argv[3]),
 }
 
+VERIFY = True
+
+if VERIFY:
+    SSL_MODE = ssl.CERT_REQUIRED
+else:
+    SSL_MODE = ssl.CERT_NONE
+
 CACHE_FILE = os.path.expanduser("~/tmp/check_mk/exasol_"+CONFIG['hostname'])
 CACHE_DURCATION = 3600
 
@@ -52,8 +59,8 @@ def xml_rpc(path):
     url = 'https://{user_name}:{user_password}@{hostname}/cluster1{path}'.format(**params)
     if hasattr(ssl, 'SSLContext'):
         sslcontext = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-        sslcontext.check_hostname = False
-        sslcontext.verify_mode = ssl.CERT_NONE
+        sslcontext.check_hostname = VERIFY
+        sslcontext.verify_mode = SSL_MODE
         return ServerProxy(url, context=sslcontext)
     return ServerProxy(url)
 

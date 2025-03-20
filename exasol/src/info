@@ -10,6 +10,6 @@
  'name': 'exasol',
  'num_files': 6,
  'title': u'Exasol DB Monitoring',
- 'version': '2.0.0',
+ 'version': '2.0.1',
  'version.min_required': '2.2.0',
  'version.packaged': '2.2.0'}

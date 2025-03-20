@@ -10,7 +10,11 @@ from requests.auth import HTTPBasicAuth
 from urllib3.exceptions import InsecureRequestWarning
 from urllib3 import disable_warnings
 
-disable_warnings(InsecureRequestWarning)
+
+ssl_verify = True
+
+if not ssl_verify:
+    disable_warnings(InsecureRequestWarning)
 
 
 parser = argparse.ArgumentParser(description="IBM Special Agent")
@@ -49,7 +53,7 @@ perf_replacer = [
 
 # Get All Services
 url = f"https://{hostname}/api/monitoring/services?sort_by=name&sort_dir=asc&page=0&size=50000"
-response = requests.get(url, auth=auth, timeout=30, verify=False)
+response = requests.get(url, auth=auth, timeout=30, verify=ssl_verify)
 last_host = ""
 for line in response.json()['items']:
     service_state = service_state_map.get(line['current_state'],2)
