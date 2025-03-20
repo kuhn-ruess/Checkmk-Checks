@@ -1,5 +1,11 @@
-from .agent_based_api.v1 import *
 from .hci_helper import parse_multi_list
+from cmk.agent_based.v2 import (
+    AgentSection,
+    CheckPlugin,
+    Result,
+    State,
+    Service,
+)
 
 def discovery(section):
     """ Discovery """
@@ -70,24 +76,24 @@ def check_cluster(section):
     yield from check(section, metrics)
 
 
-register.agent_section(
+agent_section_hci_volume_performance = AgentSection(
     name="hci_s2d_volume_performance",
     parse_function=lambda string_table: parse_multi_list(string_table),
 )
 
-register.agent_section(
+agent_section_hci_cluster_performance = AgentSection(
     name="hci_cluster_performance",
     parse_function=lambda string_table: parse_multi_list(string_table),
 )
 
-register.check_plugin(
+check_plugin_hci_volume_performance = CheckPlugin(
     name="hci_s2d_volume_performance",
     service_name="Storage Pool Performance",
     discovery_function=discovery,
     check_function=check_normal,
 )
 
-register.check_plugin(
+check_plugin_hci_cluster_performance = CheckPlugin(
     name="hci_cluster_performance",
     service_name="Storage Pool Performance",
     discovery_function=discovery,

@@ -1,5 +1,11 @@
-from .agent_based_api.v1 import *
 from .hci_helper import parse_list
+from cmk.agent_based.v2 import (
+    AgentSection,
+    CheckPlugin,
+    Result,
+    State,
+    Service,
+)
 
 def discovery(section):
     """ Discovery """
@@ -22,12 +28,12 @@ def check(item, section):
         summary = 'Health State: {HealthStatus}, Operational State: {OperationalStatus}'.format(**data)
     )
 
-register.agent_section(
+agent_section_hci_virtual_disks = AgentSection(
     name="hci_virtual_disks",
     parse_function=lambda string_table: parse_list(string_table, "FriendlyName"),
 )
 
-register.check_plugin(
+check_plugin_hci_virtual_disks = CheckPlugin(
     name="hci_virtual_disks",
     service_name="Virtual Disk %s",
     discovery_function=discovery,

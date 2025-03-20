@@ -7,13 +7,13 @@ from cmk.gui.valuespec import Alternative, Dictionary, FixedValue, TextAscii, Dr
 
 def _valuespec():
     return Alternative(
-        title = _("HCI Cluster Monitoring (Windows)"),
-        help = _("The plugin <tt>hci_cluster</tt> allows monitoring of Cluster Nodes, Resources, Storage Pools or Disks."),
+        title = "HCI Cluster Monitoring (Windows)",
+        help = "The plugin <tt>hci_cluster</tt> allows monitoring of Cluster Nodes, Resources, Storage Pools or Disks.",
         elements=[
-            Dictionary(title=_("Deploy HCI Cluster plugin"),
+            Dictionary(title="Deploy HCI Cluster plugin",
                        elements=[
-                           ("domain", TextAscii(title=_("Domain"), allow_empty=False)),
-                           ("filter_type", DropdownChoice(title=_("Filter Type"),
+                           ("domain", TextAscii(title="Domain", allow_empty=False)),
+                           ("filter_type", DropdownChoice(title="Filter Type",
                                                           help="Exclusion or Inclusion",
                                                           choices=[
                                                             ("None", "No Filter"),
@@ -21,13 +21,13 @@ def _valuespec():
                                                             ("Exclusion", "Exclusion Filter"),
                                                           ],
                                                           default_value="None")),
-                           ("filter_pattern", TextAscii(title=_("Filter Pattern"),
+                           ("filter_pattern", TextAscii(title="Filter Pattern",
                                                                 help="Excample: HCI", allow_empty=True)),
                        ],
                        required_keys=["domain", "filter_type"]),
             FixedValue(None,
-                       title=_("Do not deploy plugin"),
-                       totext=_("(disabled)")),
+                       title="Do not deploy plugin",
+                       totext="(disabled)"),
         ],
     )
 

@@ -1,5 +1,12 @@
-from .agent_based_api.v1 import *
 from .hci_helper import parse_list
+
+from cmk.agent_based.v2 import (
+    AgentSection,
+    CheckPlugin,
+    Result,
+    State,
+    Service,
+)
 
 def discovery(section):
     """ Discovery """
@@ -13,24 +20,25 @@ def check(item, section):
 
     data = section[item]
 
-    if data['State'] == 'Online':
+    if data['State'] == 'Up':
         state = State.OK
     else:
         state = State.CRIT
 
     yield Result(
         state = state,
-        summary = 'State: {State}, Owner group: {OwnerGroup}, Resource Type: {ResourceType}'.format(**data)
+        summary = 'State: {State}, Id: {Id}'.format(**data)
     )
 
-register.agent_section(
-    name="hci_cluster_resources",
+
+agent_section_hcicluster = AgentSection(
+    name="hci_cluster_nodes",
     parse_function=lambda string_table: parse_list(string_table, "Name"),
 )
 
-register.check_plugin(
-    name="hci_cluster_resources",
-    service_name="Resource %s",
+check_plugin_hci_cluster_nodes = CheckPlugin(
+    name="hci_cluster_nodes",
+    service_name="Node %s",
     discovery_function=discovery,
     check_function=check,
 )
