@@ -14,7 +14,7 @@
                    'plugins/wato/cohesity_storage.py']},
  'name': 'cohesity',
  'title': 'Cohesity checks',
- 'version': '1.4.0',
+ 'version': '1.4.1',
  'version.min_required': '2.0.0',
  'version.packaged': '2.0.0p6',
  'version.usable_until': None}
