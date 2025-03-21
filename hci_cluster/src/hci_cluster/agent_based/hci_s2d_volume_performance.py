@@ -5,6 +5,8 @@ from cmk.agent_based.v2 import (
     Result,
     State,
     Service,
+    render,
+    Metric,
 )
 
 def discovery(section):
