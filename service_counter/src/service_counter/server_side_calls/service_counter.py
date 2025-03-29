@@ -27,7 +27,9 @@ def generate_service_counter_command(params: ServiceCounterParams, host_config: 
     if params.timeout:
         args.append(f"{params.timeout}")
     else:
-        args.append("2.5")
+        args.append("15")
+
+    args.append(params.path)
 
     for item in params.service_filters:
         args.append(f"{item['name']}|{item['pattern']}")

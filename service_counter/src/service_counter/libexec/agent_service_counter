@@ -11,9 +11,6 @@ from os import environ
 from requests import get
 from sys import argv
 
-from cmk.utils.site import get_apache_port, omd_site
-
-
 class AgentServicecounter():
     """
     Agent Json
@@ -36,9 +33,10 @@ class AgentServicecounter():
         Init
         """
         self.timeout = float(argv[1])
-        self.config = [ x.split("|") for x in argv[2:]]
+        self.path = argv[2]
+        self.config = [ x.split("|") for x in argv[3:]]
         self.get_user()
-        self._site_url = f"http://localhost:{get_apache_port()}/{omd_site()}/check_mk/api/1.0"
+        self._site_url = f"{self.path}/check_mk/api/1.0"
 
 
     def get(self, url, params):

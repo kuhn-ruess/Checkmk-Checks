@@ -44,6 +44,16 @@ def _valuespec_special_agent_service_counter():
                                 ),
                                 required = True,
                             ),
+                            "path": DictElement(
+                                parameter_form = String(
+                                    title = Title("Path to Checkmk Site"),
+                                    help_text = Help("This is needed to access the Web API of "\
+                                                     "the central site, even if plugin is running on remote site."\
+                                                     "Example: https://server/site/"),
+                                    custom_validate=(LengthInRange(min_value=1),),
+                                ),
+                                required = True,
+                            ),
                             "pattern": DictElement(
                                 parameter_form = String(
                                     title = Title("Service output pattern for counting"),
