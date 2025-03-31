@@ -9,7 +9,7 @@
                                   'kr_alertmanager/rulesets/alertmanager.py']},
  'name': 'alertmanager_extended',
  'title': 'Alertmanager with Severtiy Mapping',
- 'version': '1.0.2',
+ 'version': '1.0.3',
  'version.min_required': '2.3.0p1',
  'version.packaged': '2.3.0p25',
  'version.usable_until': '2.4.0'}

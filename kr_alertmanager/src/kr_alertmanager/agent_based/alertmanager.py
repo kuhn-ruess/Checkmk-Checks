@@ -9,7 +9,7 @@ from enum import StrEnum
 from typing import NamedTuple, TypedDict
 
 from cmk.agent_based.v2 import (
-    #AgentSection,
+    AgentSection,
     CheckPlugin,
     CheckResult,
     DiscoveryResult,
@@ -158,11 +158,11 @@ def parse_alertmanager(string_table: StringTable) -> Section:
     return section
 
 
-#agent_section_alertmanager = AgentSection(
-#    name="alertmanager",
-#    parse_function=parse_alertmanager,
-#    supersedes=['alertmanger'],
-#)
+agent_section_alertmanager = AgentSection(
+    name="alertmanager",
+    parse_function=parse_alertmanager,
+    supersedes=['alertmanger'],
+)
 
 #   .--Rules---------------------------------------------------------------.
 #   |                         ____        _                                |
