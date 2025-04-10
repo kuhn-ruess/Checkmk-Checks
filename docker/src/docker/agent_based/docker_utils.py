@@ -1,11 +1,20 @@
 #!/usr/bin/env python3
+
 """
 Kuhn & Rueß GmbH
 Consulting and Development
 https://kuhn-ruess.de
 """
 
+from typing import NamedTuple
+
 from cmk.agent_based.v2 import GetRateError
+
+class SectionCpuUtilizationOs(NamedTuple):
+    num_cpus: int
+    time_base: float
+    time_cpu: float
+
 
 def get_docker_container_cpu(value_store, container):
     """

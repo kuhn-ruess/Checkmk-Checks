@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 """
 Kuhn & Rueß GmbH
 Consulting and Development

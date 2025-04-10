@@ -1,9 +1,11 @@
 #! /usr/bin/env python3
+
 """
 Kuhn & Rueß GmbH
 Consulting and Development
 https://kuhn-ruess.de
 """
+
 # pylint: disable=too-many-branches, too-many-nested-blocks, too-many-locals, too-many-statements
 from os import getenv
 from os.path import exists, join
@@ -16,7 +18,6 @@ try:
 except ImportError:
     print("Python package docker >= 6.1.0 is missing")
     print("Please install it with: <<<pip install docker>>>")
-
 
 
 def process_containers(docker_containers, label_whitelist, label_replacements, piggyback):
@@ -49,6 +50,9 @@ def process_containers(docker_containers, label_whitelist, label_replacements, p
         for item in ["Names", "State", "Status", "Created",
                      "Command", "Image", "ImageID", "SizeRootFs", "SizeRw"]:
             if item in docker_container:
+                if "Command" == item:
+                    docker_container[item] = docker_container[item].replace("\n", "%%")
+
                 if isinstance(docker_container[item], list):
                     output.append(f"{item}={','.join(docker_container[item])}")
                 else:
@@ -66,6 +70,10 @@ def process_containers(docker_containers, label_whitelist, label_replacements, p
             if docker_container["State"] == "running":
                 output.append(f"CPU_usage={stats['cpu_stats']['cpu_usage']['total_usage']}")
                 output.append(f"CPU_system_usage={stats['cpu_stats']['system_cpu_usage']}")
+
+                output.append(f"cpu_num={stats['precpu_stats']['online_cpus']}")
+                output.append(f"system_ticks={stats['precpu_stats']['system_cpu_usage']}")
+                output.append(f"container_ticks={stats['precpu_stats']['cpu_usage']['total_usage']}")
 
                 output.append(f"Memory_used={stats['memory_stats']['usage']}")
                 output.append(f"Memory_limit={stats['memory_stats']['limit']}")
@@ -146,7 +154,7 @@ def main():
             for line in f.readlines():
                 line = line.strip()
                 if line.startswith("[["):
-                    current_section = line[2:-2]
+                    current_section = line
                     continue
                 if line.startswith("timeout"):
                     timeout = int(line.split("=")[1])

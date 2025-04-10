@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 """
 Kuhn & Rueß GmbH
 Consulting and Development
@@ -24,13 +25,19 @@ from cmk.agent_based.v2 import (
     Service,
     ServiceLabel,
     State,
+    get_rate,
     get_value_store,
     GetRateError,
     AgentSection,
     CheckPlugin
 )
+from cmk.agent_based.v2.render import (
+    bytes,
+    percent,
+)
+from cmk.plugins.lib.cpu_util import check_cpu_util
 
-from .docker_utils import get_docker_container_cpu
+from .docker_utils import get_docker_container_cpu, SectionCpuUtilizationOs
 
 
 def parse_docker_containers(string_table):
@@ -48,6 +55,7 @@ def parse_docker_containers(string_table):
                 ]
         else:
             parsed[item]['Labels'] = {}
+
     return parsed
 
 
@@ -69,7 +77,6 @@ def check_docker_containers(item, section):
     """
     Docker Containers Check
     """
-    value_store = get_value_store()
     container = section[item]
 
     if 'State' in container.keys():
@@ -80,13 +87,34 @@ def check_docker_containers(item, section):
 
         if "CPU_usage" in container and "CPU_system_usage" in container:
             with suppress(GetRateError):
-                cpu_usage_percent = get_docker_container_cpu(value_store, container)
+                cpu_usage_percent = get_docker_container_cpu(get_value_store(), container)
                 yield Metric("CPU_pct", cpu_usage_percent, boundaries=(0, 100))
-                yield Result(state=State.OK, summary="CPU_pct = {cpu_usage_percent:.1f}")
+                yield Result(state=State.OK, summary=f"CPU_pct = {percent(cpu_usage_percent)}")
+
+        if "cpu_num" in container and "system_ticks" in container and "container_ticks" in container:
+            section = SectionCpuUtilizationOs(
+                time_base=int(container["system_ticks"]) / int(container["cpu_num"]),
+                time_cpu=int(container["container_ticks"]),
+                num_cpus=int(container["cpu_num"]),
+            )
+
+            util = get_rate(
+                value=section.time_cpu,
+                time=section.time_base,
+                key="util",
+                value_store=get_value_store(),
+            )
+
+            yield from check_cpu_util(
+                util=util * 100,
+                params={},
+                this_time=section.time_base,
+                value_store=get_value_store(),
+            )
 
         for var in container.keys():
 
-            if var not in ['State', 'Labels', 'time', 'CPU_usage', 'CPU_system_usage']:
+            if var not in ['State', 'Labels', 'time', 'CPU_usage', 'CPU_system_usage', 'cpu_num', 'system_ticks', 'container_ticks']:
                 value = container[var]
                 if var == 'Stats':
                     yield Result(state=State.WARN, summary=f"Note: {value}")
@@ -95,8 +123,9 @@ def check_docker_containers(item, section):
                         value = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(value)))
                     elif var in ['SizeRootFs', 'SizeRw', 'Memory_used', 'Memory_limit']:
                         yield Metric(var, float(value))
-
-                    yield Result(state=State.OK, summary=f"{var} = {value}")
+                        yield Result(state=State.OK, summary=f"{var} = {bytes(value)}")
+                    else:
+                        yield Result(state=State.OK, summary=f"{var} = {value}")
 
 
 check_plugin_docker_containers = CheckPlugin(
