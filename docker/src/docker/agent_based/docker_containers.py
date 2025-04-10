@@ -49,12 +49,18 @@ def parse_docker_containers(string_table):
         item = line[0][1:]
         parsed[item] = dict(map(lambda e: e.split("=", 1), line[1:]))
         if "Labels" in parsed[item]:
-            parsed[item]["Labels"] = [
-                    ServiceLabel(label_key, label_value) for label_key, label_value in
-                    map(lambda e: e.split(":"), parsed[item]["Labels"].split("|"))
-                ]
+            labels = []
+            for text in parsed[item]["Labels"].split("|"):
+                if len(text.split("?")) == 2:
+                    label_key, label_value = text.split("?")
+                    labels.append(ServiceLabel(label_key, label_value))
+                else:
+                    continue
+
+            parsed[item]['Labels'] = labels
+
         else:
-            parsed[item]['Labels'] = {}
+            parsed[item]['Labels'] = []
 
     return parsed
 

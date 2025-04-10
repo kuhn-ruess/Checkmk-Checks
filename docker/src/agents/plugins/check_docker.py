@@ -96,7 +96,7 @@ def process_containers(docker_containers, label_whitelist, label_replacements, p
             if filtered_labels:
                 text = "Labels="
                 for k, v in filtered_labels.items():
-                    text += "|".join(f"{label_replacements.get(k, k)}:{v}")
+                    text += f"{label_replacements.get(k, k)}?{v}|"
                 output.append(text)
 
         print("#".join(output))
