@@ -1,0 +1,16 @@
+{'author': 'Kuhn  & Ruess GmbH',
+ 'description': 'This Check can be configured with a Service Names and '
+                'Performance Data Names, then the Performance Data is '
+                'summarized and can be checked again levels.\n'
+                '\n',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
+ 'files': {'cmk_addons_plugins': ['service_metric_counter/agent_based/service.py',
+                                  'service_metric_counter/libexec/agent_service_metric_counter',
+                                  'service_metric_counter/rulesets/ruleset.py',
+                                  'service_metric_counter/server_side_calls/service_counter.py']},
+ 'name': 'service_metric_counter',
+ 'title': 'Count the Value of Service Perfdata Metrics',
+ 'version': '1.2.0',
+ 'version.min_required': '2.3.0p1',
+ 'version.packaged': '2.3.0p25',
+ 'version.usable_until': None}

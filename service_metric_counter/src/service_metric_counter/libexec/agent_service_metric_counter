@@ -11,6 +11,7 @@ from json import dumps
 from os import environ
 from requests import get
 
+
 class AgentServicecounter():
     """
     Agent Json
@@ -61,14 +62,14 @@ class AgentServicecounter():
         """
         Get services from Livestatus API
         """
-        print("<<<local>>>")
-        for service_name, service_output in self.config:
+        print("<<<service_metric_counter:sep(58)>>>")
+        for service_name, metric in self.config:
             expr = []
             expr.append(
                 {
                     "op": "and", "expr": [
-                        {"op": "=", "left": "description", "right": f"{service_name}"},
-                        {"op": "~", "left": "plugin_output", "right": f"{service_output}"}
+                        {"op": "~", "left": "description", "right": f"{service_name}"},
+                        #{"op": "~", "left": "plugin_output", "right": f"{service_output}"}
                     ]
                 }
             )
@@ -81,12 +82,17 @@ class AgentServicecounter():
                             "expr": expr,
                         }
                     )
-                )
+                ),
+                "columns": ['performance_data'],
             }
 
             url = "/domain-types/service/collections/all"
-            count = len(self.get(url, params)['value'])
-            print(f"0 \"Count {service_name} {service_output}\" count={count} Found {count} times")
+            data = self.get(url, params)['value']
+            total = 0
+            for svc in data:
+                if perf_data := svc['extensions']['performance_data'].get(metric):
+                    total += perf_data
+            print(f"{service_name}:{total}")
 
 
 if __name__ == "__main__":
