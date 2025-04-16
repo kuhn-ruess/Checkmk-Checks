@@ -38,11 +38,14 @@ def check_service(item, params, section):
     """
     total = section[item]
 
+    metric_label = params.get('metric_label', "Count")
+    metric_name = params.get('metric_name', "count")
+
     yield from check_levels(
          total,
          levels_upper = params['levels'],
-         label = "Metric Count",
-         metric_name='count',
+         label = metric_label,
+         metric_name = metric_name,
     )
 
 

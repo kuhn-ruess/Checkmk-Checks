@@ -26,7 +26,7 @@ from cmk.rulesets.v1.rule_specs import (
         SpecialAgent,
         Topic,
         CheckParameters,
-        HostCondition,
+        HostAndItemCondition,
         Topic,
 )
 
@@ -56,16 +56,6 @@ def _valuespec_special_agent_service_metric_counter():
                                 ),
                                 required = True,
                             ),
-                            "path": DictElement(
-                                parameter_form = String(
-                                    title = Title("Path to Checkmk Site"),
-                                    help_text = Help("This is needed to access the Web API of "\
-                                                     "the central site, even if plugin is running on remote site."\
-                                                     "Example: https://server/site/"),
-                                    custom_validate=(LengthInRange(min_value=1),),
-                                ),
-                                required = True,
-                            ),
                             "metric": DictElement(
                                 parameter_form = String(
                                     title = Title("Metric which should be counted"),
@@ -76,6 +66,16 @@ def _valuespec_special_agent_service_metric_counter():
                             ),
                         },
                     )
+                ),
+                required = True,
+            ),
+            "path": DictElement(
+                parameter_form = String(
+                    title = Title("Path to Checkmk Site"),
+                    help_text = Help("This is needed to access the Web API of "\
+                                     "the central site, even if plugin is running on remote site."\
+                                     "Example: https://server/site/"),
+                    custom_validate=(LengthInRange(min_value=1),),
                 ),
                 required = True,
             ),
@@ -111,13 +111,23 @@ def _parameter_metric_counter() -> Dictionary:
                         prefill_fixed_levels=InputHint(value=(0, 0)),
                     )
                 ),
+                'metric_label' : DictElement(
+                    parameter_form=String(
+                        title = Title("Metric Label")
+                    ),
+                ),
+                'metric_name' : DictElement(
+                    parameter_form=String(
+                        title = Title("Metric Name")
+                    ),
+                ),
             }
         )
 
 rule_spec_metric_counter = CheckParameters(
     name="service_metric_counter",
     topic=Topic.APPLICATIONS,
-    condition=HostCondition(),
+    condition=HostAndItemCondition(item_title=Title("Pattern")),
     parameter_form=_parameter_metric_counter,
     title=Title("Service Metric Count"),
 )

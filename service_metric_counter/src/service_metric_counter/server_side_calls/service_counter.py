@@ -19,6 +19,7 @@ from cmk.server_side_calls.v1 import (
 class ServiceMetricCounterParams(BaseModel):
     service_filters: list
     timeout: float
+    path: str
 
 
 def generate_service_counter_command(params: ServiceMetricCounterParams, host_config: HostConfig):
