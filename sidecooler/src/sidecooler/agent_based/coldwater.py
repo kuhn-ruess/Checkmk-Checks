@@ -17,6 +17,7 @@ from cmk.agent_based.v2 import (
     SNMPTree,
     exists,
     CheckPlugin,
+    check_levels,
 )
 
 class SidecoolerColdwater(NamedTuple):
@@ -37,12 +38,22 @@ def discover_sidecooler_coldwater(section):
     yield Service()
 
 
-def check_sidecooler_coldwater(section):
-    yield Result(state=State.OK, summary=f"Coldwater supply: {section.water_supply}°C")
-    yield Metric(name="coldwater_supply", value=section.water_supply)
+def check_sidecooler_coldwater(params, section):
+    yield from check_levels(
+        value=section.water_supply,
+        levels_upper=params["water_supply"],
+        metric_name="coldwater_supply",
+        render_func=lambda v: "%.1f°C" % v,
+        label="Coldwater supply",
+    )
 
-    yield Result(state=State.OK, summary=f"Coldwater return: {section.water_return}°C")
-    yield Metric(name="coldwater_return", value=section.water_return)
+    yield from check_levels(
+        value=section.water_return,
+        levels_upper=params["water_return"],
+        metric_name="coldwater_return",
+        render_func=lambda v: "%.1f°C" % v,
+        label="Coldwater return",
+    )
 
 
 snmp_section_sidecooler_coldwater = SimpleSNMPSection(
@@ -64,4 +75,9 @@ check_plugin_sidecooler_coldwater = CheckPlugin(
     service_name = "Sidecooler coldwater",
     discovery_function = discover_sidecooler_coldwater,
     check_function = check_sidecooler_coldwater,
+    check_ruleset_name="sidecooler_coldwater",
+    check_default_parameters={
+        "water_supply": ("fixed", (20, 25)),
+        "water_return": ("fixed", (25, 30)),
+    },
 )

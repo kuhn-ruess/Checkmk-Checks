@@ -20,15 +20,15 @@ from cmk.agent_based.v2 import (
 )
 
 class SidecoolerValve(NamedTuple):
-    valve_set: int
-    valve_current: int
+    valve_set: float
+    valve_current: float
 
 
 def parse_sidecooler_valve(string_table):
     if not string_table:
         return None
 
-    snmp_data = [int(s) / 10 for s in string_table[0]]
+    snmp_data = [float(s) / 10 for s in string_table[0]]
 
     return SidecoolerValve(*snmp_data)
 
@@ -39,10 +39,10 @@ def discover_sidecooler_valve(section):
 
 def check_sidecooler_valve(section):
     yield Result(state=State.OK, summary=f"Set: {section.valve_set}%")
-    yield Metric(name="valve_set", value=section.valve_set)
+    yield Metric(name="valve_set", value=section.valve_set, boundaries=(0, 100))
 
     yield Result(state=State.OK, summary=f"Current: {section.valve_current}%")
-    yield Metric(name="valve_current", value=section.valve_current)
+    yield Metric(name="valve_current", value=section.valve_current, boundaries=(0, 100))
 
 
 snmp_section_sidecooler_coldwater = SimpleSNMPSection(

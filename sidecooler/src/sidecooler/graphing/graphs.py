@@ -7,7 +7,7 @@ https://kuhn-ruess.de
 """
 
 
-from cmk.graphing.v1.graphs import Graph, Title
+from cmk.graphing.v1.graphs import Graph, MinimalRange, Title
 
 
 graph_sidecooler_warm = Graph(
@@ -44,6 +44,7 @@ graph_sidecooler_coldwater = Graph(
 graph_sidecooler_valve = Graph(
     name = "sidecooler_valve",
     title = Title("Valve position"),
+    minimal_range = MinimalRange(0, 100),
     simple_lines = [
         "valve_set",
         "valve_current",
