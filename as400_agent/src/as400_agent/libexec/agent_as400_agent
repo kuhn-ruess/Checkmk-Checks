@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+from sys import argv
+import pyodbc
+
+
+class AgentAs400():
+    """
+    Agent AS400
+    """
+
+    def __init__(self):
+        """
+        Init
+        """
+        driver = argv[1]
+        system = argv[2]
+        uid = argv[3]
+        pwd = argv[4]
+
+        self.connection = pyodbc.connect(
+           driver=driver,
+           system=system,
+           uid=uid,
+           pwd=pwd)
+
+    def get_jobs(self):
+        """
+        Return List of Jobs
+        """
+        query = 'SELECT * FROM TABLE(QSYS2.ACTIVE_JOB_INFO())'
+        c1 = connection.cursor()
+        c1.execute(QUERY)
+        for row in c1:
+           print (row)
+
+
+
+
+
+
+if __name__ == "__main__":
+    agent = AgentAs400()
+    agent.get_jobs()
