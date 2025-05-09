@@ -8,6 +8,9 @@ from sys import argv
 import requests
 from requests.auth import HTTPBasicAuth
 
+from urllib3.exceptions import InsecureRequestWarning
+from urllib3 import disable_warnings
+disable_warnings(InsecureRequestWarning)
 
 class AgentSemu():
     """
@@ -29,8 +32,10 @@ class AgentSemu():
         print("<<<semu_frames>>>")
         basic = HTTPBasicAuth(self.username, self.password)
         url = f'https://{self.hostname}/api/v5/singlesensor/status'
-        response = requests.get(url, auth=basic)
-        print(response.text)
+        response = requests.get(url, auth=basic, verify=False)
+
+        for key, value in response.json().items():
+            print(f"{key} {value}")
 
 
 if __name__ == "__main__":
