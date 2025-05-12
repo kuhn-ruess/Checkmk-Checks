@@ -1,40 +1,54 @@
-#!/usr/bin/python
-# -*- encoding: utf-8; py-indent-offset: 4 -*-
-# +-----------------------------------------------------------------+
-# |                                                                 |
-# |        (  ___ \     | \    /\|\     /||\     /|( (    /|        |
-# |        | (   ) )    |  \  / /| )   ( || )   ( ||  \  ( |        |
-# |        | (__/ /     |  (_/ / | |   | || (___) ||   \ | |        |
-# |        |  __ (      |   _ (  | |   | ||  ___  || (\ \) |        |
-# |        | (  \ \     |  ( \ \ | |   | || (   ) || | \   |        |
-# |        | )___) )_   |  /  \ \| (___) || )   ( || )  \  |        |
-# |        |/ \___/(_)  |_/    \/(_______)|/     \||/    )_)        |
-# |                                                                 |
-# | Copyright Bastian Kuhn 2018                mail@bastian-kuhn.de |
-# +-----------------------------------------------------------------+
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#!/usr/bin/env python3
+
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+
+from cmk.agent_based.v2 import (
+    AgentSection,
+    CheckPlugin,
+    check_levels,
+    Result,
+    Service,
+    State,
+)
+
+def parse_exasol_services(string_table):
+    services = {}
+
+    for service, state in string_table:
+        services[service] = state
+
+    return services
 
 
-def inventory_exasol_services(info):
-    return [(None, None)]
+agent_section_exasol_services = AgentSection(
+    name = "exasol_services",
+    parse_function = parse_exasol_services,
+)
 
-def check_exasol_services(item, _no_params, info):
-    state = 0
-    if [x for x in info if x[1] != "OK"]:
-        state = 2
-    return state, ", ".join(["%s: %s" % (x, y) for x, y in info])
 
-check_info["exasol_services"] = {
-    'check_function': check_exasol_services,
-    'inventory_function': inventory_exasol_services,
-    'service_description': "Services",
-}
+def discover_exasol_services(section):
+    yield Service()
+
+
+def check_exasol_services(section):
+    for service, state in section.items():
+        text = f"{service}: {state}"
+
+        if "OK" != state:
+            yield Result(state=State.CRIT, summary=text)
+
+        else:
+            yield Result(state=State.OK, summary=text)
+
+
+check_plugin_exasol_services = CheckPlugin(
+    name = "exasol_services",
+    sections = ["exasol_services"],
+    service_name = "Services",
+    discovery_function = discover_exasol_services,
+    check_function = check_exasol_services,
+)

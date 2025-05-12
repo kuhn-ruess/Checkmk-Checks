@@ -1,43 +1,56 @@
-#!/usr/bin/python
-# -*- encoding: utf-8; py-indent-offset: 4 -*-
-# +-----------------------------------------------------------------+
-# |                                                                 |
-# |        (  ___ \     | \    /\|\     /||\     /|( (    /|        |
-# |        | (   ) )    |  \  / /| )   ( || )   ( ||  \  ( |        |
-# |        | (__/ /     |  (_/ / | |   | || (___) ||   \ | |        |
-# |        |  __ (      |   _ (  | |   | ||  ___  || (\ \) |        |
-# |        | (  \ \     |  ( \ \ | |   | || (   ) || | \   |        |
-# |        | )___) )_   |  /  \ \| (___) || )   ( || )  \  |        |
-# |        |/ \___/(_)  |_/    \/(_______)|/     \||/    )_)        |
-# |                                                                 |
-# | Copyright Bastian Kuhn 2018                mail@bastian-kuhn.de |
-# +-----------------------------------------------------------------+
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#!/usr/bin/env python3
+
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+
+from cmk.agent_based.v2 import (
+    AgentSection,
+    CheckPlugin,
+    Result,
+    Service,
+    State,
+)
+
+def parse_exasol_nodes(string_table):
+    nodes = {}
+
+    for node, state in string_table:
+        nodes[node] = state
+
+    return nodes
 
 
-def inventory_exasol_nodes(info):
-    for node, state in info:
-        yield node, {}
+agent_section_exasol_nodes = AgentSection(
+    name = "exasol_nodes",
+    parse_function = parse_exasol_nodes,
+)
 
-def check_exasol_nodes(item, _no_params, info):
-    for node, nstate in info:
-        if node == item:
-            state = 0
-            if nstate != "Running":
-                state = 2
-            return state, "Node in state %s" % nstate
 
-check_info["exasol_nodes"] = {
-    'check_function': check_exasol_nodes,
-    'inventory_function': inventory_exasol_nodes,
-    'service_description': "Node %s",
-}
+def discover_exasol_nodes(section):
+    for node in section.keys():
+        yield Service(item=node)
+
+
+def check_exasol_nodes(item, section):
+    if item not in section.keys():
+        yield Result(state.UNKNOWN, summary="Item not found")
+
+    else:
+        text = f"Node in state {section[item]}"
+
+        if "Running" != section[item]:
+            yield Result(state=State.CRIT, summary=text)
+        else:
+            yield Result(state=State.OK, summary=text)
+
+
+check_plugin_exasol_nodes = CheckPlugin(
+    name = "exasol_nodes",
+    sections = ["exasol_nodes"],
+    service_name = "Node %s",
+    discovery_function = discover_exasol_nodes,
+    check_function = check_exasol_nodes,
+)

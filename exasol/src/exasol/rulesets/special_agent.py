@@ -1,89 +1,58 @@
-"""
-Exasol Monitoring
-"""
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#!/usr/bin/env python3
 
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
 
-from cmk.gui.i18n import _
-from cmk.gui.valuespec import (
-    Tuple,
+from cmk.rulesets.v1 import Help, Title
+from cmk.rulesets.v1.form_specs import (
+    DictElement,
     Dictionary,
+    List,
     Password,
-    TextInput,
-    Filesize,
-
+    String,
+)
+from cmk.rulesets.v1.form_specs.validators import LengthInRange
+from cmk.rulesets.v1.rule_specs import (
+    SpecialAgent,
+    Topic,
 )
 
-from cmk.gui.plugins.wato.utils.simple_levels import SimpleLevels
 
-
-from cmk.gui.plugins.wato.datasource_programs import (
-    RulespecGroupDatasourceProgramsCustom,
-)
-
-from cmk.gui.plugins.wato.utils import (
-    CheckParameterRulespecWithItem,
-)
-
-from cmk.gui.watolib.rulespec_groups import (
-    RulespecGroupEnforcedServicesHardware
-)
-
-from cmk.gui.plugins.wato import (
-    rulespec_registry,
-    HostRulespec,
-)
-
-def _valuespec_special_agents_exasol():
+def _valuespec_special_agent_exasol():
     return Dictionary(
-        title = _("Exasol via XMLApi"),
-        help = _("This rule set selects the special agent for exasol"),
-        elements = [
-            ("user", TextInput(title = _("Username"), allow_empty = False)),
-            ("password", Password(title = _("Password"), allow_empty = False)),
-        ],
-        optional_keys=[],
+        title = Title("Exasol via XMLApi"),
+        help_text = Help("This rule set selects the special agent for exasol"),
+        elements = {
+            "username": DictElement(
+                parameter_form = String(
+                    title = Title("Username"),
+                    custom_validate = (LengthInRange(min_value=1),),
+                ),
+                required = True,
+            ),
+            "password": DictElement(
+                parameter_form = Password(
+                    title = Title("Password"),
+                    custom_validate = (LengthInRange(min_value=1),),
+                ),
+                required = True,
+            ),
+            "ignore_dbs": DictElement(
+                parameter_form = List(
+                    title = Title("Databases to ignore"),
+                    element_template = String(custom_validate = (LengthInRange(min_value=1),),),
+                    custom_validate = (LengthInRange(min_value=1),),
+                ),
+            ),
+        },
     )
 
-rulespec_registry.register(
-    HostRulespec(
-        group=RulespecGroupDatasourceProgramsCustom,
-        name="special_agents:exasol",
-        valuespec=_valuespec_special_agents_exasol,
-    )
-)
-
-
-def _parameter_valuespec_exasol():
-    return Dictionary(
-        elements = [
-            ("levels", 
-                Tuple(
-                    title=_("Maximum size of Database"),
-                    help=_("Please configure levels for maximum used filesystem size of Database."),
-                    elements = [
-                        Filesize(title=_("warning at")),
-                        Filesize(title=_("critical at")),
-                    ]
-            )),
-        ],
-    )
-
-rulespec_registry.register(
-    CheckParameterRulespecWithItem(
-        check_group_name="exasol_dbs",
-        group=RulespecGroupEnforcedServicesHardware,
-        match_type="dict",
-        item_spec=lambda: TextInput(title=_("Database Name")),
-        parameter_valuespec=_parameter_valuespec_exasol,
-        title=lambda: _("Exasol db usage"),
-    )
+rule_spec_exasol = SpecialAgent(
+    name = "exasol",
+    topic = Topic.DATABASES,
+    parameter_form = _valuespec_special_agent_exasol,
+    title = Title("Exasol via XMLAPI"),
 )

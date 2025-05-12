@@ -1,53 +1,46 @@
 #!/usr/bin/env python3
-# +-----------------------------------------------------------------+
-# |                                                                 |
-# |        (  ___ \     | \    /\|\     /||\     /|( (    /|        |
-# |        | (   ) )    |  \  / /| )   ( || )   ( ||  \  ( |        |
-# |        | (__/ /     |  (_/ / | |   | || (___) ||   \ | |        |
-# |        |  __ (      |   _ (  | |   | ||  ___  || (\ \) |        |
-# |        | (  \ \     |  ( \ \ | |   | || (   ) || | \   |        |
-# |        | )___) )_   |  /  \ \| (___) || )   ( || )  \  |        |
-# |        |/ \___/(_)  |_/    \/(_______)|/     \||/    )_)        |
-# |                                                                 |
-# | Copyright Bastian Kuhn 2018                mail@bastian-kuhn.de |
-# +-----------------------------------------------------------------+
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
 
 """
-Agent Exasol
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
 """
-import sys
-import ssl
-import json
-import time
-import os
-from xmlrpc.client import ServerProxy
-import requests
+
+from argparse import ArgumentParser
+from json import dump, load
+from os.path import expanduser, isfile, getctime
+from ssl import CERT_REQUIRED, CERT_NONE, SSLContext, PROTOCOL_TLS_CLIENT
+from sys import argv
+from time import time
 from urllib.parse import quote_plus
+from xmlrpc.client import ServerProxy
+
+
+parser = ArgumentParser(
+    description="Check Exasol databases"
+)
+
+parser.add_argument("-i", "--ipaddress", type=str)
+parser.add_argument("-u", "--user", type=str)
+parser.add_argument("-p", "--password", type=str)
+parser.add_argument("-I", "--ignore", type=str)
+
+args = parser.parse_args()
 
 CONFIG = {
-    "hostname" : sys.argv[1],
-    "user_name" : quote_plus(sys.argv[2]),
-    "user_password" : quote_plus(sys.argv[3]),
+    "hostname" : args.ipaddress,
+    "user_name" : quote_plus(args.user),
+    "user_password" : quote_plus(args.password),
 }
 
 VERIFY = True
 
 if VERIFY:
-    SSL_MODE = ssl.CERT_REQUIRED
+    SSL_MODE = CERT_REQUIRED
 else:
-    SSL_MODE = ssl.CERT_NONE
+    SSL_MODE = CERT_NONE
 
-CACHE_FILE = os.path.expanduser("~/tmp/check_mk/exasol_"+CONFIG['hostname'])
+CACHE_FILE = expanduser(f"~/tmp/check_mk/exasol_{CONFIG['hostname']}")
 CACHE_DURCATION = 3600
 
 def xml_rpc(path):
@@ -57,12 +50,10 @@ def xml_rpc(path):
     params = CONFIG
     params['path'] = path
     url = 'https://{user_name}:{user_password}@{hostname}/cluster1{path}'.format(**params)
-    if hasattr(ssl, 'SSLContext'):
-        sslcontext = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-        sslcontext.check_hostname = VERIFY
-        sslcontext.verify_mode = SSL_MODE
-        return ServerProxy(url, context=sslcontext)
-    return ServerProxy(url)
+    sslcontext = SSLContext(PROTOCOL_TLS_CLIENT)
+    sslcontext.check_hostname = VERIFY
+    sslcontext.verify_mode = SSL_MODE
+    return ServerProxy(url, context=sslcontext)
 
 
 CLUSTER = xml_rpc('/')
@@ -79,6 +70,10 @@ for module, state in CLUSTER.getServiceState():
 
 print("<<<exasol_database>>>")
 for database_name in CLUSTER.getDatabaseList():
+    for db_ignore in args.ignore:
+        if db_ignore == database_name:
+            continue
+
     database = xml_rpc('/db_' + quote_plus(database_name))
     db_info = database.getDatabaseInfo()
     print("[[[{0}]]]".format(db_info['name']))
@@ -93,18 +88,21 @@ for database_name in CLUSTER.getDatabaseList():
     for red_layer in range(0, db_volume_info['redundancy']):
         db_segments += db_volume_info['segments'][red_layer]
 
-    db_tmp_volume_info = STORAGE.getVolumeInfo(db_tmp_volume)
-    db_tmp_segments = db_tmp_volume_info['segments'][0]
+    if db_tmp_volume == "None":
+        db_tmp_segments = ["None"]
+    else:
+        db_tmp_volume_info = STORAGE.getVolumeInfo(db_tmp_volume)
+        db_tmp_segments = db_tmp_volume_info['segments'][0]
 
     databaseSegmentUsage = (db_info['usage persistent'] / float(len(db_segments)))* \
                                                             db_volume_info['redundancy']
     databaseTempSegmentUsage = (db_info['usage temporary']/ float(len(db_tmp_segments)))
 
     partion_sizes = {}
-    if os.path.isfile(CACHE_FILE) and \
-        time.time() - os.path.getctime(CACHE_FILE) < CACHE_DURCATION:
+    if isfile(CACHE_FILE) and \
+        time() - getctime(CACHE_FILE) < CACHE_DURCATION:
         with open(CACHE_FILE, 'r') as f:
-            partion_sizes = json.load(f)
+            partion_sizes = load(f)
     else:
         for node in sorted(set(db_segments)):
             partitions = xml_rpc('/' + node).getDiskStates()
@@ -113,7 +111,7 @@ for database_name in CLUSTER.getDatabaseList():
                     size = float(partition['size'])
                     partion_sizes[node] = size
             with open(CACHE_FILE, 'w') as f:
-                json.dump(partion_sizes, f, separators=(',', ':'))
+                dump(partion_sizes, f, separators=(',', ':'))
 
     for volume in STORAGE.getVolumeList():
         if volume.startswith('v') and volume not in [db_volume, db_tmp_volume]:
@@ -152,10 +150,10 @@ for database_name in CLUSTER.getDatabaseList():
     print("free "+ str(minPartitionSize))
     backup_cache = CACHE_FILE + "_backup"
     backups = []
-    if os.path.isfile(backup_cache) and \
-        time.time() - os.path.getctime(CACHE_FILE) < CACHE_DURCATION:
+    if isfile(backup_cache) and \
+        time() - getctime(CACHE_FILE) < CACHE_DURCATION:
         with open(backup_cache, 'r') as f:
-            backups = json.load(f)
+            backups = load(f)
     else:
         backup_list = database.getBackupList()
         r_found = False
@@ -169,7 +167,7 @@ for database_name in CLUSTER.getDatabaseList():
                 backups.append(backupInfo)
                 break
         with open(backup_cache, 'w') as f:
-            json.dump(backups, f, separators=(',', ':'))
+            dump(backups, f, separators=(',', ':'))
 
 
     for backup in backups:
