@@ -31,7 +31,7 @@ def parse_pure_arrayperformance(string_table):
             'output_per_sec': output_per_sec,
             'input_per_sec': input_per_sec,
             'usec_per_read_op': usec_per_read_op,
-            'usec_per_write_op': usec_per_write_op,        
+            'usec_per_write_op': usec_per_write_op,
         }
 
     return section
@@ -73,7 +73,7 @@ def check_pure_arrayperformance(item, section):
             state=State.OK,
             summary=f"Read: {bytes(data['output_per_sec'])}, Write: {bytes(data['input_per_sec'])}, Read operations: {data['reads_per_sec']}/s, Write operations: {data['writes_per_sec']}/s"
         )
-        
+
         # Metrics
         yield Metric("disk_read_ios", int(disk_read_ios))
         yield Metric("disk_write_ios", int(disk_write_ios))
