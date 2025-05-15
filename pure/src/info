@@ -17,10 +17,11 @@
                                   'pure/agent_based/utils/pure.py',
                                   'pure/libexec/agent_pure',
                                   'pure/rulesets/special_agent.py',
-                                  'pure/server_side_calls/pure.py']},
+                                  'pure/server_side_calls/pure.py',
+                                  'pure/agent_based/arraycertificates.py']},
  'name': 'pure',
  'title': 'Pure checks',
- 'version': '2.0.0',
+ 'version': '2.0.1',
  'version.min_required': '2.3.0b1',
  'version.packaged': '2.3.0p30',
  'version.usable_until': None}
