@@ -1,24 +1,29 @@
+#!/usr/bin/env python3
 
-#2023 created by Carlo Kleinloog
-#2024-06-11 Steve Parker - Code tweak to avoid KeyError crashing the check
-#/omd/sites/BIS/local/lib/python3/cmk/base/plugins/agent_based
-from cmk.base.check_api import get_bytes_human_readable, get_percent_human_readable
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
 
-from .agent_based_api.v1 import (
-    register,
-    Service,
-    Result,
-    State,
+from cmk.agent_based.v2 import (
+    AgentSection,
+    CheckPlugin,
     Metric,
-    render,
+    Result,
+    Service,
+    State,
+)
+from cmk.agent_based.v2.render import (
+    bytes,
 )
 
-def parse_pure_arraydetails(string_table):
 
+def parse_pure_arraydetails(string_table):
     section = {}
+
     for row in string_table:
         (item, data_reduction, total_reduction, shared_space, thin_provisioning, snapshots, volumes, size)  = row
-
 
         try:
             data_reduction=data_reduction
@@ -58,52 +63,56 @@ def parse_pure_arraydetails(string_table):
             'volumes': volumes,
             'size': size,
         }
+
     return section
 
-register.agent_section(
+
+agent_section_pure_arraydetails = AgentSection(
     name="pure_arraydetails",
     parse_function=parse_pure_arraydetails,
 )
 
-def discovery_pure_arraydetails(section):
+
+def discover_pure_arraydetails(section):
     for item in section.keys():
         yield Service(item=item)
 
 def check_pure_arraydetails(item, section):
     failed = []
-    perfdata = False
+
     if item not in section.keys():
         yield Result(
             state=State.UNKNOWN,
             summary=f"Item {item} not found",
         )
 
-    if item in section.keys():
+    else:
         data = section[item]
         fs_snapshots:int=data['snapshots']
         fs_provisioning:int=data['volumes']
         fs_thin_provisioning=data['thin_provisioning']
         fs_size:int=data['size']
-        perfdata=True
+
         yield Result(
             state=State.OK,
-            summary=f"Provisioned Size: {get_bytes_human_readable(fs_size)}, Used after deduplication: {render.bytes(fs_provisioning)}",
+            summary=f"Provisioned Size: {bytes(fs_size)}, Used after deduplication: {bytes(fs_provisioning)}",
             details = f"Data Reduction: {data['data_reduction']} to 1 \n \
             Total reduction: {data['total_reduction']} to 1 \n \
             Thin Provisioned: {fs_thin_provisioning} \n \
-            Snapshots: {render.bytes(fs_snapshots)}",
-            )
+            Snapshots: {bytes(fs_snapshots)}",
+        )
 
-# Metrics
-    if perfdata is True:
+        # Metrics
         yield Metric("pure_1_datareduction", float(data['data_reduction']))
         yield Metric("pure_2_totalreduction", float(data['total_reduction']))
         yield Metric("pure_3_thinprovisioned", float(fs_thin_provisioning))
         yield Metric("pure_4_snaphots", int(fs_snapshots))
 
-register.check_plugin(
+
+check_plugin_pure_arraydetails = CheckPlugin(
     name="pure_arraydetails",
+    sections=["pure_arraydetails"],
     service_name="Filesystem %s Details",
-    discovery_function=discovery_pure_arraydetails,
+    discovery_function=discover_pure_arraydetails,
     check_function=check_pure_arraydetails,
 )

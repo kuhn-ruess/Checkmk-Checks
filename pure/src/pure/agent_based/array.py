@@ -1,14 +1,23 @@
-#2021 created by Sven Rueß, sritd.de
-#/omd/sites/BIS/local/lib/python3/cmk/base/plugins/agent_based
-from .agent_based_api.v1 import (
-    register,
-    Service,
+#!/usr/bin/env python3
+
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+
+from cmk.agent_based.v2 import (
+    AgentSection,
+    CheckPlugin,
     Result,
+    Service,
     State,
 )
 
+
 def parse_pure_array(string_table):
     section = {}
+
     for row in string_table:
         (item, version, revision, id)  = row
 
@@ -17,14 +26,16 @@ def parse_pure_array(string_table):
             'revision': revision,
             'id': id,
         }
+
     return section
 
-register.agent_section(
+agent_section_pure_array = AgentSection(
     name="pure_array",
     parse_function=parse_pure_array,
 )
 
-def discovery_pure_array(section):
+
+def discover_pure_array(section):
     for item in section.keys():
         yield Service(item=item)
 
@@ -51,9 +62,11 @@ def check_pure_array(item, section):
             details=f"Software revision: {data['revision']}, Array ID: {data['id']}",
         )
 
-register.check_plugin(
+
+check_plugin_pure_array = CheckPlugin(
     name="pure_array",
+    sections=["pure_array"],
     service_name="Array %s",
-    discovery_function=discovery_pure_array,
+    discovery_function=discover_pure_array,
     check_function=check_pure_array,
 )

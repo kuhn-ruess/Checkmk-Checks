@@ -1,35 +1,42 @@
-# 2021 created by Sven Rueß, sritd.de
+#!/usr/bin/env python3
 
-from cmk.gui.i18n import _
-from cmk.gui.valuespec import (
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+
+from cmk.rulesets.v1 import Help, Title
+from cmk.rulesets.v1.form_specs import (
+    DictElement,
     Dictionary,
     Password,
 )
-from cmk.gui.plugins.wato import (
-    rulespec_registry,
-    HostRulespec,
-)
-from cmk.gui.plugins.wato.datasource_programs import (
-    RulespecGroupDatasourceProgramsHardware,
+from cmk.rulesets.v1.form_specs.validators import LengthInRange
+from cmk.rulesets.v1.rule_specs import (
+    SpecialAgent,
+    Topic,
 )
 
 
-def _valuespec_special_agents_pure():
+def _valuespec_special_agent_pure():
     return Dictionary(
-        title = _("Pure via WebAPI"),
-        help = _("This rule set selects the special agent for Pure"),
-        elements = [
-            ("token", Password(title = _("Web API token"), allow_empty = False)),
-        ],
-        optional_keys=[],
+        title = Title("Pure via WebAPI"),
+        help_text = Help("This rule set selects the special agent for Pure"),
+        elements = {
+            "token": DictElement(
+                parameter_form = Password(
+                    title = Title("Web API Token"),
+                    custom_validate = (LengthInRange(min_value=1),),
+                ),
+                required = True,
+            ),
+        },
     )
 
-
-rulespec_registry.register(
-    HostRulespec(
-        group=RulespecGroupDatasourceProgramsHardware,
-        name="special_agents:pure",
-        valuespec=_valuespec_special_agents_pure,
-    )
+rule_spec_pure = SpecialAgent(
+    name = "pure",
+    topic = Topic.STORAGE,
+    parameter_form = _valuespec_special_agent_pure,
+    title = Title("Pure via WebAPI"),
 )
-

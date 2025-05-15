@@ -1,35 +1,39 @@
-#!/usr/bin/env python
-# -*- encoding: utf-8; py-indent-offset: 4 -*-
-#pylint: disable=undefined-variable, missing-docstring
-# +-----------------------------------------------------------------+
-# |                                                                 |
-# |        (  ___ \     | \    /\|\     /||\     /|( (    /|        |
-# |        | (   ) )    |  \  / /| )   ( || )   ( ||  \  ( |        |
-# |        | (__/ /     |  (_/ / | |   | || (___) ||   \ | |        |
-# |        |  __ (      |   _ (  | |   | ||  ___  || (\ \) |        |
-# |        | (  \ \     |  ( \ \ | |   | || (   ) || | \   |        |
-# |        | )___) )_   |  /  \ \| (___) || )   ( || )  \  |        |
-# |        |/ \___/(_)  |_/    \/(_______)|/     \||/    )_)        |
-# |                                                                 |
-# | Copyright Bastian Kuhn 2021                mail@bastian-kuhn.de |
-# +-----------------------------------------------------------------+
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#!/usr/bin/env python3
 
-# 2021 reworked by Sven Rueß, sritd.de
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+
+from pydantic import BaseModel
+from typing import Optional
+
+from cmk.server_side_calls.v1 import (
+    HostConfig,
+    Secret,
+    SpecialAgentCommand,
+    SpecialAgentConfig,
+)
 
 
-def agent_pure_arguments(params, hostname, ipaddress):
-    args = '%s %s' % (ipaddress, params['token'])
-    return args
+class PureParams(BaseModel):
+    token: Secret
 
-special_agent_info['pure'] = agent_pure_arguments
 
+def generate_pure_command(params: PureParams, host_config: HostConfig):
+    args = [
+        "-i",
+        host_config.primary_ip_config.address,
+        "-t",
+        params.token.unsafe(),
+    ]
+
+    yield SpecialAgentCommand(command_arguments = args)
+
+
+special_agent_pure = SpecialAgentConfig(
+    name = "pure",
+    parameter_parser = PureParams.model_validate,
+    commands_function = generate_pure_command,
+)

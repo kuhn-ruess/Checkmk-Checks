@@ -1,9 +1,16 @@
-#2021 created by Sven Rueß, sritd.de
-#/omd/sites/BIS/local/lib/python3/cmk/base/plugins/agent_based/
-from .agent_based_api.v1 import (
-    register,
-    Service,
+#!/usr/bin/env python3
+
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+
+from cmk.agent_based.v2 import (
+    AgentSection,
+    CheckPlugin,
     Result,
+    Service,
     State,
 )
 
@@ -32,13 +39,13 @@ def parse_pure_alerts(string_table):
     return section
 
 
-register.agent_section(
+agent_section_pure_alerts = AgentSection(
     name="pure_fa_errors",
     parse_function=parse_pure_alerts,
 )
 
 
-def discovery_pure_alerts(section):
+def discover_pure_alerts(section):
     yield Service()
 
 def check_pure_alerts(section):
@@ -64,9 +71,10 @@ def check_pure_alerts(section):
         )
 
 
-register.check_plugin(
+check_plugin_pure_alerts = CheckPlugin(
     name="pure_fa_errors",
+    sections=["pure_fa_errors"],
     service_name="Alerts",
-    discovery_function=discovery_pure_alerts,
+    discovery_function=discover_pure_alerts,
     check_function=check_pure_alerts,
 )
