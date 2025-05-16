@@ -1,10 +1,12 @@
-{'author': u'Kuhn & Rueß GmbH',
- 'description': u'Querx Webtermin SNMP based monitoring for Humidity and Temperature',
- 'download_url': 'https://kuhn-ruess.de/en/checkmk_checks.html',
- 'files': {'checks': ['querx_webtherm_humidity', 'querx_webtherm_temp']},
+{'author': 'Kuhn & Rueß GmbH',
+ 'description': 'Querx Webtherm SNMP based monitoring for humidity and '
+                'temperature\n',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
+ 'files': {'cmk_addons_plugins': ['querx_webtherm/agent_based/humidity.py',
+                                  'querx_webtherm/agent_based/temp.py']},
  'name': 'querx_webtherm',
- 'num_files': 2,
- 'title': u'Querx Webterm Monitoring',
- 'version': '1.2.1',
- 'version.min_required': '1.2.8',
- 'version.packaged': '1.5.0p9'}
+ 'title': 'Querx Webtherm monitoring',
+ 'version': '2.0.0',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.3.0p30',
+ 'version.usable_until': None}

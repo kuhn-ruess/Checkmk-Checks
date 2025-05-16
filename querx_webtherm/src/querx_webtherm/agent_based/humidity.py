@@ -1,24 +1,43 @@
-#!/usr/bin/python
-# -*- encoding: utf-8; py-indent-offset: 4 -*-
+#!/usr/bin/env python3
+
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+
+from cmk.agent_based.v2 import (
+    Service,
+    SimpleSNMPSection,
+    SNMPTree,
+    contains,
+    CheckPlugin,
+)
+from cmk.plugins.lib.humidity import check_humidity
 
 
-def inventory_querx_webtherm_humidity(info):
-    return [("Sensor", {})]
+def discover_querx_webtherm_humidity(string_table):
+    yield Service()
 
-def check_querx_webtherm_humidity(item, params, info):
-    value = float(info[0][0]) 
-    return check_humidity(value, params)
+def check_querx_webtherm_humidity(params, string_table):
+    yield from check_humidity(float(string_table[0][0]), params)
 
 
-check_info["querx_webtherm_humidity"] = {
-    #'default_levels_variable'   : "querx_webtherm_defaultlevels",
-    'inventory_function'        : inventory_querx_webtherm_humidity,
-    'check_function'            : check_querx_webtherm_humidity,
-    'service_description'       : 'Humidity %s',
-    'has_perfdata'              : True,
-    'snmp_info'                 : (".1.3.6.1.4.1.3444.1.14.1.2.1.5", [2]),
-    'snmp_scan_function'        : lambda oid:  "Querx" in oid(".1.3.6.1.2.1.1.1.0"),
-    'group'                     : 'humidity',
-    'includes'                  : [ 'humidity.include' ],
-}
+snmp_section_querx_webtherm_humidity = SimpleSNMPSection(
+    name = "querx_webtherm_humidity",
+    fetch = SNMPTree(
+        base = "".1.3.6.1.4.1.3444.1.14.1.2.1.5"",
+        oids = ["2"],
+    ),
+    detect = contains(".1.3.6.1.2.1.1.1.0", "Querx"),
+)
 
+
+check_plugin_querx_webtherm_humidity = CheckPlugin(
+    name = "querx_webtherm_humidity",
+    service_name = "Humidity Sensor",
+    discovery_function = discover_querx_webtherm_humidity,
+    check_function = check_querx_webtherm_humidity,
+    check_ruleset_name = "humidity",
+    check_default_parameters = {},
+)
