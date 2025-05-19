@@ -58,7 +58,7 @@ def check_service(params,section):
             levels_lower=params['levels'],
             metric_name='frames',
             label='Framerate',
-            render_func=lambda v: f'{v}/sec',
+            render_func=lambda v: f'{round(v, 2)} per sec',
 
 
         )
