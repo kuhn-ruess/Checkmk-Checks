@@ -36,12 +36,14 @@ class NotificationParameterRediscoverService(NotificationParameter):
     def spec(self):
         return Dictionary(
             title=_("Create notification with the following parameters"),
+            help=_("Parameters are used to connect to Checkmk site for using RestAPI."),
             optional_keys=["url_prefix", "proxy_url", "priority", "sound"],
             elements=[
                 (
                     "proto",
                     DropdownChoice(
                         title=_("Protocol"),
+                        help=_("Which protocol is used for connecting to Checkmk server"),
                         choices=[
                             ("http", _("HTTP")),
                             ("https", _("HTTPS")),
@@ -52,6 +54,7 @@ class NotificationParameterRediscoverService(NotificationParameter):
                     "hostname",
                     TextInput(
                         title=_("Hostname"),
+                        help=_("Give the Checkmk hostname, where the site is running on"),
                         size=40,
                         allow_empty=False,
                     ),
@@ -60,6 +63,7 @@ class NotificationParameterRediscoverService(NotificationParameter):
                     "sitename",
                     TextInput(
                         title=_("Sitename"),
+                        help=_("Enter the name of the Checkmk site"),
                         size=40,
                         allow_empty=False,
                     ),
