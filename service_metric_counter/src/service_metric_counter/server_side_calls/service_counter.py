@@ -33,7 +33,7 @@ def generate_service_counter_command(params: ServiceMetricCounterParams, host_co
     args.append(params.path)
 
     for item in params.service_filters:
-        args.append(f"{item['name']}|{item['metric']}")
+        args.append(f"{item['service_name']}|{item['ls_pattern']}|{item['metric']}|{item['metric_label']}")
 
     yield SpecialAgentCommand(
         command_arguments = (

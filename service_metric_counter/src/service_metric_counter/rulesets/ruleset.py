@@ -26,7 +26,7 @@ from cmk.rulesets.v1.rule_specs import (
         SpecialAgent,
         Topic,
         CheckParameters,
-        HostAndItemCondition,
+        HostCondition,
         Topic,
 )
 
@@ -48,10 +48,20 @@ def _valuespec_special_agent_service_metric_counter():
                     custom_validate=(LengthInRange(min_value=1),),
                     element_template = Dictionary(
                         elements = {
-                            "name": DictElement(
+                            "service_name": DictElement(
                                 parameter_form = String(
-                                    title = Title("Name/Pattern for Service"),
-                                    help_text = Help("Service name like Check_MK Agent, ..."),
+                                    title = Title("Service Name"),
+                                    help_text = Help("Name of the Service shown in Checkmk"),
+                                    custom_validate=(LengthInRange(min_value=1),),
+                                ),
+                                required = True,
+                            ),
+                            "ls_pattern": DictElement(
+                                parameter_form = String(
+                                    title = Title("Livestatus Filter"),
+                                    help_text = Help("Filter by Livestatus Query. Example: description~SERVICENAME;plugin_output=output.<br>"\
+                                            "You can use ~ for regex, = for equal and use ; to (and) connect multiple pattern<br>"\
+                                            "Supported are all services fields of Livestatus"),
                                     custom_validate=(LengthInRange(min_value=1),),
                                 ),
                                 required = True,
@@ -59,6 +69,14 @@ def _valuespec_special_agent_service_metric_counter():
                             "metric": DictElement(
                                 parameter_form = String(
                                     title = Title("Metric which should be counted"),
+                                    help_text = Help("Metric name you will find with the Service Details"),
+                                    custom_validate=(LengthInRange(min_value=1),),
+                                ),
+                                required = True,
+                            ),
+                            "metric_label": DictElement(
+                                parameter_form = String(
+                                    title = Title("Friendly Name of Metric which should be counted"),
                                     help_text = Help("Metric name you will find with the Service Details"),
                                     custom_validate=(LengthInRange(min_value=1),),
                                 ),
@@ -111,23 +129,13 @@ def _parameter_metric_counter() -> Dictionary:
                         prefill_fixed_levels=InputHint(value=(0, 0)),
                     )
                 ),
-                'metric_label' : DictElement(
-                    parameter_form=String(
-                        title = Title("Metric Label")
-                    ),
-                ),
-                'metric_name' : DictElement(
-                    parameter_form=String(
-                        title = Title("Metric Name")
-                    ),
-                ),
             }
         )
 
 rule_spec_metric_counter = CheckParameters(
     name="service_metric_counter",
     topic=Topic.APPLICATIONS,
-    condition=HostAndItemCondition(item_title=Title("Pattern")),
+    condition=HostCondition(),
     parameter_form=_parameter_metric_counter,
     title=Title("Service Metric Count"),
 )

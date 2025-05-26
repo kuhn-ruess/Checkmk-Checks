@@ -20,7 +20,11 @@ def parse_function(string_table):
     """
     parsed = {}
     for line in string_table:
-            parsed[line[0]] = float(line[1])
+            parsed[line[0]] = {
+                    'value': float(line[1]),
+                    'metric': line[2],
+                    'label': line[3],
+                    }
     return parsed
 
 
@@ -36,16 +40,13 @@ def check_service(item, params, section):
     """
     Check single Service
     """
-    total = section[item]
-
-    metric_label = params.get('metric_label', "Count")
-    metric_name = params.get('metric_name', "count")
+    data = section[item]
 
     yield from check_levels(
-         total,
+         data['value'],
          levels_upper = params['levels'],
-         label = metric_label,
-         metric_name = metric_name,
+         label = data['label'],
+         metric_name=data['metric'],
     )
 
 

@@ -63,16 +63,23 @@ class AgentServicecounter():
         Get services from Livestatus API
         """
         print("<<<service_metric_counter:sep(58)>>>")
-        for service_name, metric in self.config:
-            expr = []
-            expr.append(
-                {
-                    "op": "and", "expr": [
-                        {"op": "~", "left": "description", "right": f"{service_name}"},
-                        #{"op": "~", "left": "plugin_output", "right": f"{service_output}"}
-                    ]
-                }
-            )
+        for service_name, ls_filter, metric, metric_label in self.config:
+
+            sub_expr = []
+            for sub in ls_filter.split(';'):
+                sub = sub.strip()
+                if '~' in sub:
+                    op = '~'
+                elif '=' in sub:
+                    op = '='
+                else:
+                    op = '='
+                left, right = sub.split(op)
+                sub_expr.append({'op': op, 'left': left, 'right': right})
+
+
+
+            expr = [{ "op": "and", "expr": sub_expr}]
 
             params = {
                 "query": str(
@@ -92,7 +99,7 @@ class AgentServicecounter():
             for svc in data:
                 if perf_data := svc['extensions']['performance_data'].get(metric):
                     total += perf_data
-            print(f"{service_name}:{total}")
+            print(f"{service_name}:{total}:{metric}:{metric_label}")
 
 
 if __name__ == "__main__":
