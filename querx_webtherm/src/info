@@ -6,7 +6,7 @@
                                   'querx_webtherm/agent_based/temp.py']},
  'name': 'querx_webtherm',
  'title': 'Querx Webtherm monitoring',
- 'version': '2.0.0',
+ 'version': '2.0.1',
  'version.min_required': '2.3.0b1',
- 'version.packaged': '2.3.0p30',
+ 'version.packaged': '2.3.0p33',
  'version.usable_until': None}
