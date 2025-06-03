@@ -6,10 +6,14 @@ Sms Eagle
 # pylint: disable=too-many-locals, import-error, broad-exception-raised, bare-except
 import sys
 import requests
+import logging
 from cmk.notification_plugins import utils
+from cmk.notification_plugins.utils import get_password_from_env_or_context
 from urllib3.exceptions import InsecureRequestWarning
 from urllib3 import disable_warnings
 disable_warnings(InsecureRequestWarning)
+logging.basicConfig(level=logging.DEBUG)
+logging.getLogger('urllib3').setLevel(logging.DEBUG)
 
 class NotifyEagle():
     """
@@ -24,10 +28,9 @@ class NotifyEagle():
         self.config = {
             'api_host': context['PARAMETER_API_HOST'],
             'username': context['PARAMETER_USERNAME'],
-            'password': context['PARAMETER_PASSWORD']
+            'password': get_password_from_env_or_context(key="PARAMETER_PASSWORD", context=context),
         }
         self.context = context
-
 
     def get_message(self):
         """
@@ -51,18 +54,18 @@ class NotifyEagle():
         Main part
         """
         url = f"{self.config['api_host']}/index.php/http_api/send_sms"
-
-        params = {
+        payload = {
             'login': self.config['username'],
             'pass': self.config['password'],
             'to': self.context['CONTACTPAGER'],
             'message': self.get_message(),
 
         }
-        response = requests.get(url, params=params, verify=False, timeout=10)
-        print(response.text)
+        response = requests.get(url, params=payload, verify=False, timeout=10)
         if response.status_code != 200:
+            print(response.text, response.url)
             return 1
+        print(response.text)
         return 0
 
 if __name__ == "__main__":
