@@ -28,7 +28,8 @@ Subcheck mysql.status for Check_MK Mysql Checks
 # GNU General Public License for more details.
 
 import time
-from .agent_based_api.v1 import get_rate, get_value_store, Metric, register, Result, Service, State
+
+from cmk.agent_based.v2 import CheckPlugin, Metric, Result, Service, State, get_rate, get_value_store
 
 # mysql_status_vars = {
 #     "variable name" : ("Gauge|Counter|Voolean"), IS_NEGATIV),
@@ -146,6 +147,7 @@ def check_mysql_status(item, params, section):
                 message += ", Levels at (%s/ %s)" % (warn, crit)
 
             yield Result(state=state, summary=message)
+
             for p in perfdata:
                 yield Metric(p[0], p[1], levels=(p[2], p[3]))
 
@@ -157,7 +159,7 @@ def discover_mysql_status(section):
                 yield Service(item="{} {}".format(key, item))
 
 
-register.check_plugin(
+check_plugin_mysql_status = CheckPlugin(
     name = "mysql_status",
     sections = ["mysql"],
     service_name = "MySQL Status %s",

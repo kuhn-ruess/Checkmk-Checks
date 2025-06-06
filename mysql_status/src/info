@@ -47,13 +47,14 @@ Monitored Vars:
     Open_files
 ''',
  'download_url': 'https://kuhn-ruess.de/en/checkmk_checks.html',
- 'files': {'checkman': ['mysql_status'],
-           'agent_based': ['mysql_status.py'],
+ 'files': {'cmk_addons_plugins': ['mysql/agent_based/mysql_status.py'],
+           'checkman': ['mysql_status'],
            'web': ['plugins/perfometer/mysql_status.py',
                    'plugins/wato/mysql_status.py']},
  'name': 'mysql_status',
- 'num_files': 5,
+ 'num_files': 4,
  'title': u'Check for MySQL Status Variables',
- 'version': '5.0.0',
- 'version.min_required': '2.0.0',
- 'version.packaged': '2.2.0'}
+ 'version': '6.0.0',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.3.0p33',
+ 'version.usable_until': None}
