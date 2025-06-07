@@ -1,7 +1,7 @@
 # Mysql Status 2.0
 
 This Check is based on my mysql status check I created years ago.
-It now supports the Checkmk up to version 2.3 and not longer needs an agent
+It now supports the Checkmk up to version 2.4 and not longer needs an agent
 plugin since it works as a subcheck for the normal Checkmk Mysql Monitoring.
 
 
