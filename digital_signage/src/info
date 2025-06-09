@@ -3,7 +3,7 @@
                 'and Airports and their Signal Performance.\n'
                 '\n'
                 'Windows Based with Agent Plugin.\n',
- 'download_url': 'http://kuhn-ruess.de',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks',
  'files': {'agents': ['plugins/digital_signage.ps1'],
            'cmk_addons_plugins': ['digital_signage/agent_based/bakery.py',
                                   'digital_signage/agent_based/digital_signage.py',
