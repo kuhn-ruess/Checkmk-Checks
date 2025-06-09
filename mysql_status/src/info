@@ -1,6 +1,6 @@
 {'author': u'Kuhn & Rueß GmbH',
  'description': '''
-This Check is based on my mysql status check I created years ago. It now supports the Checkmk up to version 2.3 and not longer needs an agent plugin since it works as a subcheck for the normal Checkmk Mysql Monitoring.
+This Check is based on my mysql status check I created years ago. It now supports the Checkmk version 2.3/2.4 and not longer needs an agent plugin since it works as a subcheck for the normal Checkmk Mysql Monitoring.
 Monitored Vars:
 
     Aborted_clients
@@ -46,7 +46,7 @@ Monitored Vars:
     Open_tables
     Open_files
 ''',
- 'download_url': 'https://kuhn-ruess.de/en/checkmk_checks.html',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks',
  'files': {'cmk_addons_plugins': ['mysql/agent_based/mysql_status.py'],
            'checkman': ['mysql_status'],
            'web': ['plugins/perfometer/mysql_status.py',
