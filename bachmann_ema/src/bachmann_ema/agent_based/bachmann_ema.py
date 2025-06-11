@@ -13,6 +13,7 @@ from cmk.agent_based.v2 import (
         Metric,
         Result,
         startswith,
+        all_of,
 )
 
 def parse_ema(string_table):
@@ -29,7 +30,10 @@ def parse_ema(string_table):
 
 snmp_section_bluenet_ema = SimpleSNMPSection(
     name="bluenet_ema",
-    detect=startswith(".1.3.6.1.2.1.1.1.0", "Linux BLUENET2"),
+    detect=all_of(
+        startswith(".1.3.6.1.2.1.1.1.0", "Linux"),
+        startswith(".1.3.6.1.2.1.1.6.0", "Bachmann"),
+    ),
     fetch=SNMPTree(
         base=".1.3.6.1.4.1.31770.2.2.5.3.1",
         oids=["5.1.4", # First 4 Input/Outputs
@@ -114,7 +118,7 @@ def check_bluenet_ema(item, section):
     if entity_state == '39':
         state = State.CRIT
 
-    yield Result(state=state, summary=f"Entity: {entity_states[entity_state]}")
+    yield Result(state=state, summary=f"Entity Status: {entity_states[entity_state]}")
 
 
 check_plugin_bluenet_ema = CheckPlugin(
