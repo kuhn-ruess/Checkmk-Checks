@@ -4,7 +4,7 @@
  'files': {'cmk_addons_plugins': ['bachmann_ema/agent_based/bachmann_ema.py']},
  'name': 'bachmann_ema',
  'title': 'Bachmann Ema Monitoring',
- 'version': '1.0.1',
+ 'version': '1.1.0',
  'version.min_required': '2.3.0p1',
  'version.packaged': '2.3.0p25',
  'version.usable_until': None}
