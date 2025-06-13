@@ -106,8 +106,8 @@ def check_bluenet_ema(item, section):
        '36': 'updateInProgress',
        '37': 'updateError',
        '38': 'onGoingSwitch',
-       '39': 'high',
-       '40': 'low',
+       '39':  'armed', #'high',
+       '40': 'disarmed', #'low',
        '41': 'alarm',
        '42': 'warning',
        '43': 'ok',
@@ -118,7 +118,7 @@ def check_bluenet_ema(item, section):
     if entity_state == '39':
         state = State.CRIT
 
-    yield Result(state=state, summary=f"Entity Status: {entity_states[entity_state]}")
+    yield Result(state=state, summary=f"Status: {entity_states[entity_state]}")
 
 
 check_plugin_bluenet_ema = CheckPlugin(
