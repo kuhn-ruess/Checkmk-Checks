@@ -40,8 +40,14 @@ def _valuespec_mysql_status():
                 parameter_form = SingleChoice(
                     title = Title("Target state"),
                     elements = [
-                        SingleChoiceElement(title="ON is OK", name="on"),
-                        SingleChoiceElement(title="OFF is OK", name="off"),
+                        SingleChoiceElement(
+                            title=Title("ON is OK"),
+                            name="on"
+                        ),
+                        SingleChoiceElement(
+                            title=Title("OFF is OK"),
+                            name="off"
+                        ),
                     ],
                 ),
             ),
