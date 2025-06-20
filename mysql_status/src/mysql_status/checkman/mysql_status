@@ -1,18 +1,17 @@
 title: Checks any amount of mysql status vars
 agents: linux
-author: Bastian Kuhn <mail@bastian-kuhn.de>
+author: Kuhn & Rueß GmbH <info@bkuhn-ruess.de>
 license: GPL
 distribution: none
 description:
- This checks works as subcheck for the check_mk Mysql Plugin.
+ This checks works as subcheck for the Checkmk MySQL plugin.
  This plugin has to be configured in order for this check to work
  If you don't need all of the reported values, just set the disabled services.
 
- Configuration is via Wato
+ Configuration is via WATO
 
 item:
  The name of each mysql status value as shown in the mysql SHOW STATUS; query
 
 inventory:
  Automatic inventory is supported.
-

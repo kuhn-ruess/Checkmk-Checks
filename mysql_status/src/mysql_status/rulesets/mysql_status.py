@@ -1,68 +1,58 @@
-#!/usr/bin/env python
-# -*- encoding: utf-8; py-indent-offset: 4 -*-
+#!/usr/bin/env python3
+
 """
-Web configuration for mysql.status checks
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
 """
-# pylint: disable=undefined-variable
-# +-----------------------------------------------------------------+
-# |                                                                 |
-# |        (  ___ \     | \    /\|\     /||\     /|( (    /|        |
-# |        | (   ) )    |  \  / /| )   ( || )   ( ||  \  ( |        |
-# |        | (__/ /     |  (_/ / | |   | || (___) ||   \ | |        |
-# |        |  __ (      |   _ (  | |   | ||  ___  || (\ \) |        |
-# |        | (  \ \     |  ( \ \ | |   | || (   ) || | \   |        |
-# |        | )___) )_   |  /  \ \| (___) || )   ( || )  \  |        |
-# |        |/ \___/(_)  |_/    \/(_______)|/     \||/    )_)        |
-# |                                                                 |
-# | Copyright Bastian Kuhn 2018                mail@bastian-kuhn.de |
-# +-----------------------------------------------------------------+
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-from cmk.gui.i18n import _
-from cmk.gui.valuespec import (
+
+from cmk.rulesets.v1 import Help, Title
+from cmk.rulesets.v1.form_specs import (
     Dictionary,
-    TextAscii,
-    DropdownChoice,
+    DictElement,
+    InputHint,
+    Integer,
+    LevelDirection,
+    SimpleLevels,
+    SingleChoice,
+    SingleChoiceElement,
 )
-from cmk.gui.wato import (
-    subgroup_applications,
-)
-from cmk.gui.plugins.wato.utils import (
-    register_check_parameters,
-    Levels,
+from cmk.rulesets.v1.rule_specs import (
+    CheckParameters,
+    HostAndItemCondition,
+    Topic,
 )
 
 
-register_check_parameters(
-    subgroup_applications,
-    "mysql_status",
-    _("Settings for Mysql Status check"),
-    Dictionary(
-        elements=[
-            ("levels", Levels(
-                title=_("Rate/ Unit Levels"),
-                default_difference=(5, 8),
-                default_value=None,
-            )),
-            ("target_state", DropdownChoice(
-                title=_("Target State"),
-                choices=[
-                    ("ON", "ON is OK"),
-                    ("OFF", "OFF is OK"),
-                ]
-            )),
-        ]),
-    TextAscii(
-        title=_("Variable Name"),
-        allow_empty=True
-    ),
-    'dict'
+def _valuespec_mysql_status():
+    return Dictionary(
+        title = Title("Settings for MySQL status check"),
+        elements = {
+            "levels": DictElement(
+                parameter_form = SimpleLevels(
+                    title = Title("Rate/Unit levels"),
+                    level_direction = LevelDirection.UPPER,
+                    form_spec_template = Integer(),
+                    prefill_fixed_levels = InputHint((5, 8)),
+                ),
+            ),
+            "target_state": DictElement(
+                parameter_form = SingleChoice(
+                    title = Title("Target state"),
+                    elements = [
+                        SingleChoiceElement(title="ON is OK", name="on"),
+                        SingleChoiceElement(title="OFF is OK", name="off"),
+                    ],
+                ),
+            ),
+        },
+    )
+
+
+rule_spec_mysql_status = CheckParameters(
+    title = Title("Settings for MySQL status check"),
+    name = "mysql_status",
+    condition = HostAndItemCondition(item_title = Title("Variable name")),
+    topic = Topic.APPLICATIONS,
+    parameter_form = _valuespec_mysql_status,
 )
