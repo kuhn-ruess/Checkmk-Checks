@@ -16,6 +16,7 @@ from cmk.agent_based.v2 import (
     State,
     get_rate,
     get_value_store,
+    GetRateError,
 )
 
 
@@ -29,6 +30,7 @@ mysql_status_inventory = { #pylint: disable=invalid-name
     "Created_tmp_disk_tables"           : ("Counter", False),
     "Created_tmp_files"                 : ("Counter", False),
     "Created_tmp_tables"                : ("Counter", False),
+    "Innodb_buffer_pool_pages_free"     : ("Gauge",   True),
     "Innodb_buffer_pool_read_requests"  : ("Counter", False),
     "Innodb_buffer_pool_reads"          : ("Counter", False),
     "Innodb_buffer_pool_write_requests" : ("Counter", False),
@@ -36,10 +38,15 @@ mysql_status_inventory = { #pylint: disable=invalid-name
     "Innodb_os_log_written"             : ("Counter", False),
     "Innodb_row_lock_time"              : ("Counter", False),
     "Innodb_row_lock_waits"             : ("Counter", False),
+    "Key_blocks_unused"                 : ("Gauge",   True),
     "Key_read_requests"                 : ("Counter", False),
     "Key_reads"                         : ("Counter", False),
     "Key_write_requests"                : ("Counter", False),
     "Key_writes"                        : ("Counter", False),
+    "Open_tables"                       : ("Gauge",   False),
+    "Open_files"                        : ("Gauge",   False),
+    "Qcache_free_memory"                : ("Gauge",   True),
+    "Qcache_free_blocks"                : ("Gauge",   True),
     "Qcache_hits"                       : ("Counter", True),
     "Qcache_inserts"                    : ("Counter", False),
     "Qcache_low_mem_prunes"             : ("Counter", False),
@@ -55,13 +62,7 @@ mysql_status_inventory = { #pylint: disable=invalid-name
     "Slow_queries"                      : ("Counter", False),
     "Sort_merge_passes"                 : ("Counter", False),
     "Table_locks_waited"                : ("Counter", False),
-    "Innodb_buffer_pool_pages_free"     : ("Gauge", True),
-    "Qcache_free_memory"                : ("Gauge", True),
-    "Qcache_free_blocks"                : ("Gauge", True),
-    "Key_blocks_unused"                 : ("Gauge", True),
-    "Threads_cached"                    : ("Gauge", True),
-    "Open_tables"                       : ("Gauge", False),
-    "Open_files"                        : ("Gauge", False),
+    "Threads_cached"                    : ("Gauge",   True),
 }
 
 
@@ -107,8 +108,11 @@ def check_mysql_status(item, params, section):
                 value_type, is_negativ = mysql_status_inventory[key]
 
                 if value_type == "Counter":
-                    per_sec = get_rate(get_value_store(), "mysql_status." + key, time(), value)
-                    yield Metric(name=key, value=per_sec, levels=(warn, crit))
+                    try:
+                        per_sec = get_rate(value_store=get_value_store(),key="mysql_status." + key, time=time(), value=value, raise_overflow=True)
+                    except GetRateError:
+                        per_sec = 0.0
+                    yield Metric(name=f"mysql_status_{key.lower()}", value=per_sec, levels=(warn, crit))
 
                     state = check_level(per_sec, warn, crit, is_negativ, params)
                     yield Result(state=state, summary=f"Rate: {per_sec:.3}/s")
@@ -128,7 +132,7 @@ def check_mysql_status(item, params, section):
                     yield Result(state=state, summary=message)
 
                 elif value_type == "Gauge":
-                    yield Metric(name=key, value=value, levels=(warn, crit))
+                    yield Metric(name=f"mysql_status_{key.lower()}", value=value, levels=(warn, crit))
 
                     state = check_level(value, warn, crit, is_negativ, params)
                     yield Result(state=state, summary=f"Current: {value}")
