@@ -1,10 +1,11 @@
-{'author': u'Kuhn & Rueß GmbH',
- 'description': u'Alert if there were no updates for Antivirus for 24 hours',
+{'author': 'Kuhn & Rueß GmbH',
+ 'description': 'Alert if there were no updates for Antivirus for 24 hours\n',
  'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
  'files': {'agent_based': ['palo_alto_antivirus.py'],
            'web': ['plugins/wato/palo_alto_antivirus.py']},
  'name': 'palo_alto_antivirus',
- 'title': u'Palo Alto Antivirus',
- 'version': '1.1.0',
- 'version.min_required': '2.0.0',
- 'version.packaged': '2.0.0'}
+ 'title': 'Palo Alto Antivirus',
+ 'version': '1.1.1',
+ 'version.min_required': '2.0.0b1',
+ 'version.packaged': '2.3.0p34',
+ 'version.usable_until': '2.3.0p99'}
