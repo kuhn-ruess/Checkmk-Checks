@@ -39,7 +39,7 @@ def _valuespec_agent_storcli2():
                 parameter_form = String(
                     title = Title("Path"),
                     help_text = Help("Specify the path to storCLI2.exe"),
-                    prefill = DefaultValue("C:\Program Files\StorCLI2\storCLI2.exe"),
+                    prefill = DefaultValue("C:\\:Program Files\\StorCLI2\\storCLI2.exe"),
                 ),
             ),
         },
