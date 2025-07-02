@@ -58,7 +58,7 @@ def discover_acgateway_calls(section):
 
 def check_acgateway_calls(section):
     vs = get_value_store()
-    now = time.time()
+    now = time()
     yield Result(state=State.OK,
                  summary="Active Calls: %d" % section['active_calls'])
     yield Metric('active_calls', section['active_calls'])

@@ -84,9 +84,8 @@ def check_acgateway_sipperf(section):
         }
     if len(section) == 2:
         vs = get_value_store()
-        this_time = time.time()
+        this_time = time()
         # Tel2IP
-        this_time = time.time()
         for key, value in enumerate(section[0][0]):
             if key == 9:
                 yield Result(state=State.OK,
