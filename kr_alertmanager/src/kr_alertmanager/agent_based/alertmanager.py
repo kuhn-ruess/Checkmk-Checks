@@ -94,7 +94,9 @@ default_check_parameters = CheckParams(
             rule_names=["Watchdog"],
             map={"inactive": 2, "pending": 2, "firing": 0, "none": 2, "not_applicable": 2},
         )
-    ]
+    ],
+    severity_state={'sev_state': False},
+
 )
 
 default_state_mapping = {
@@ -157,11 +159,18 @@ def parse_alertmanager(string_table: StringTable) -> Section:
             )
     return section
 
+# Mode if orginal alertmanager.py still is there,
+# But then the parse_function is not used
+#agent_section_alertmanager_custom = AgentSection(
+#    name="alertmanager_kr",
+#    parsed_section_name="alertmanager",
+#    parse_function=parse_alertmanager,
+#)
 
-agent_section_alertmanager = AgentSection(
+# Standalone mode, with alertmanager.py of Checkmk Deleted
+agent_section_alertmanager_custom = AgentSection(
     name="alertmanager",
     parse_function=parse_alertmanager,
-    supersedes=['alertmanger'],
 )
 
 #   .--Rules---------------------------------------------------------------.
@@ -189,9 +198,16 @@ def check_alertmanager_rules(item: str, params: CheckParams, section: Section) -
         if rule:
             status = _get_rule_state(rule, params)
             if severity := _get_severity(params, rule.severity):
+                state = State.OK
+                if severity_state := params.get("severity_state",{}):
+                    if severity_state['sev_state']:
+                        if severity == 'critical' or severity == 'alert':
+                            state = State(State.CRIT)
+                        elif severity == 'warning' or severity == 'error':
+                            state = State(State.WARN)
                 if severity != 'not_applicable':
                     yield Result(
-                        state=State.OK,
+                        state=state,
                         summary="Severity: %s" % severity,
                     )
             yield Result(

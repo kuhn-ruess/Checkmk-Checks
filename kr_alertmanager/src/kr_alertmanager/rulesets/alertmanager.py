@@ -6,10 +6,11 @@
 from collections.abc import Mapping
 from enum import StrEnum
 
-from cmk.rulesets.v1 import Help, Title
+from cmk.rulesets.v1 import Help, Title, Label
 from cmk.rulesets.v1.form_specs import (
     CascadingSingleChoice,
     CascadingSingleChoiceElement,
+    BooleanChoice,
     DefaultValue,
     DictElement,
     Dictionary,
@@ -239,6 +240,18 @@ def form_severity_remapping():
         custom_validate=(validators.LengthInRange(min_value=1),),
     )
 
+def form_severity_state():
+    return Dictionary(
+        elements={
+            "sev_state": DictElement(
+                parameter_form=BooleanChoice(label=Label("Activate")),
+                required=True,
+            ),
+        },
+        title=Title("Use the severity states for alerting."),
+        help_text=Help("Severity levels are automatically mapped to Checkmk states."),
+
+    )
 
 def _check_parameters_form_alertmanager():
     return Dictionary(
@@ -246,6 +259,7 @@ def _check_parameters_form_alertmanager():
         elements={
             "alert_remapping": DictElement(parameter_form=form_alert_remapping()),
             "severity_remapping": DictElement(parameter_form=form_severity_remapping()),
+            "severity_state": DictElement(parameter_form=form_severity_state()),
         },
     )
 

@@ -1,15 +1,1 @@
-{'author': 'Kuhn & Ruess GmbH',
- 'description': 'This check is based on the Included Alertmanager Check in '
-                'Checkmk.\n'
-                'The only Difference is, that you can remap the Alert '
-                'Severities in case the are not using the default Names.\n'
-                'Note: You need to disable the shipped alertmanager plugins with "Disabled Checks" Rule',
- 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks',
- 'files': {'cmk_addons_plugins': ['kr_alertmanager/agent_based/alertmanager.py',
-                                  'kr_alertmanager/rulesets/alertmanager.py']},
- 'name': 'alertmanager_extended',
- 'title': 'Alertmanager with Severtiy Mapping',
- 'version': '1.0.3',
- 'version.min_required': '2.3.0p1',
- 'version.packaged': '2.3.0p25',
- 'version.usable_until': '2.4.0'}
+{"title":"Alertmanager with Severtiy Mapping","name":"alertmanager_extended","description":"This check is based on the Included Alertmanager Check in Checkmk.\nThe only Difference is, that you can remap the Alert Severities in case they are not using the default Names. Also you can enable to trigger Alerts for Severites,\nNote: You need to (currently) remove the shipped alertmanager.py from Checkmk to use it.\n","version":"1.1.0","version_packaged":"2.4.0","version_min_required":"2.3.0p1","version_usable_until":null,"author":"Kuhn & Rueß GmbH","download_url":"https://github.com/kuhn-ruess/Checkmk-Checks","files":{"cmk_addons_plugins":["kr_alertmanager/agent_based/alertmanager.py","kr_alertmanager/rulesets/alertmanager.py"]}}
