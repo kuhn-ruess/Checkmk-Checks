@@ -47,6 +47,34 @@ def discover_storcli2_pd_list(section):
         yield Service(item=controller_slot)
 
 def check_storcli2_pd_list(item, section):
+    map_state = {
+        "UConf": "Unconfigured",
+        "UConfUnsp": "Unconfigured Unsupported",
+        "Conf": "Configured",
+        "Unusbl": "Unusable",
+        "GHS": "Global Hot Spare",
+        "DHS": "Dedicated Hot Spare",
+        "UConfShld": "Unconfigured Shielded",
+        "ConfShld": "Configured Shielded",
+        "Shld": "JBOD Shielded",
+        "GHSShld": "GHS Shielded",
+        "DHSShld": "DHS Shielded",
+        "UConfSntz": "Unconfigured Sanitize",
+        "ConfSntz": "Configured Sanitize",
+        "JBODSntz": "JBOD Sanitize",
+        "GHSSntz": "GHS Sanitize",
+        "DHSSntz": "DHS Sanitize",
+        "UConfDgrd": "Unconfigured Degraded",
+        "ConfDgrd": "Configured Degraded",
+        "JBODDgrd": "JBOD Degraded",
+        "GHSDgrd": "GHS Degraded",
+        "DHSDgrd": "DHS Degraded",
+        "Various": "Multiple LU/NS Status",
+        "U": "Up/On",
+        "D": "Down/PowerSave",
+        "T": "Transitioning",
+        "F": "Foreign",
+    }
     data = reparse_section(section)
 
     if item not in data.keys():
@@ -54,7 +82,7 @@ def check_storcli2_pd_list(item, section):
     else:
         values = data[item]
 
-        output = f"State: {values['State']}"
+        output = f"State: {map_state[values['State']]}"
         if "Conf" != values["State"]:
             yield Result(state=State.CRIT, summary=output)
         else:
@@ -66,7 +94,7 @@ def check_storcli2_pd_list(item, section):
         else:
             yield Result(state=State.OK, summary=output)
 
-        output = f"SP: {values['Sp']}"
+        output = f"SP: {map_state[values['Sp']]}"
         if "U" != values["Sp"]:
             yield Result(state=State.CRIT, summary=output)
         else:
