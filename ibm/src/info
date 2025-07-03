@@ -1,0 +1,10 @@
+{'author': 'Kuhn & Rueß GmbH',
+ 'description': '',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
+ 'files': {'cmk_addons_plugins': ['ibm/agent_based/ts4300.py']},
+ 'name': 'ibm',
+ 'title': 'IBM Tape Library',
+ 'version': '2.0.0',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.4.0p5',
+ 'version.usable_until': None}
