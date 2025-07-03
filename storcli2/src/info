@@ -1,0 +1,28 @@
+{'author': 'Kuhn & Rueß GmbH',
+ 'description': 'Following checks are supported:\n'
+                '- Client tool\n'
+                '- Enclosures\n'
+                '- Physical disks\n'
+                '- Status (Includes discovery rule for ignoring entries)\n'
+                '- Temperature\n'
+                '- Virtual disks\n'
+                '- Version\n',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
+ 'files': {'agents': ['windows/plugins/storcli2.ps1'],
+           'cmk_addons_plugins': ['storcli2/agent_based/enclosure_list.py',
+                                  'storcli2/agent_based/pd_list.py',
+                                  'storcli2/agent_based/status.py',
+                                  'storcli2/agent_based/temp.py',
+                                  'storcli2/agent_based/tool.py',
+                                  'storcli2/agent_based/utils/storcli2.py',
+                                  'storcli2/agent_based/vd_list.py',
+                                  'storcli2/agent_based/version.py',
+                                  'storcli2/rulesets/bakery_storcli2.py',
+                                  'storcli2/rulesets/status.py'],
+           'lib': ['check_mk/base/cee/plugins/bakery/storcli2.py']},
+ 'name': 'storcli2',
+ 'title': 'Raid controller monitoring via StorCLI2 tool',
+ 'version': '1.0.2',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.4.0p5',
+ 'version.usable_until': None}
