@@ -1,10 +1,46 @@
-#!/usr/bin/env python
-from .agent_based_api.v1 import *
+#!/usr/bin/env python3
+
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+
+
+from cmk.agent_based.v2 import (
+    Service,
+    Result,
+    State,
+    Metric,
+    SimpleSNMPSection,
+    SNMPTree,
+    contains,
+    CheckPlugin,
+)
+
+def parse_gude_ats(string_table):
+    return string_table
+
+snmp_section_gude_ats = SimpleSNMPSection(
+    name = "gude_ats",
+    parse_function = parse_gude_ats,
+    fetch = SNMPTree(
+        base = '.1.3.6.1.4.1.28507.41.1.5.11',
+        oids = [
+            '1.0', # Primary Power Available
+            '2.0', # Secondary Power Available
+            '4.0', # Current Channel
+        ],
+    ),
+    detect = contains(".1.3.6.1.2.1.1.1.0", "UTE ATS"),
+)
 
 def discover_gude_ats(section):
-    yield Service(parameters={
-                    "inital" :section[0][2]
-                 })
+    yield Service(
+        parameters = {
+            "inital" :section[0][2]
+        }
+    )
 
 def check_gude_ats(params, section):
     mapping = {
@@ -27,23 +63,11 @@ def check_gude_ats(params, section):
         if input_state == '0':
             yield Result(state=State.CRIT, summary=f"Not redundant, {input_name} Input: Void")
 
-register.check_plugin(
+
+check_plugin_gude_ats = CheckPlugin(
     name = "gude_ats",
     service_name = "Input Status",
     discovery_function = discover_gude_ats,
     check_function = check_gude_ats,
     check_default_parameters={},
-)
-
-register.snmp_section(
-    name = "gude_ats",
-    detect = contains(".1.3.6.1.2.1.1.1.0", "UTE ATS"),
-    fetch = SNMPTree(
-        base = '.1.3.6.1.4.1.28507.41.1.5.11',
-        oids = [
-            '1.0', # Primary Power Available
-            '2.0', # Secondary Power Available
-            '4.0', # Current Channel
-        ],
-    ),
 )
