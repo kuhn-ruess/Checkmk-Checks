@@ -24,33 +24,31 @@
 #{u'item_name': u'Compression And Dedup Test ', u'result': True}
 #SYMMETRIX_000297900497-RZ2_Compression_And_Dedup_Test{"item_name": "Compression And Dedup Test ", "result": true}
 
-
-import json
-from pprint import pprint
+from .utils import parse_section
 import time
 
-from .agent_based_api.v1 import (
-    register,
+from cmk.agent_based.v2 import (
     Service,
     Result,
     State,
     Metric,
+    CheckPlugin,
+    AgentSection,
+)
+
+agent_section_unispere_powermax_health_check = AgentSection(
+    name="unisphere_powermax_health_check",
+    parse_function=parse_section,
 )
 
 def discover_health(section):
-    for i in section:
-        if len(i) != 2:
-            continue
-        j = json.loads(i[1])
-        if j.get('result', None) is not None:
-            yield Service(item=i[0])
+    for item in section:
+        yield Service(item=item)
 
 def check_health(item, params, section):
-    health_info = filter(lambda x: x[0] == item, section)
-    if len(health_info) != 1:
-        return
 
-    health_data = json.loads(health_info[0][1])
+    # @TODO untestet, no data
+    health_data = section[item]
 
     state = State.OK
     info_text = ""
@@ -77,7 +75,7 @@ def check_health(item, params, section):
 
     yield Result(state=state, summaary=info_text)
     
-register.check_plugin(
+check_plugin_unisphere_powermax_health_check = CheckPlugin(
     name = "unisphere_powermax_health_check",
     service_name = 'Health Check %s',
     discovery_function = discover_health,

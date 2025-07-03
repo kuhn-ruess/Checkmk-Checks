@@ -7,47 +7,41 @@
 #SYMMETRIX_000297900498-RZ1_performance_alert_summary{"warning_acknowledged_count": 0, "minor_acknowledged_count": 0, "all_unacknowledged_count": 1, "normal_unacknowledged_count": 0, "critical_acknowledged_count": 0, "normal_acknowledged_count": 0, "warning_unacknowledged_count": 1, "alert_count": 1, "minor_unacknowledged_count": 0, "all_acknowledged_count": 0, "critical_unacknowledged_count": 0, "info_acknowledged_count": 0, "fatal_acknowledged_count": 0, "fatal_unacknowledged_count": 0, "info_unacknowledged_count": 0}
 #SYMMETRIX_000297900498-RZ1_array_alert_summary{"warning_acknowledged_count": 0, "minor_acknowledged_count": 0, "all_unacknowledged_count": 4, "normal_unacknowledged_count": 4, "critical_acknowledged_count": 0, "normal_acknowledged_count": 0, "warning_unacknowledged_count": 0, "alert_count": 4, "minor_unacknowledged_count": 0, "all_acknowledged_count": 0, "critical_unacknowledged_count": 0, "info_acknowledged_count": 0, "fatal_acknowledged_count": 0, "fatal_unacknowledged_count": 0, "info_unacknowledged_count": 0}
 
+from .utils import parse_section
 
-
-import json
-from pprint import pprint
-
-from .agent_based_api.v1 import (
-    register,
+from cmk.agent_based.v2 import (
     Service,
     Result,
     State,
     Metric,
+    CheckPlugin,
+    AgentSection,
 )
 
+agent_section_unispere_powermax_alerts = AgentSection(
+    name="unisphere_powermax_alerts",
+    parse_function=parse_section,
+)
 
 def discover_alerts(section):
-    for i in section:
-        j = json.loads(i[1])
-        if j.get('alert_count', None) is not None:
-            yield Service(item=i[0])
+    for item in section:
+        yield Service(item=item)
 
 def check_alerts(item, params, section):
-    alert_info = list(filter(lambda x: x[0] == item, section))
-    if len(alert_info) != 1:
-        return
-
-    alert_data = json.loads(alert_info[0][1])
+    alert_data = section[item]
 
     info_text = "unacknowledged alerts: "
 
     state = State.OK
 
-    for key in filter(lambda x: 'unacknowledged' in x and x.split('_')[0] in params['severity_map'].keys(), alert_data.keys()):
+    for key, n_alerts in alert_data.items():
         severity = key.split('_')[0]
-        n_alerts = alert_data[key]
         if n_alerts > 0:
             yield Result(state=params['severity_map'].get(severity, State.WARN), summary="{}: {}".format(severity, n_alerts))
         else:
             yield Result(state=State.OK, summary="{}: {}".format(severity, n_alerts))
 
-
-register.check_plugin(
+check_plugin_unisphere_powermax_alerts = CheckPlugin(
     name = "unisphere_powermax_alerts",
     service_name = 'Alerts - %s',
     discovery_function = discover_alerts,

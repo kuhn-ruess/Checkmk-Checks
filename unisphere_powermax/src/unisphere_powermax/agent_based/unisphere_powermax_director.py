@@ -7,48 +7,45 @@
 #SYMMETRIX_000297900498-RZ1_DF-4C{"num_of_ports": 4, "directorId": "DF-4C", "num_of_cores": 11, "director_slot_number": 4, "availability": "Online", "director_number": 36}
 #SYMMETRIX_000297900498-RZ1_ED-1B{"num_of_ports": 0, "directorId": "ED-1B", "num_of_cores": 15, "director_slot_number": 1, "availability": "Online", "director_number": 17}
 
-
-
 import json
-from pprint import pprint
 
-from .agent_based_api.v1 import (
-    register,
+
+from .utils import parse_section
+
+from cmk.agent_based.v2 import (
     Service,
     Result,
     State,
     Metric,
+    CheckPlugin,
+    AgentSection,
+)
+
+agent_section_unispere_powermax_director = AgentSection(
+    name="unisphere_powermax_director",
+    parse_function=parse_section,
 )
 
 def discover_director_status(section):
-    for i in section:
-        j = json.loads(i[1])
-        if j.get('availability', None) is not None:
-            yield Service(item=i[0])
+    for item, data in section.items():
+        if data.get('availability'):
+            yield Service(item=item)
 
 def check_director_status(item, params, section):
-    director_info = list(filter(lambda x: x[0] == item, section))
-    if len(director_info) != 1:
+
+    director_info = section[item]
+    status = director_info.get('availability')
+    if not status:
        yield Result(state=State.UNKNOWN, summary="got no data from agent")
        return
-
-    director = director_info[0][0]
-    director_data = json.loads(director_info[0][1])
 
     state = State.OK
-  
-    status = director_data.get('availability', None).lower()
-    if status is None:
-       yield Result(state=State.UNKNOWN, summary="got no data from agent")
-       return
-    
     info_text = "director status: %s" % (status)
-    if status != 'online':
+    if status.lower() != 'online':
         state = State.CRIT
-
     yield Result(state=state, summary=info_text)
 
-register.check_plugin(
+check_plugin_unisphere_powermax_director_status = CheckPlugin(
     name = "unisphere_powermax_director_status",
     sections = ['unisphere_powermax_director'],
     service_name = 'Director Status %s',

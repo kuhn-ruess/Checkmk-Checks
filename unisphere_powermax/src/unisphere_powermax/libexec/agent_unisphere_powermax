@@ -198,7 +198,7 @@ def writeToCache(name, data):
         f.write(data)
 
 def getSrpInfo(connector, args):
-    print('<<<unisphere_powermax_srp:sep(30)>>>')
+    print('<<<unisphere_powermax_srp:sep(124)>>>')
     symmetrix  = connector.getSymmetrix()
     for symId in symmetrix.keys():
         if args.enableRemoteSymChecks == False and connector.isSymentrixLocal(symId) == False:
@@ -207,10 +207,10 @@ def getSrpInfo(connector, args):
         srpIds = connector.get(f'/{API_VERSION}/sloprovisioning/symmetrix/{symId}/srp').json().get('srpId', [])
         for srpId in srpIds:
             srpData = connector.get(f'/{API_VERSION}/sloprovisioning/symmetrix/{symId}/srp/{srpId}').json()
-            print("SYMMETRIX_{}_{}\x1e{}".format(connector.getSymmetrixName(symId), srpId, json.dumps(srpData)))
+            print("SYMMETRIX_{}_{}|{}".format(connector.getSymmetrixName(symId), srpId, json.dumps(srpData)))
 
 def getDirectorInfo(connector, args):
-    print('<<<unisphere_powermax_director:sep(30)>>>')
+    print('<<<unisphere_powermax_director:sep(124)>>>')
     symmetrix  = connector.getSymmetrix()
     for symId in symmetrix.keys():
         if args.enableRemoteSymChecks == False and connector.isSymentrixLocal(symId) == False:
@@ -218,10 +218,10 @@ def getDirectorInfo(connector, args):
         directorIds = connector.get(f'/{API_VERSION}/system/symmetrix/{symId}/director').json().get('directorId', [])
         for directorId in directorIds:
             directorData = connector.get(f'/{API_VERSION}/system/symmetrix/{symId}/director/{directorId}').json()
-            print("SYMMETRIX_{}_{}\x1e{}".format(connector.getSymmetrixName(symId), directorId, json.dumps(directorData)))
+            print("SYMMETRIX_{}_{}|{}".format(connector.getSymmetrixName(symId), directorId, json.dumps(directorData)))
 
 def getHealthScoreInfo(connector, args):
-    print('<<<unisphere_powermax_health_score:sep(30)>>>')
+    print('<<<unisphere_powermax_health_score:sep(124)>>>')
     symmetrix  = connector.getSymmetrix()
     for symId in symmetrix.keys():
         if args.enableRemoteSymChecks == False and connector.isSymentrixLocal(symId) == False:
@@ -230,10 +230,10 @@ def getHealthScoreInfo(connector, args):
         for metric in healthScoreData.get('health_score_metric', []):
             if metric.get('metric', None) is None:
                 continue
-            print("SYMMETRIX_{}_{}\x1e{}".format(connector.getSymmetrixName(symId), metric.get('metric'), json.dumps(metric)))
+            print("SYMMETRIX_{}_{}|{}".format(connector.getSymmetrixName(symId), metric.get('metric'), json.dumps(metric)))
 
 def getHealthCheckInfo(connector, args):
-    print('<<<unisphere_powermax_health_check:sep(30)>>>')
+    print('<<<unisphere_powermax_health_check:sep(124)>>>')
     #symmetrix  = [ x.get('symmetrixId') for x in connector.get('/performance/Array/keys').json().get('arrayInfo') ]
     symmetrix  = connector.getSymmetrix()
     for symId in symmetrix.keys():
@@ -249,11 +249,11 @@ def getHealthCheckInfo(connector, args):
                 if testResult.get('item_name', None) is None:
                     continue
                 testResult['date'] = healthCheck.get('date', 0)
-                print("SYMMETRIX_{}_{}\x1e{}".format(connector.getSymmetrixName(symId), testResult.get('item_name').strip().replace(' ', '_'), json.dumps(testResult)))
+                print("SYMMETRIX_{}_{}|{}".format(connector.getSymmetrixName(symId), testResult.get('item_name').strip().replace(' ', '_'), json.dumps(testResult)))
 
 def getArrayPerformanceInfo(connector, args):
     now = int(time.time()*1000)
-    print('<<<unisphere_powermax_array_performance:sep(30)>>>')
+    print('<<<unisphere_powermax_array_performance:sep(124)>>>')
     symmetrix  = [ x.get('symmetrixId') for x in connector.get('/performance/Array/keys').json().get('arrayInfo') ]
     for symId in symmetrix:
         if args.enableRemoteSymChecks == False and connector.isSymentrixLocal(symId) == False:
@@ -294,10 +294,10 @@ def getArrayPerformanceInfo(connector, args):
             perfInfo = connector.post('/performance/Array/metrics', payload).json().get('resultList', {}).get('result', [])[-1]
             perfData[f] = perfInfo
 
-        print("SYMMETRIX_{}\x1e{}".format(connector.getSymmetrixName(symId), json.dumps(perfData)))
+        print("SYMMETRIX_{}|{}".format(connector.getSymmetrixName(symId), json.dumps(perfData)))
 
 def getPortGroupInfo(connector, args):
-    print('<<<unisphere_powermax_port_group:sep(30)>>>')
+    print('<<<unisphere_powermax_port_group:sep(124)>>>')
     symmetrix  = connector.getSymmetrix()
     for symId in symmetrix.keys():
         if args.enableRemoteSymChecks == False and connector.isSymentrixLocal(symId) == False:
@@ -316,13 +316,13 @@ def getPortGroupInfo(connector, args):
                        portStatusInfo['symmetrixPort']['port_status'] = 'OFF'
                 portsInfo.append(portStatusInfo)
 
-            print("SYMMETRIX_{}_{}\x1e{}".format(connector.getSymmetrixName(symId), portGroup, json.dumps(portsInfo)))
+            print("SYMMETRIX_{}_{}|{}".format(connector.getSymmetrixName(symId), portGroup, json.dumps(portsInfo)))
 
 def getAlertInfo(connector, args):
-    print('<<<unisphere_powermax_alerts:sep(30)>>>')
+    print('<<<unisphere_powermax_alerts:sep(124)>>>')
     alertInfo = connector.get(f'/{API_VERSION}/system/alert_summary').json()
     if alertInfo.get('serverAlertSummary', None) is not None:
-        print("Server Alert Summary\x1e{}".format(json.dumps(alertInfo.get('serverAlertSummary'))))
+        print("Server Alert Summary|{}".format(json.dumps(alertInfo.get('serverAlertSummary'))))
     for symSummary in alertInfo.get('symmAlertSummary', []):
         symId = symSummary.get('symmId', None)
         if symId is None:
@@ -333,7 +333,7 @@ def getAlertInfo(connector, args):
 
         for key in symSummary:
             if 'summary' in key.lower():
-                print("SYMMETRIX_{}_{}\x1e{}".format(connector.getSymmetrixName(symId),
+                print("SYMMETRIX_{}_{}|{}".format(connector.getSymmetrixName(symId),
                                                      camel_to_snake(key), json.dumps(symSummary.get(key))))
 
 def getMaskingViewInfo(connector, args):
@@ -394,7 +394,7 @@ def getMaskingViewInfo(connector, args):
     results = slurpQueue(resultQueue)
 
     agentData = ''
-    agentData += '<<<unisphere_powermax_volume:sep(30)>>>\n'
+    agentData += '<<<unisphere_powermax_volume:sep(124)>>>\n'
     for info in results:
         if info[2].get('allocated_percent', None) is None:
             continue
@@ -402,16 +402,16 @@ def getMaskingViewInfo(connector, args):
         if args.randomFailures:
             if randint(0,1000) % 3 == 0:
                 info[2][u'status'] = 'Not Ready'
-        agentData += "{}\x1e{}\n".format(info[0], json.dumps(info[2]))
+        agentData += "{}|{}\n".format(info[0], json.dumps(info[2]))
 
-    agentData += ('<<<unisphere_powermax_port:sep(30)>>>\n')
+    agentData += ('<<<unisphere_powermax_port:sep(124)>>>\n')
     for info in results:
         if info[2].get('symmetrixPort', None) is None:
             continue
         if args.randomFailures:
             if randint(0,1000) % 3 == 0:
                 info[2]['symmetrixPort']['port_status'] = 'OFF'
-        agentData += "{}\x1e{}\n".format(info[0], json.dumps(info[2]['symmetrixPort']))
+        agentData += "{}|{}\n".format(info[0], json.dumps(info[2]['symmetrixPort']))
 
     writeToCache(cacheName, agentData)
     print(agentData)
@@ -434,7 +434,7 @@ if __name__ == '__main__':
     parser.add_argument('--password', dest='password', required=True, help='Unisphere API password')
     parser.add_argument('--port', default='8443', dest='port', help='Unisphere API port (default: 8443)')
     parser.add_argument('--cache-time', default=30, type=int, dest='cache', help='Use cache for long running queries like masing view info.(default: 30 minues)')
-    parser.add_argument('hostname', help='Hostname or IP of the Unisphere API Server')
+    parser.add_argument('--hostname', help='Hostname or IP of the Unisphere API Server')
     parser.add_argument('--enableRemoteSymChecks', help='gather information from remote Symmetrix', action='store_true')
     parser.add_argument('--noCertCheck', help='do not verify ssl certificates', action='store_true')
     parser.add_argument('--randomFailures', help='simulate faiures ... e.g. port_status Off', action='store_true')
@@ -444,7 +444,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     print("<<<check_mk>>>")
-    print("Version: agent_unisphere_powermax-1.0")
+    print("Version: agent_unisphere_powermax-3.0")
     pmax = PmaxConnector(args.user, args.password, "%s:%s" % (args.hostname, args.port), not args.noCertCheck)
 
     pmax.getVersion()
