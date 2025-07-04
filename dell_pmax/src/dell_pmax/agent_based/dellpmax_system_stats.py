@@ -1,28 +1,19 @@
 #!/usr/bin/env python3
-# -*- encoding: utf-8; py-indent-offset: 4 -*-
-# +------------------------------------------------------------+
-# |                                                            |
-# |             | |             | |            | |             |
-# |          ___| |__   ___  ___| | ___ __ ___ | | __          |
-# |         / __| '_ \ / _ \/ __| |/ / '_ ` _ \| |/ /          |
-# |        | (__| | | |  __/ (__|   <| | | | | |   <           |
-# |         \___|_| |_|\___|\___|_|\_\_| |_| |_|_|\_\          |
-# |                                   custom code by Nagarro   |
-# |                                                            |
-# +------------------------------------------------------------+
-#
-# Copyright (C)  2022  DevOps InfrastructureServices@nagarro-es.com
-# for Nagarro ES GmbH
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
 
-from .agent_based_api.v1 import (
-    register,
+from cmk.agent_based.v2 import (
     Result,
     Service,
     State,
     get_value_store,
+    CheckPlugin,
 )
-from .utils import memory
-from .utils.cpu_util import check_cpu_util
+from cmk.plugins.lib import memory
+from cmk.plugins.lib.cpu_util import check_cpu_util
 
 import time
 
@@ -50,7 +41,7 @@ def check_dellpmax_systemstats_heap(params, section):
         yield Result(state=State.CRIT, summary="No heap data available")
 
 
-register.check_plugin(
+check_plugin_dell_pmax_systemstats_heap = CheckPlugin(
     name="dellpmax_systemstats_heap",
     sections=["dellpmax_systemstats"],
     service_name="Heap",
@@ -82,7 +73,7 @@ def check_dellpmax_systemstats_cpu(params, section):
         yield Result(state=State.CRIT, summary="No cpu data available")
 
 
-register.check_plugin(
+check_plugin_dell_pmax_systemstats_cpu = CheckPlugin(
     name="dellpmax_systemstats_cpu",
     sections=["dellpmax_systemstats"],
     service_name="CPU",
@@ -110,7 +101,7 @@ def check_dellpmax_systemstats_mem(params, section):
         yield Result(state=State.CRIT, summary="No memory data available")
 
 
-register.check_plugin(
+check_plugin_dell_pmax_systemstats_men = CheckPlugin(
     name="dellpmax_systemstats_mem",
     sections=["dellpmax_systemstats"],
     service_name="Memory",

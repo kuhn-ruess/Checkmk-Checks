@@ -1,25 +1,16 @@
 #!/usr/bin/env python3
-# -*- encoding: utf-8; py-indent-offset: 4 -*-
-# +------------------------------------------------------------+
-# |              _               _              _              |
-# |             | |             | |            | |             |
-# |          ___| |__   ___  ___| | ___ __ ___ | | __          |
-# |         / __| '_ \ / _ \/ __| |/ / '_ ` _ \| |/ /          |
-# |        | (__| | | |  __/ (__|   <| | | | | |   <           |
-# |         \___|_| |_|\___|\___|_|\_\_| |_| |_|_|\_\          |
-# |                                   custom code by Nagarro   |
-# |                                                            |
-# +------------------------------------------------------------+
-#
-# Copyright (C)  2022  DevOps InfrastructureServices@nagarro-es.com
-# for Nagarro ES GmbH
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
 
 
-from .agent_based_api.v1 import (
-    register,
+from cmk.agent_based.v2 import (
     Result,
     Service,
-    State
+    State,
+    CheckPlugin,
 )
 
 """
@@ -57,7 +48,7 @@ def check_dellpmax_alerts_array(section):
         yield Result(state=State.CRIT, summary="No alert data available")
 
 
-register.check_plugin(
+check_plugin_dell_pmax_symm_alerts_arrays = CheckPlugin(
     name="dellpmax_symm_alerts_arrays",
     sections=["dellpmax_symm_alerts"],
     service_name="Array alerts",
@@ -90,7 +81,7 @@ def check_dellpmax_alerts_perf(section):
         yield Result(state=State.CRIT, summary="No alert data available")
 
 
-register.check_plugin(
+check_plugin_dell_pmax_symm_alerts_performance = CheckPlugin(
     name="dellpmax_symm_alerts_performance",
     sections=["dellpmax_symm_alerts"],
     service_name="Performance alerts",

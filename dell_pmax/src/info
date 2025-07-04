@@ -1,17 +1,1 @@
-{'author': u'Kuhn & Rueß GmbH',
- 'description': 'Special Agent EMC PMAX storage pools',
- 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
- 'files': {'agent_based': ['dellpmax_alerts_server.py',
-                           'dellpmax_alerts_symm.py',
-                           'dellpmax_info.py',
-                           'dellpmax_storage_pools.py',
-                           'dellpmax_system_stats.py'],
-           'agents': ['special/agent_dellpmax'],
-           'checks': ['agent_dellpmax'],
-           'web': ['plugins/wato/agent_dellpmax.py']},
- 'name': 'dell_pmax',
- 'title': 'DELL EMC PowerMax',
- 'version': '1.0.1',
- 'version.min_required': '2.2.0',
- 'version.packaged': '2.2.0p24',
- 'version.usable_until': None}
+{"title":"DELL EMC PowerMax","name":"dell_pmax","description":"Special Agent EMC PMAX storage pools\n","version":"2.0.0","version_packaged":"2.4.0","version_min_required":"2.3.0","version_usable_until":null,"author":"Kuhn & Rueß GmbH","download_url":"https://github.com/kuhn-ruess/Checkmk-Checks/","files":{"cmk_addons_plugins":["dell_pmax/agent_based/dellpmax_alerts_server.py","dell_pmax/agent_based/dellpmax_alerts_symm.py","dell_pmax/agent_based/dellpmax_info.py","dell_pmax/agent_based/dellpmax_storage_pools.py","dell_pmax/agent_based/dellpmax_system_stats.py","dell_pmax/libexec/agent_dellpmax","dell_pmax/rulesets/agent_dellpmax.py","dell_pmax/server_side_calls/agent_pmax.py"]}

@@ -1,24 +1,15 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8; py-indent-offset: 4 -*-
-# +------------------------------------------------------------+
-# |                                                            |
-# |             | |             | |            | |             |
-# |          ___| |__   ___  ___| | ___ __ ___ | | __          |
-# |         / __| '_ \ / _ \/ __| |/ / '_ ` _ \| |/ /          |
-# |        | (__| | | |  __/ (__|   <| | | | | |   <           |
-# |         \___|_| |_|\___|\___|_|\_\_| |_| |_|_|\_\          |
-# |                                   custom code by Nagarro   |
-# |                                                            |
-# +------------------------------------------------------------+
-#
-# Copyright (C)  2022  DevOps InfrastructureServices@nagarro-es.com
-# for Nagarro ES GmbH
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
 
-from .agent_based_api.v1 import (
-    register,
+from cmk.agent_based.v2 import (
     Result,
     Service,
-    State
+    State,
+    CheckPlugin,
 )
 
 """
@@ -64,7 +55,7 @@ def check_dellpmax_storage_pools_subscribed(item, section):
         yield Result(state=state, summary=summary)
 
 
-register.check_plugin(
+check_plugin_dell_pmax_storage_pools_subscripted = CheckPlugin(
     name="dellpmax_storage_pools_subscribed",
     sections=["dellpmax_storage_pools"],
     service_name="Subscribed Capacity %s",
@@ -80,7 +71,7 @@ def check_dellpmax_storage_pools_snapshot(item, section):
             yield Result(state=State.OK, summary=summary)
 
 
-register.check_plugin(
+check_plugin_dell_pmax_storage_pools_snapshot = CheckPlugin(
     name="dellpmax_storage_pools_snapshot",
     sections=["dellpmax_storage_pools"],
     service_name="Snapshot Capacity %s",
@@ -105,7 +96,7 @@ def check_dellpmax_storage_pools_usable(item, section):
             yield Result(state=state, summary=summary)
 
 
-register.check_plugin(
+check_plugin_dell_pmax_storage_pools = CheckPlugin(
     name="dellpmax_storage_pools",
     service_name="Usable Capacity %s",
     discovery_function=discover_dellpmax_storage_pools,
