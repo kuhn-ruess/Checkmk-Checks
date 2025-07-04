@@ -59,7 +59,7 @@ def generate_powermanx_command(params: AgentPowermaxUParams, host_config: HostCo
 
     args.append("--hostname")
     if params.use_ip:
-        args.append(host_config.ipv4_address)
+        args.append(host_config.ipv4_config.address)
     else:
         args.append(host_config.name)
 
