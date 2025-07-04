@@ -159,15 +159,6 @@ def parse_alertmanager(string_table: StringTable) -> Section:
             )
     return section
 
-# Mode if orginal alertmanager.py still is there,
-# But then the parse_function is not used
-#agent_section_alertmanager_custom = AgentSection(
-#    name="alertmanager_kr",
-#    parsed_section_name="alertmanager",
-#    parse_function=parse_alertmanager,
-#)
-
-# Standalone mode, with alertmanager.py of Checkmk Deleted
 agent_section_alertmanager_custom = AgentSection(
     name="alertmanager",
     parse_function=parse_alertmanager,
