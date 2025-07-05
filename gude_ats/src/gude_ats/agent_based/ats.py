@@ -11,8 +11,7 @@ from cmk.agent_based.v2 import (
     Service,
     Result,
     State,
-    Metric,
-    SimpleSNMPSection,
+    SNMPSection,
     SNMPTree,
     contains,
     CheckPlugin,
@@ -21,17 +20,19 @@ from cmk.agent_based.v2 import (
 def parse_gude_ats(string_table):
     return string_table
 
-snmp_section_gude_ats = SimpleSNMPSection(
+snmp_section_gude_ats = SNMPSection(
     name = "gude_ats",
     parse_function = parse_gude_ats,
-    fetch = SNMPTree(
-        base = '.1.3.6.1.4.1.28507.41.1.5.11',
-        oids = [
-            '1.0', # Primary Power Available
-            '2.0', # Secondary Power Available
-            '4.0', # Current Channel
-        ],
-    ),
+    fetch = [
+        SNMPTree(
+            base = ".1.3.6.1.4.1.28507.41.1.5.11",
+            oids = [
+                "1.0", # Primary Power Available
+                "2.0", # Secondary Power Available
+                "4.0", # Current Channel
+            ],
+        ),
+    ],
     detect = contains(".1.3.6.1.2.1.1.1.0", "UTE ATS"),
 )
 
