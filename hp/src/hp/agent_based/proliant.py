@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
-# Copyright (C) 2019 Checkmk GmbH - License: GNU General Public License v2
-# This file is part of Checkmk (https://checkmk.com). It is subject to the terms and
-# conditions defined in the file COPYING, which is part of this source code package.
+
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
 
 # .1.3.6.1.4.1.232.11.1.3.0  1
 # .1.3.6.1.4.1.232.11.2.14.1.1.5.0  "2009.05.18"
@@ -12,13 +15,13 @@ from cmk.agent_based.v2 import (
     Service,
     Result,
     State,
-    Metric,
     SimpleSNMPSection,
     all_of,
     any_of,
     contains,
     exists,
     SNMPTree,
+    CheckPlugin,
 )
 
 def parse_hp_proliant_general(string_table):
@@ -45,12 +48,12 @@ snmp_section_hp_proliant = SimpleSNMPSection(
     ),
 )
 
-def discover_proliant_general(section):
+def discover_hp_proliant_general(section):
     if section and len(section[0]) > 1 and section[0][0]:
         yield Service()
 
 
-def check_proliant_general(section):
+def check_hp_proliant_general(section):
     if not section:
         yield Result(state=State.UNKNOWN, summary="Data missing")
 
@@ -63,11 +66,11 @@ def check_proliant_general(section):
             "4": (State.CRIT, "failed"),
         }
 
-        status, firmware, serial_number = info[0]
+        status, firmware, serial_number = section[0]
         state, state_readable = map_states.get(status, (3, "unhandled[%s]" % status))
-        yield Result(state=state, summary=f"Status: {state_readable}, Firmware: {firmware}, S/N: {serial_number}"
+        yield Result(state=state, summary=f"Status: {state_readable}, Firmware: {firmware}, S/N: {serial_number}")
 
- check_plugin_hp_proliant = CheckPlugin(
+check_plugin_hp_proliant = CheckPlugin(
     name = "hp_proliant",
     service_name = "General Status",
     discovery_function = discover_hp_proliant_general,
