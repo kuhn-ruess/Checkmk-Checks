@@ -9,14 +9,12 @@ https://kuhn-ruess.de
 from cmk.agent_based.v2 import (
     all_of,
     contains,
-    register,
-    render,
-    Metric,
-    OIDEnd,
     Result,
     Service,
     SNMPTree,
     State,
+    SNMPSection,
+    CheckPlugin,
 )
 
 def _item_acgateway_ipgroup(line):
@@ -44,19 +42,21 @@ def parse_acgateway_ipgroup(string_table):
         }
     return section
 
-snmp_section_acgateway_ipgroup = SimpleSNMPSection(
+snmp_section_acgateway_ipgroup = SNMPSection(
     name = "acgateway_ipgroup",
     parse_function = parse_acgateway_ipgroup,
-    fetch = SNMPTree(
-        base = '.1.3.6.1.4.1.5003.9.10.3.1.1.23.21.1',
-        oids = [
-            '1',  # 0  AcGateway::ipGroupIndex
-            '2',  # 1  AcGateway::ipGroupRowStatus
-            '5',  # 2  AcGateway::ipGroupType
-            '6',  # 3  AcGateway::ipGroupDescription
-            '31', # 4  AcGateway::ipGroupName
-        ]
-    ),
+    fetch = [
+        SNMPTree(
+            base = ".1.3.6.1.4.1.5003.9.10.3.1.1.23.21.1",
+            oids = [
+                "1",  # 0  AcGateway::ipGroupIndex
+                "2",  # 1  AcGateway::ipGroupRowStatus
+                "5",  # 2  AcGateway::ipGroupType
+                "6",  # 3  AcGateway::ipGroupDescription
+                "31", # 4  AcGateway::ipGroupName
+            ],
+        ),
+    ],
     detect = all_of(
         contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
         contains(".1.3.6.1.2.1.1.1.0", "SW Version: 7.20A"),
@@ -80,7 +80,7 @@ def check_acgateway_ipgroup(item, params, section):
                 yield Result(state=State.CRIT,
                              summary='%s is %s' % (param, data.get(param)))
 
-check_plugin_acgatgeway_ipgroup(
+check_plugin_acgatgeway_ipgroup = CheckPlugin(
     name = "acgateway_ipgroup",
     service_name = "IP Group %s",
     discovery_function = discover_acgateway_ipgroup,
