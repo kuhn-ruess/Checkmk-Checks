@@ -6,16 +6,17 @@ Consulting and Development
 https://kuhn-ruess.de
 """
 
-from mk.agent_based.v2 import (
+from cmk.agent_based.v2 import (
     all_of,
     contains,
-    register,
     render,
     Metric,
     Result,
     Service,
     SNMPTree,
     State,
+    SNMPSection,
+    CheckPlugin,
 )
 
 from datetime import datetime
@@ -65,27 +66,27 @@ def parse_acgateway_alarms(string_table):
         })
     return section
     
-snmp_section_acgateway_alarms = SimpleSNMPSection(
+snmp_section_acgateway_alarms = SNMPSection(
     name = "acgateway_alarms",
     parse_function = parse_acgateway_alarms,
     fetch = [
         SNMPTree(
             base = ".1.3.6.1.4.1.5003.11.1.1.1.1",
             oids = [
-                '1', # AcAlarm::acActiveAlarmSequenceNumber
-                '2', # AcAlarm::acActiveAlarmSysuptime
-                '4', # AcAlarm::acActiveAlarmDateAndTime
-                '5', # AcAlarm::acActiveAlarmName
-                '6', # AcAlarm::acActiveAlarmTextualDescription
-                '7', # AcAlarm::acActiveAlarmSource
-                '8', # AcAlarm::acActiveAlarmSeverity
-            ]
+                "1", # AcAlarm::acActiveAlarmSequenceNumber
+                "2", # AcAlarm::acActiveAlarmSysuptime
+                "4", # AcAlarm::acActiveAlarmDateAndTime
+                "5", # AcAlarm::acActiveAlarmName
+                "6", # AcAlarm::acActiveAlarmTextualDescription
+                "7", # AcAlarm::acActiveAlarmSource
+                "8", # AcAlarm::acActiveAlarmSeverity
+            ],
         ),
         SNMPTree(
             base = ".1.3.6.1.4.1.5003.11.1.2.1.1",
             oids = [
-                '1', # AcAlarm::acAlarmHistorySequenceNumber
-            ]
+                "1", # AcAlarm::acAlarmHistorySequenceNumber
+            ],
         ),
     ],
     detect = all_of(

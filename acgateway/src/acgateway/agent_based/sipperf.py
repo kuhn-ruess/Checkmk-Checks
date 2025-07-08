@@ -11,12 +11,13 @@ from cmk.agent_based.v2 import (
     contains,
     get_rate,
     get_value_store,
-    register,
     Metric,
     Result,
     Service,
     SNMPTree,
     State,
+    SNMPSection,
+    CheckPlugin,
 )
 
 from time import time
@@ -24,7 +25,7 @@ from time import time
 def parse_acgateway_sipperf(string_table):
     return string_table
 
-snmp_section_acgateway_sipperf = SimpleSNMPSection(
+snmp_section_acgateway_sipperf = SNMPSection(
     name = "acgateway_sipperf",
     parse_function = parse_acgateway_sipperf,
     fetch = [
@@ -41,7 +42,7 @@ snmp_section_acgateway_sipperf = SimpleSNMPSection(
                 '8.0',  # AcPerfH323SIPGateway::acPerfTel2IPFaxAttemptedCalls
                 '9.0',  # AcPerfH323SIPGateway::acPerfTel2IPFaxSuccessCalls
                 '10.0', # AcPerfH323SIPGateway::acPerfTel2IPTotalDuration
-            ]
+            ],
         ),
         SNMPTree(
             base = '.1.3.6.1.4.1.5003.10.3.1.1.2',
@@ -56,7 +57,7 @@ snmp_section_acgateway_sipperf = SimpleSNMPSection(
                 '8.0',  # AcPerfH323SIPGateway::acPerfIP2TelFaxAttemptedCalls
                 '9.0',  # AcPerfH323SIPGateway::acPerfIP2TelFaxSuccessCalls
                 '10.0', # AcPerfH323SIPGateway::acPerfIP2TelTotalDuration
-            ]
+            ],
         ),
     ],
     detect = all_of(

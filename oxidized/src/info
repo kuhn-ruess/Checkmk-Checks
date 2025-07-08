@@ -1,10 +1,10 @@
 {'author': 'Kuhn & Rueß GmbH',
  'description': 'Export host for oxidized every 15 minutes.\n',
  'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
- 'files': {'bin': ['export_oxidized.py']},
+ 'files': {'bin': ['export_oxidized']},
  'name': 'oxidized',
  'title': 'Oxidized export',
- 'version': '1.0.0',
+ 'version': '1.0.1',
  'version.min_required': '2.3.0b1',
  'version.packaged': '2.4.0p5',
  'version.usable_until': None}

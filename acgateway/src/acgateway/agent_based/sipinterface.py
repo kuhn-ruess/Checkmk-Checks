@@ -9,14 +9,13 @@ https://kuhn-ruess.de
 from cmk.agent_based.v2 import (
     all_of,
     contains,
-    register,
-    render,
-    Metric,
     OIDEnd,
     Result,
     Service,
     SNMPTree,
     State,
+    SNMPSection,
+    CheckPlugin,
 )
 
 def _item_acgateway_sipinterface(line):
@@ -88,54 +87,54 @@ def parse_acgateway_sipinterface(string_table):
                         })
     return section
 
-snmp_section_acgateway_sipinterface = SimpleSNMPSection(
+snmp_section_acgateway_sipinterface = SNMPSection(
     name = "acgateway_sipinterface",
     parse_function = parse_acgateway_sipinterface,
-    fetch=[
+    fetch = [
         SNMPTree(
-            base = '.1.3.6.1.4.1.5003.9.10.3.1.1.27.21.1',
+            base = ".1.3.6.1.4.1.5003.9.10.3.1.1.27.21.1",
             oids = [
-                '1',  # 0  AcGateway::sipInterfaceIndex
-                '2',  # 1  AcGateway::sipInterfaceRowStatus
-                '3',  # 2  AcGateway::sipInterfaceAction
-                '4',  # 3  AcGateway::sipInterfaceActionResult
-                '5',  # 4  AcGateway::sipInterfaceNetworkInterface
-                '6',  # 5  AcGateway::sipInterfaceApplicationType
-                '7',  # 6  AcGateway::sipInterfaceUDPPort
-                '8',  # 7  AcGateway::sipInterfaceTCPPort
-                '9',  # 8  AcGateway::sipInterfaceTLSPort
-                '10', # 9  AcGateway::sipInterfaceSRD
-                '11', # 10 AcGateway::sipInterfaceInterfaceName
-            ]
+                "1",  # 0  AcGateway::sipInterfaceIndex
+                "2",  # 1  AcGateway::sipInterfaceRowStatus
+                "3",  # 2  AcGateway::sipInterfaceAction
+                "4",  # 3  AcGateway::sipInterfaceActionResult
+                "5",  # 4  AcGateway::sipInterfaceNetworkInterface
+                "6",  # 5  AcGateway::sipInterfaceApplicationType
+                "7",  # 6  AcGateway::sipInterfaceUDPPort
+                "8",  # 7  AcGateway::sipInterfaceTCPPort
+                "9",  # 8  AcGateway::sipInterfaceTLSPort
+                "10", # 9  AcGateway::sipInterfaceSRD
+                "11", # 10 AcGateway::sipInterfaceInterfaceName
+            ],
         ),
         SNMPTree(
-            base = '.1.3.6.1.4.1.5003.9.10.10.1.3.1.30.22.1',
+            base = ".1.3.6.1.4.1.5003.9.10.10.1.3.1.30.22.1",
             oids = [
                 OIDEnd(),
-                '2',  # 1  AC-SYSTEM-MIB::acSysInterfaceRowStatus
-                '5',  # 2  AC-SYSTEM-MIB::acSysInterfaceApplicationTypes
-                '6',  # 3  AC-SYSTEM-MIB::acSysInterfaceMode
-                '7',  # 4  AC-SYSTEM-MIB::acSysInterfaceIPAddress
-                '8',  # 5  AC-SYSTEM-MIB::acSysInterfacePrefixLength
-                '9',  # 6  AC-SYSTEM-MIB::acSysInterfaceGateway
-                '10', # 7  AC-SYSTEM-MIB::acSysInterfaceVlanID
-                '11', # 8  AC-SYSTEM-MIB::acSysInterfaceName
-                '12', # 9  AC-SYSTEM-MIB::acSysInterfacePrimaryDNSServerIPAddress
-                '13', # 10 AC-SYSTEM-MIB::acSysInterfaceSecondaryDNSServerIPAddress
-                '14', # 11 AC-SYSTEM-MIB::acSysInterfaceUnderlyingInterface
-                '15', # 12 AC-SYSTEM-MIB::acSysInterfaceUnderlyingDevice
-            ]
+                "2",  # 1  AC-SYSTEM-MIB::acSysInterfaceRowStatus
+                "5",  # 2  AC-SYSTEM-MIB::acSysInterfaceApplicationTypes
+                "6",  # 3  AC-SYSTEM-MIB::acSysInterfaceMode
+                "7",  # 4  AC-SYSTEM-MIB::acSysInterfaceIPAddress
+                "8",  # 5  AC-SYSTEM-MIB::acSysInterfacePrefixLength
+                "9",  # 6  AC-SYSTEM-MIB::acSysInterfaceGateway
+                "10", # 7  AC-SYSTEM-MIB::acSysInterfaceVlanID
+                "11", # 8  AC-SYSTEM-MIB::acSysInterfaceName
+                "12", # 9  AC-SYSTEM-MIB::acSysInterfacePrimaryDNSServerIPAddress
+                "13", # 10 AC-SYSTEM-MIB::acSysInterfaceSecondaryDNSServerIPAddress
+                "14", # 11 AC-SYSTEM-MIB::acSysInterfaceUnderlyingInterface
+                "15", # 12 AC-SYSTEM-MIB::acSysInterfaceUnderlyingDevice
+            ],
         ),
         SNMPTree(
-            base = '.1.3.6.1.4.1.5003.9.10.10.1.3.1.30.26.1',
+            base = ".1.3.6.1.4.1.5003.9.10.10.1.3.1.30.26.1",
             oids = [
                 OIDEnd(),
-                '2',  # 1  AC-SYSTEM-MIB::acSysEthernetDeviceRowStatus
-                '3',  # 2  AC-SYSTEM-MIB::acSysEthernetDeviceAction
-                '4',  # 3  AC-SYSTEM-MIB::acSysEthernetDeviceActionRes
-                '5',  # 4  AC-SYSTEM-MIB::acSysEthernetDeviceVlanID
-                '7',  # 5  AC-SYSTEM-MIB::acSysEthernetDeviceName
-            ]
+                "2",  # 1  AC-SYSTEM-MIB::acSysEthernetDeviceRowStatus
+                "3",  # 2  AC-SYSTEM-MIB::acSysEthernetDeviceAction
+                "4",  # 3  AC-SYSTEM-MIB::acSysEthernetDeviceActionRes
+                "5",  # 4  AC-SYSTEM-MIB::acSysEthernetDeviceVlanID
+                "7",  # 5  AC-SYSTEM-MIB::acSysEthernetDeviceName
+            ],
         ),
     ],
     detect = all_of(
