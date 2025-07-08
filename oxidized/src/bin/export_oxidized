@@ -14,6 +14,9 @@ from re import search
 from requests import Session
 from subprocess import run
 from sys import argv
+from urllib3 import disable_warnings
+
+disable_warnings()
 
 
 def export(log=None, verify=True):
@@ -89,7 +92,7 @@ def cron(log=None):
         data = """#
 # Export for Oxidized
 #
-*/15 * * * * (flock -n 200; $OMD_ROOT/local/bin/export_oxidized --cron --dis-verify) 200>/omd/sites/mon/tmp/export_oxidized.lock
+*/15 * * * * (flock -n 200; mk-job oxidized-daily export_oxidized --cron --dis-verify 1>$OMD_ROOT/war/www/open/oxidized.json) 200>/omd/sites/mon/tmp/export_oxidized.lock
 """
         with open(path, "w") as f:
             f.write(data)
@@ -101,9 +104,9 @@ if __name__ == '__main__':
     logger = getLogger(__name__)
 
     if "--dis-verify" in argv:
-        disable_verify = True
-    else:
         disable_verify = False
+    else:
+        disable_verify = True
 
     if "--debug" in argv:
         logger.setLevel(DEBUG)
