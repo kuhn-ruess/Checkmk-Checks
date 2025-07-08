@@ -7,7 +7,6 @@ https://kuhn-ruess.de
 """
 
 from cmk.agent_based.v2 import (
-    all_of,
     contains,
     render,
     Metric,
@@ -53,7 +52,7 @@ def parse_acgateway_alarms(string_table):
         'alarms': [],
         'archived': len(string_table[1]),
     }
-    for alarm in string_table[0]:
+    for alarm in string_table:
         section['alarms'].append({
             'seq': int(alarm[0]),
             'sysuptime': int(alarm[1]),
@@ -89,10 +88,7 @@ snmp_section_acgateway_alarms = SNMPSection(
             ],
         ),
     ],
-    detect = all_of(
-        contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
-        contains(".1.3.6.1.2.1.1.1.0", "SW Version: 7.20A"),
-    ),
+    detect = contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
 )
 
 def discover_acgateway_alarms(section):

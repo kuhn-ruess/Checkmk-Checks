@@ -7,7 +7,6 @@ https://kuhn-ruess.de
 """
 
 from cmk.agent_based.v2 import (
-    all_of,
     contains,
     Result,
     Service,
@@ -32,7 +31,7 @@ def parse_acgateway_ipgroup(string_table):
         '2': 'gateway',
     }
     section = {}
-    for line in string_table:
+    for line in string_table[0]:
         item = _item_acgateway_ipgroup(line)
         section[item] = {
             'ipgroupstatus': rowStatus.get(line[1], 'unknown'),
@@ -57,10 +56,7 @@ snmp_section_acgateway_ipgroup = SNMPSection(
             ],
         ),
     ],
-    detect = all_of(
-        contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
-        contains(".1.3.6.1.2.1.1.1.0", "SW Version: 7.20A"),
-    ),
+    detect = contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
 )
 
 def discover_acgateway_ipgroup(section):
