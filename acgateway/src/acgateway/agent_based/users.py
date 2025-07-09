@@ -7,7 +7,6 @@ https://kuhn-ruess.de
 """
 
 from cmk.agent_based.v2 import (
-    all_of,
     contains,
     Metric,
     Result,
@@ -20,8 +19,8 @@ from cmk.agent_based.v2 import (
 
 def parse_acgateway_users(string_table):
     section = None
-    if len(string_table) == 1:
-        for tx_trans, rx_trans, users in string_table:
+    if len(string_table[0]) == 1:
+        for tx_trans, rx_trans, users in string_table[0]:
             section = {
                 'tx_trans': int(tx_trans),
                 'rx_trans': int(rx_trans),
@@ -42,10 +41,7 @@ snmp_section_acgateway_users = SNMPSection(
             ],
         ),
     ],
-    detect = all_of(
-        contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
-        contains(".1.3.6.1.2.1.1.1.0", "SW Version: 7.20A"),
-    ),
+    detect = contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
 )
 
 def discover_acgateway_users(section):

@@ -18,7 +18,7 @@ from cmk.agent_based.v2 import (
 )
 
 def parse_gude_ats(string_table):
-    return string_table
+    return string_table[0]
 
 snmp_section_gude_ats = SNMPSection(
     name = "gude_ats",

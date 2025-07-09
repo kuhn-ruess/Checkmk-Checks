@@ -7,7 +7,6 @@ https://kuhn-ruess.de
 """
 
 from cmk.agent_based.v2 import (
-    all_of,
     contains,
     get_rate,
     get_value_store,
@@ -25,8 +24,8 @@ from time import time
 
 def parse_acgateway_calls(string_table):
     section = None
-    if len(string_table) == 1:
-        for active_calls, total_calls, asr, acd in string_table:
+    if len(string_table[0]) == 1:
+        for active_calls, total_calls, asr, acd in string_table[0]:
             section = {
                 'active_calls': int(active_calls),
                 'total_calls': int(total_calls),
@@ -49,10 +48,7 @@ snmp_section_acgateway_calls = SNMPSection(
             ],
         ),
     ],
-    detect = all_of(
-        contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
-        contains(".1.3.6.1.2.1.1.1.0", "SW Version: 7.20A"),
-    ),
+    detect = contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
 )
 
 def discover_acgateway_calls(section):

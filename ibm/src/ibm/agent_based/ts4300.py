@@ -17,7 +17,7 @@ from cmk.agent_based.v2 import (
 )
 
 def parse_ibm_ts4300(string_table):
-    return string_table
+    return string_table[0]
 
 snmp_section_ibm_ts4300 = SNMPSection(
     name = "ibm_ts4300",

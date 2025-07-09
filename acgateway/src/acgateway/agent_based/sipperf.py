@@ -7,7 +7,6 @@ https://kuhn-ruess.de
 """
 
 from cmk.agent_based.v2 import (
-    all_of,
     contains,
     get_rate,
     get_value_store,
@@ -60,10 +59,7 @@ snmp_section_acgateway_sipperf = SNMPSection(
             ],
         ),
     ],
-    detect = all_of(
-        contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
-        contains(".1.3.6.1.2.1.1.1.0", "SW Version: 7.20A"),
-    ),
+    detect = contains(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.5003.8.1.1"),
 )
 
 def discover_acgateway_sipperf(section):
