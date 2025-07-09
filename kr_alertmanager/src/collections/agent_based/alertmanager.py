@@ -214,7 +214,7 @@ def check_alertmanager_rules(item: str, params: CheckParams, section: Section) -
 
 
 check_plugin_alertmanager_rules = CheckPlugin(
-    name="alertmanager_rules_custom",
+    name="alertmanager_rules",
     sections=["alertmanager"],
     service_name="Alert Rule %s",
     check_function=check_alertmanager_rules,
@@ -259,7 +259,7 @@ def check_alertmanager_groups(item: str, params: CheckParams, section: Section) 
 
 
 check_plugin_alertmanager_groups = CheckPlugin(
-    name="alertmanager_groups_custom",
+    name="alertmanager_groups",
     sections=["alertmanager"],
     service_name="Alert Rule Group %s",
     check_function=check_alertmanager_groups,
@@ -302,7 +302,7 @@ def check_alertmanager_summary(params: CheckParams, section: Section) -> CheckRe
 
 
 check_plugin_alertmanager_summary = CheckPlugin(
-    name="alertmanager_summary_custom",
+    name="alertmanager_summary",
     sections=["alertmanager"],
     service_name="Alertmanager Summary",
     check_function=check_alertmanager_summary,
