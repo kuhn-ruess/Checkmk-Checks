@@ -8,7 +8,7 @@
                 'WARNING: When using Checkmk 2.3, you need to DELETE the '
                 'shipped Alert Manager Plugin to make this work. From 2.4 on, '
                 'it works out of the box.\n',
- 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/tree/master/kr_alertmanager',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/tree/master/alertmanager_extended',
  'files': {'cmk_addons_plugins': ['kr_alertmanager/rulesets/alertmanager.py'],
            'cmk_plugins': ['collection/agent_based/alertmanager.py']},
  'name': 'alertmanager_extended',
