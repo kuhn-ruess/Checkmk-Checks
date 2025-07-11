@@ -1,41 +1,15 @@
 #!/usr/bin/env python3
-# +-----------------------------------------------------------------+
-# |                                                                 |
-# |        (  ___ \     | \    /\|\     /||\     /|( (    /|        |
-# |        | (   ) )    |  \  / /| )   ( || )   ( ||  \  ( |        |
-# |        | (__/ /     |  (_/ / | |   | || (___) ||   \ | |        |
-# |        |  __ (      |   _ (  | |   | ||  ___  || (\ \) |        |
-# |        | (  \ \     |  ( \ \ | |   | || (   ) || | \   |        |
-# |        | )___) )_   |  /  \ \| (___) || )   ( || )  \  |        |
-# |        |/ \___/(_)  |_/    \/(_______)|/     \||/    )_)        |
-# |                                                                 |
-# | Copyright Bastian Kuhn 2024                mail@bastian-kuhn.de |
-# +-----------------------------------------------------------------+
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-
-# pylint: disable=consider-using-with
-
 """
- Simple Packer and (later) unpacker for MKP Files
+ Simple Packer and unpacker for MKP Files
  MKP is the Package format for Check_MK
 """
 import sys
-import os
 import io
 import json
 import tarfile
 import ast
-import shutil
 from datetime import datetime
+import os
 
 
 def usage():
@@ -47,8 +21,6 @@ def usage():
     print()
     print("OPERATIONS:")
     print(" - pack (Create MKP File in cmk 2.3 Style)")
-    print(" - pack_legacy (Create MKP File in cmk 2.2 Style)")
-    print(" - get_files (Get files from info file and move to repo")
     print()
     print("PACKAGENAME:")
     print(" - e.g. namexy is  ./namexy/src")
@@ -79,7 +51,7 @@ def _file_filter(tarinfo):
 
 
 
-def pack_suptar_23(package_name, sub_name, sub_path):
+def pack_suptar(package_name, sub_name, sub_path):
     """
     Helper to create the suptar
     """
@@ -92,18 +64,18 @@ def pack_suptar_23(package_name, sub_name, sub_path):
     tar_info = get_tar_info(sub_filename, sub_obj)
     return sub_obj, tar_info
 
-def pack_23(package_name):
+def pack(package_name):
     """
     Pack a MKP File for Checkmk Version 2.3
     """
     path = f"{package_name}/src/"
 
     #Create  info:
-    info_dict = ast.literal_eval(open(path+"/info").read())
+    info_dict = ast.literal_eval(open(path+"/info", encoding='utf-8').read())
     info_json = json.dumps(info_dict).encode('utf-8')
 
     #Pack Subfolders
-    mkp_filename = package_name+"/{name}-{version}.mkp".format(**info_dict)
+    mkp_filename = package_name+f"/{info_dict['name']}-{info_dict['version']}.mkp"
     dirs = {
         'cmk_addons_plugins': f"{package_name}",
     }
@@ -119,96 +91,58 @@ def pack_23(package_name):
         # New part:
         for folder_name, sub_path in dirs.items():
             if (folder_name in info_dict['files'] and info_dict['files'][folder_name]):
-                sub_obj, tar_info = pack_suptar_23(package_name, folder_name, sub_path)
+                sub_obj, tar_info = pack_suptar(package_name, folder_name, sub_path)
                 tar.addfile(tar_info, sub_obj)
-
-def pack_suptar(package_name, sub_name, sub_path):
+def unpack(mkp_path):
     """
-    Helper to create the suptar
+    Unpack a MKP File for Checkmk Version 2.3
     """
-    sub_filename = sub_name + ".tar"
-    sub_obj = io.BytesIO()
-    with tarfile.open(sub_filename, "w:", fileobj=sub_obj) as subtar:
-        subtar.add(package_name+"/src/"+sub_path, "")
+    mkp_filename = mkp_path.split('/')[-1]  # Get the last part of the path
+    package_name = mkp_filename.rsplit('-')[0]
+    src_path = f"{package_name}/src"
+    if os.path.exists(src_path):
+        for root, dirs, files in os.walk(src_path, topdown=False):
+            for file in files:
+                os.remove(os.path.join(root, file))
+            for dir in dirs:
+                os.rmdir(os.path.join(root, dir))
+    with tarfile.open(mkp_path, "r:gz") as tar:
+        members = tar.getmembers()
+        files_in_memory = {}
+        for member in members:
+            if member.isfile():
+                file_obj = tar.extractfile(member)
+                content = file_obj.read() if file_obj else None
+                if not member.name.endswith('.tar'):
+                    # Save non-tar files directly to disk
+                    output_path = f"{package_name}/src/{member.name}"
+                    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+                    with open(output_path, "wb") as f:
+                        if content:
+                            f.write(content)
+                else:
+                    files_in_memory[member.name] = content
 
-    sub_obj.seek(0)
-    tar_info = get_tar_info(sub_filename, sub_obj)
-    return sub_obj, tar_info
+        # Extract suptars from memory
+        for name, content in files_in_memory.items():
+            if name.endswith('.tar'):
+                subtar_bytes = io.BytesIO(content)
+                with tarfile.open(fileobj=subtar_bytes, mode="r:") as subtar:
+                    subtar_members = subtar.getmembers()
+                    # Extract files from the subtar archive into memory
+                    extracted_files = {}
+                    for m in subtar_members:
+                        if m.isfile():
+                            file_obj = subtar.extractfile(m)
+                            extracted_files[m.name] = file_obj.read() if file_obj else None
+                            # Save extracted files to disk
+                            output_path = f"{package_name}/src/{m.name}"
+                            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+                            with open(output_path, "wb") as f:
+                                if extracted_files[m.name]:
+                                    f.write(extracted_files[m.name])
 
-def pack(package_name):
-    """
-    DEPRECATED: Pack a MKP File
-    """
-    special_dirs = {
-        'agent_based': 'base/plugins/agent_based',
-    }
-
-    path = package_name+"/src"
-
-    #Create  info:
-    info_dict = ast.literal_eval(open(path+"/info").read())
-    info_json = json.dumps(info_dict).encode('utf-8')
-
-    #Pack Subfolders
-    mkp_filename = package_name+"/{name}-{version}.mkp".format(**info_dict)
-    found_legacy_folders = []
-    with tarfile.open(mkp_filename, "w:gz") as tar:
-        tar.add(path+'/info', 'info')
-
-        info_obj = io.BytesIO()
-        info_obj.write(info_json)
-        info_obj.seek(0)
-        tar_info = get_tar_info('info.json', info_obj)
-        tar.addfile(tar_info, info_obj)
-
-        # With Checkmk 2.0 the structure changed.
-        # In order to stay compatible this packer first
-        # Handels the old way, and will be improved step by step
-        # for parts in the new way
-        for sub_path in os.listdir(path):
-            if sub_path in ['info', 'info.json', 'base']:
-                continue
-            sub_obj, tar_info = pack_suptar(package_name, sub_path, sub_path)
-            found_legacy_folders.append(sub_path)
-            tar.addfile(tar_info, sub_obj)
-
-        # New part:
-        for folder_name, path in special_dirs.items():
-            if (folder_name in info_dict['files'] and info_dict['files'][folder_name]) and folder_name not in found_legacy_folders:
-                sub_obj, tar_info = pack_suptar(package_name, folder_name, path)
-                tar.addfile(tar_info, sub_obj)
-
-
-def _copy_category(cmk_type, info_dict, base_path, search_path):
-    """
-    Copy File from Local to GIT
-    """
-    for file in info_dict['files'][cmk_type]:
-        if special_dir := special_dirs.get(cmk_type):
-            src_file = f"{search_path}/lib/check_mk/{special_dir}/{file}"
-        else:
-            src_file = f"{search_path}/share/check_mk/{cmk_type}/{file}"
-        dest_file = f"{base_path}/{cmk_type}/{file}"
-        try:
-            os.makedirs((os.path.dirname((dest_file))))
-        except FileExistsError:
-            pass
-        shutil.copy(src_file, dest_file)
-        print(f"Copied {file}")
-
-
-def get_files(package_name, search_path):
-    """
-    Search files in packages infos file
-    in the given (local) path and copy them
-    into the local repo structure
-    """
-
-    base_path = package_name+"/src"
-    info_dict = ast.literal_eval(open(base_path+"/info", encoding="utf-8").read())
-
-    for file_type in info_dict['files']:
-        _copy_category(file_type, info_dict, base_path, search_path)
+    print(f"Unpacked {mkp_filename} to {package_name}")
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
@@ -219,13 +153,9 @@ if __name__ == "__main__":
     # beware of empty name, since we add /src as path
     NAME = sys.argv[2].lower()
     if OPERATION == "pack":
-        pack_23(NAME)
-    elif OPERATION == "pack_legacy":
         pack(NAME)
     elif OPERATION == "unpack":
-        print("NOT YET IMPLEMENTED")
-    elif OPERATION == "get_files":
-        get_files(NAME, sys.argv[3])
+        unpack(NAME)
     else:
         usage()
         sys.exit(1)
