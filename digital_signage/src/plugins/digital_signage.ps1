@@ -1,4 +1,7 @@
-# DSS Monitor GPU Performance
+# FMG DSS Monitor GPU Performance
+# v0.1 20250303 hoppensack inital
+# v0.2 20250307 hoppensack cmk typo
+# v0.3 20250711 bkuhn Typo in Agent Section Name
 # Load the necessary assembly for GPU information
 Add-Type -AssemblyName System.Management
 
@@ -38,7 +41,7 @@ for ($i = 0; $i -lt $gpuData.Length; $i++) {
 # {0|1|2} CheckNameNoSpace {PerformanceData} message (!) means WARNING SYMBOL (!!) means CRITICAL SYMBOL   - varname=value;warn;crit;min;max
 #Write-Output ("$Status DSS_GPU_Load 3D=$3D;80;90|Copy=$Copy;80;90|VideoProcessing=$VideoProcessing;80;90|VideoDecode=$VideoDecode;80;90 $StatusText")
 #Write-Output ("--------")
-Write-Output ("<<<digitals_signage:sep(124)>>>")
+Write-Output ("<<<digital_signage:sep(124)>>>")
 Write-Output ("GPU_Load 3D|$3D")
 Write-Output ("GPU_Load Copy|$Copy")
 Write-Output ("GPU_Load VideoProcessing|$VideoProcessing")

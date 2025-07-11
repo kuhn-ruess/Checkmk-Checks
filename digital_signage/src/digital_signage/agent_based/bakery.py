@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
-from typing import Any
+from typing import Any # type: ignore
 from pathlib import Path
 from cmk.base.cee.plugins.bakery.bakery_api.v1 import register, Plugin, PluginConfig, OS, FileGenerator
 

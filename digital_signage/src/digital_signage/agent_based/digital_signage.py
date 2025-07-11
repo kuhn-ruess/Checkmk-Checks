@@ -15,6 +15,7 @@ def parse(string_table):
     """
     Parse function
     """
+    print("Parsing digital signage section")
     return {x[0]:int(x[1]) for x in string_table} 
 
 

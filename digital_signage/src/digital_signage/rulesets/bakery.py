@@ -53,7 +53,7 @@ def _agent_config_digital_signage() -> Dictionary:
 
 rule_spec_passwort_age = AgentConfig(
     name="digital_signage",
-    title=Title("digital_sinage: Digital Signage Monitoring (Windows)"),
+    title=Title("digital_sinage: Digital Signage Monitoring (Windows)"), 
     topic=Topic.OPERATING_SYSTEM,
     parameter_form=_agent_config_digital_signage,
 )
