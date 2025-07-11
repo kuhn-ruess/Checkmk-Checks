@@ -2,7 +2,7 @@
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional # type: ignore
 
 from cmk.server_side_calls.v1 import (
     HostConfig,
@@ -58,8 +58,16 @@ def generate_powermanx_command(params: AgentPowermaxUParams, host_config: HostCo
             args.append(f'--{what}')
 
     args.append("--hostname")
+
+
     if params.use_ip:
-        args.append(host_config.ipv4_config.address)
+        try:
+            # Checkmk 2.3
+            ip_address = host_config.ipv4_address
+        except AttributeError:
+            # Checkmk 2.4
+            ip_address = host_config.primary_ip_config.address
+        args.append(ip_address)
     else:
         args.append(host_config.name)
 
@@ -72,4 +80,3 @@ special_agent_semu = SpecialAgentConfig(
     parameter_parser = AgentPowermaxUParams.model_validate,
     commands_function = generate_powermanx_command,
 )
-

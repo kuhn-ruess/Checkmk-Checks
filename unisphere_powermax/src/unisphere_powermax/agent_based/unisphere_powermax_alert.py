@@ -13,7 +13,6 @@ from cmk.agent_based.v2 import (
     Service,
     Result,
     State,
-    Metric,
     CheckPlugin,
     AgentSection,
 )
@@ -51,5 +50,5 @@ check_plugin_unisphere_powermax_alerts = CheckPlugin(
                                                  'minor': State.WARN,
                                                  'warning': State.WARN,
                                                  'info': State.OK
-                                                }}
-)
+                                                 }}
+    )
