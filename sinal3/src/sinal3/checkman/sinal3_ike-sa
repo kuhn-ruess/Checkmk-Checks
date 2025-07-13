@@ -1,0 +1,12 @@
+title: SINA L3 Devices: Active IKE-SA 
+agents: snmp
+catalog: network/security
+license: GPL
+distribution: custom
+description:
+ This check shows the count of active ike-sa sessions.
+item:
+ The name is the identifier.
+ 
+inventory:
+ One check will be created

@@ -1,0 +1,12 @@
+title: SINA L3 Device: Fan speed
+agents: snmp
+catalog: network/security
+license: GPL
+distribution: custom
+description:
+ This check monitors the state and speed of fan devices.
+item:
+ The name is the identifier.
+ 
+inventory:
+ One check per item will be created

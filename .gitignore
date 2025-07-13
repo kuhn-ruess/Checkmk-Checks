@@ -1,6 +1,7 @@
 *.swp
 *.DS_Store
 docker_mount/*
+__MACOSX
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

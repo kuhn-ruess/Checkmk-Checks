@@ -1,0 +1,13 @@
+title: SINA L3 Devices: IPSec tunnel
+agents: snmp
+catalog: network/security
+license: GPL
+distribution: custom
+description:
+ This check shows the counts of IPSec tunnes for all,
+ phase one and phase two childs.
+item:
+ The name is the identifier.
+ 
+inventory:
+ One check will be created

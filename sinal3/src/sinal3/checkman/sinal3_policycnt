@@ -1,0 +1,12 @@
+title: SINA L3 Devices: Policy count
+agents: snmp
+catalog: network/security
+license: GPL
+distribution: custom
+description:
+ This check shows the count of policies.
+item:
+ The name is the identifier.
+ 
+inventory:
+ One check will be created

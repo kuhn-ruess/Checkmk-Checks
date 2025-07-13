@@ -1,0 +1,12 @@
+title: SINA L3 Devices: ACL versions
+agents: snmp
+catalog: network/security
+license: GPL
+distribution: custom
+description:
+ This check shows the ACL versions from the device.
+item:
+ The name is the identifier.
+ 
+inventory:
+ One check will be created
