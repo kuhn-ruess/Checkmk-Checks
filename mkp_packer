@@ -132,15 +132,18 @@ def unpack(mkp_path):
                     # Extract files from the subtar archive into memory
                     extracted_files = {}
                     for m in subtar_members:
-                        if m.isfile():
+                        output_path = f"{package_name}/src/{m.name}"
+                        if m.isdir():
+                            os.makedirs(output_path, exist_ok=True)
+                        elif m.isfile():
                             file_obj = subtar.extractfile(m)
                             extracted_files[m.name] = file_obj.read() if file_obj else None
-                            # Save extracted files to disk
-                            output_path = f"{package_name}/src/{m.name}"
                             os.makedirs(os.path.dirname(output_path), exist_ok=True)
-                            with open(output_path, "wb") as f:
-                                if extracted_files[m.name]:
-                                    f.write(extracted_files[m.name])
+                            # Only open files, not directories
+                            if not os.path.isdir(output_path):
+                                with open(output_path, "wb") as f:
+                                    if extracted_files[m.name]:
+                                        f.write(extracted_files[m.name])
 
     print(f"Unpacked {mkp_filename} to {package_name}")
 
