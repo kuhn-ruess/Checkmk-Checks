@@ -137,7 +137,7 @@ def _valuespec_special_agent_unisphere_powermax():
                         prefill = InputHint(30)
                     ),
                 ),
-                "no_cert_check": DictElement(
+                "noCertCheck": DictElement(
                     parameter_form = BooleanChoice(
                         title = Title("Disable SSL certificate validation"),
                         label = Label("disable SSL"),

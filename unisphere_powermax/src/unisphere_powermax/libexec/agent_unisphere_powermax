@@ -4,19 +4,19 @@
 Agent Unisphere
 """
 
-import argparse
+import argparse # type: ignore
 import sys
 import os
 import json
-import threading
-from queue import Queue
+import threading # type: ignore
+from queue import Queue # type: ignore
 import time
 from random import randint
 import re
-import inspect
+import inspect # type: ignore
 
 import requests
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
+from urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
@@ -433,7 +433,7 @@ if __name__ == '__main__':
     parser.add_argument('--user', dest='user', required=True, help='Unisphere API username')
     parser.add_argument('--password', dest='password', required=True, help='Unisphere API password')
     parser.add_argument('--port', default='8443', dest='port', help='Unisphere API port (default: 8443)')
-    parser.add_argument('--cache-time', default=30, type=int, dest='cache', help='Use cache for long running queries like masing view info.(default: 30 minues)')
+    parser.add_argument('--cache_time', default=30, type=int, dest='cache', help='Use cache for long running queries like masing view info.(default: 30 minues)')
     parser.add_argument('--hostname', help='Hostname or IP of the Unisphere API Server')
     parser.add_argument('--enableRemoteSymChecks', help='gather information from remote Symmetrix', action='store_true')
     parser.add_argument('--noCertCheck', help='do not verify ssl certificates', action='store_true')

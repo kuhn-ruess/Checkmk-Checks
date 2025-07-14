@@ -26,7 +26,7 @@ class AgentPowermaxUParams(BaseModel):
     disablegetMaskingViewInfo: Optional[bool] = None
     enableRemoteSymChecks: Optional[bool] = None
     cache_time: Optional[int] = None
-    no_cert_check: Optional[bool] = None
+    noCertCheck: Optional[bool] = None
 
 
 def generate_powermanx_command(params: AgentPowermaxUParams, host_config: HostConfig):
@@ -52,7 +52,7 @@ def generate_powermanx_command(params: AgentPowermaxUParams, host_config: HostCo
         "disablegetMaskingViewInfo",
         "enableRemoteSymChecks",
         "cache_time",
-        "no_cert_check",
+        "noCertCheck",
         ]:
         if getattr(params, what):
             args.append(f'--{what}')
