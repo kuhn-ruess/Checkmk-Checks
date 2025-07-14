@@ -126,24 +126,29 @@ def unpack(mkp_path):
         # Extract suptars from memory
         for name, content in files_in_memory.items():
             if name.endswith('.tar'):
+                print(f"Starting with: {name}")
                 subtar_bytes = io.BytesIO(content)
+                plugin_name = name.split('.')[0]
+                # Determine subfolder name
+                subfolder = plugin_name if plugin_name != "cmk_addons_plugins" else ""
                 with tarfile.open(fileobj=subtar_bytes, mode="r:") as subtar:
                     subtar_members = subtar.getmembers()
                     # Extract files from the subtar archive into memory
                     extracted_files = {}
                     for m in subtar_members:
-                        output_path = f"{package_name}/src/{m.name}"
+                        # Prepend subfolder if needed
+                        output_path = f"{package_name}/src/{subfolder}/{m.name}" if subfolder else f"{package_name}/src/{m.name}"
                         if m.isdir():
+                            print(" - Creating directory:", output_path)
                             os.makedirs(output_path, exist_ok=True)
                         elif m.isfile():
+                            print(" - Extracting file:", output_path)
                             file_obj = subtar.extractfile(m)
                             extracted_files[m.name] = file_obj.read() if file_obj else None
                             os.makedirs(os.path.dirname(output_path), exist_ok=True)
-                            # Only open files, not directories
-                            if not os.path.isdir(output_path):
-                                with open(output_path, "wb") as f:
-                                    if extracted_files[m.name]:
-                                        f.write(extracted_files[m.name])
+                            with open(output_path, "wb") as f:
+                                if extracted_files[m.name]:
+                                    f.write(extracted_files[m.name])
 
     print(f"Unpacked {mkp_filename} to {package_name}")
 
