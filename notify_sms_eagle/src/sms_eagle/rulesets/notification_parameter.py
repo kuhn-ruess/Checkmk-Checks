@@ -1,4 +1,4 @@
-from typing import cast
+from typing import cast # type: ignore
 from cmk.rulesets.v1 import Help, Title
 from cmk.gui.valuespec import Dictionary as ValueSpecDictionary
 from cmk.rulesets.v1.form_specs import (
@@ -34,17 +34,10 @@ class NotificationParameterSMSEagle(NotificationParameter):
                     ),
                     required = True,
                 ),
-                "username": DictElement(
-                    parameter_form = String(
-                        title = Title("Username"),
-                        help_text = Help("User to connect via Auth Basic"),
-                    ),
-                    required = True,
-                ),
-                "password": DictElement(
+                "api_token": DictElement(
                     parameter_form = Password(
-                        title = Title("Password"),
-                        help_text = Help("Password of the user"),
+                        title = Title("API Token"),
+                        help_text = Help("API Access Token"),
                     ),
                     required = True,
                 ),

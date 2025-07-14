@@ -27,8 +27,7 @@ class NotifyEagle():
         context = utils.collect_context()
         self.config = {
             'api_host': context['PARAMETER_API_HOST'],
-            'username': context['PARAMETER_USERNAME'],
-            'password': get_password_from_env_or_context(key="PARAMETER_PASSWORD", context=context),
+            'api_token': get_password_from_env_or_context(key="PARAMETER_API_TOKEN", context=context),
         }
         self.context = context
 
@@ -53,15 +52,17 @@ class NotifyEagle():
         """
         Main part
         """
-        url = f"{self.config['api_host']}/index.php/http_api/send_sms"
+        url = f"{self.config['api_host']}/api/v2/messages/sms_single"
         payload = {
-            'login': self.config['username'],
-            'pass': self.config['password'],
             'to': self.context['CONTACTPAGER'],
-            'message': self.get_message(),
+            'text': self.get_message(),
 
         }
-        response = requests.get(url, params=payload, verify=False, timeout=10)
+        headers ={
+            'access-token': self.config['api_token'],
+            'Content-Type': 'application/json',
+        }
+        response = requests.get(url, params=payload, headers=headers, timeout=10)
         if response.status_code != 200:
             print(response.text, response.url)
             return 1

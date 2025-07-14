@@ -1,0 +1,12 @@
+{'author': 'Kuhn & Rueß GmbH',
+ 'description': 'SMS Eagle Notification Plugin for Checkmk 2.4\n'
+                'Uses the new Eagle API with Token Auth\n',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
+ 'files': {'cmk_addons_plugins': ['sms_eagle/rulesets/notification_parameter.py'],
+           'notifications': ['sms_eagle']},
+ 'name': 'notify_sms_eagle',
+ 'title': 'SMS Eagle Notification',
+ 'version': '2.1.0',
+ 'version.min_required': '2.4.0',
+ 'version.packaged': '2.4.0',
+ 'version.usable_until': None}
