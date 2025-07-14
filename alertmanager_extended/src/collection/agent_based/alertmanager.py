@@ -5,8 +5,8 @@
 """Alertmanager Check"""
 
 import json
-from enum import StrEnum
-from typing import NamedTuple, TypedDict
+from enum import StrEnum # type: ignore
+from typing import NamedTuple, TypedDict # type: ignore
 
 from cmk.agent_based.v2 import (
     AgentSection,
@@ -197,6 +197,8 @@ def check_alertmanager_rules(item: str, params: CheckParams, section: Section) -
                                 status = State.CRIT
                             elif severity == 'warning' or severity == 'error':
                                 status = State.WARN
+                            else:
+                                status = State.OK
                 if severity != 'not_applicable':
                     yield Result(
                         state=State.OK,
@@ -250,6 +252,22 @@ def check_alertmanager_groups(item: str, params: CheckParams, section: Section) 
         yield Result(state=State.OK, summary="Number of rules: %s" % len(group))
         for rule in group.values():
             status = _get_rule_state(rule, params)
+            if severity := _get_severity(params, rule.severity):
+                if status != State.OK:
+                    # Overwrite Severity if is firing
+                    if severity_state := params.get("severity_state",{}):
+                        if severity_state['sev_state']:
+                            if severity == 'critical' or severity == 'alert':
+                                status = State.CRIT
+                            elif severity == 'warning' or severity == 'error':
+                                status = State.WARN
+                            else:
+                                status = State.OK
+                if severity != 'not_applicable':
+                    yield Result(
+                        state=State.OK,
+                        summary="Severity: %s" % severity,
+                    )
             if status != State.OK:
                 yield Result(
                     state=status,
