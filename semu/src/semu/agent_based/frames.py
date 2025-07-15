@@ -66,13 +66,13 @@ def check_service(params,section):
     yield Result(state=State.OK, summary=f'Illumniation: {section['illumination']}')
 
 
-agent_section_semu_frames = AgentSection(
+agent_section_cmdb_syncer_service = AgentSection(
     name = 'semu_frames',
     parse_function = parse_function,
 )
 
 
-check_plugin_semu_frames = CheckPlugin(
+check_plugin_cmdb_syncer_service = CheckPlugin(
     name = 'semu_frames',
     sections = ['semu_frames'],
     service_name = 'Framerate',

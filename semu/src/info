@@ -1,0 +1,13 @@
+{'author': 'Kuhn & Ruess GmbH',
+ 'description': 'Special Agent Based SEMU Monitoring\n',
+ 'download_url': 'https://kuhn-ruess.de',
+ 'files': {'cmk_addons_plugins': ['semu/agent_based/frames.py',
+                                  'semu/libexec/agent_semu',
+                                  'semu/rulesets/ruleset.py',
+                                  'semu/server_side_calls/agent_semu.py']},
+ 'name': 'semu',
+ 'title': 'Semu Frame Monitoring',
+ 'version': '1.0.1',
+ 'version.min_required': '2.3.0p1',
+ 'version.packaged': '2.4.0',
+ 'version.usable_until': None}
