@@ -8,10 +8,10 @@ https://kuhn-ruess.de
 
 from pathlib import Path
 
-from .bakery_api.v1 import (
-   OS,
-   Plugin,
-   register,
+from cmk.base.cee.plugins.bakery.bakery_api.v1 import (
+    register,
+    Plugin,
+    OS,
 )
 
 
