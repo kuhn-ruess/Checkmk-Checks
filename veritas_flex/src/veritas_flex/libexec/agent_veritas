@@ -163,6 +163,7 @@ def main():
     flex.url = f'https://{args.url}/api/'
     flex.do_login(args.username, args.password)
     hardware_health = flex.get_hardware_health()
+    print("<<<local>>>")
     for state in hardware_health:
         print(state)
     services_health = flex.get_services_health()
@@ -177,7 +178,7 @@ def main():
         print(str(state) + " " + instance['hostname'] + " - " + "is " + instance['status'])
 
 
-#  flex.do_logout()
+    #flex.do_logout()
 
 if __name__ == '__main__':
     main()
