@@ -311,6 +311,21 @@ def check_alertmanager_summary(params: CheckParams, section: Section) -> CheckRe
     for rules in section.values():
         for rule in rules.values():
             status = _get_rule_state(rule, params)
+            if severity := _get_severity(params, rule.severity):
+                print("got severity: %s" % severity)
+                if status != State.OK:
+                    # Overwrite Severity if is firing
+                    if severity_state := params.get("severity_state",{}):
+                        if severity_state['sev_state']:
+                            if severity == 'critical' or severity == 'alert':
+                                status = State.CRIT
+                                print("set status to CRIT")
+                            elif severity == 'warning' or severity == 'error':
+                                status = State.WARN
+                                print("set status to WARN")
+                            else:
+                                status = State.OK
+                                print("set status to OK")
             if status != State.OK:
                 yield Result(
                     state=status,

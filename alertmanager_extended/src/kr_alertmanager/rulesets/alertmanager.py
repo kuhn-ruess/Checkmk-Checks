@@ -248,8 +248,8 @@ def form_severity_state():
                 required=True,
             ),
         },
-        title=Title("Use the severity states for alerting."),
-        help_text=Help("Severity levels are automatically mapped to Checkmk states."),
+        title=Title("Use the severity states to remap alerts."),
+        help_text=Help("Severity levels map automatically fireing rules to the configured Severity."),
 
     )
 
