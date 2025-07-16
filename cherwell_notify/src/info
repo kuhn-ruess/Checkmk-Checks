@@ -2,10 +2,10 @@
  'description': 'Creates incidents in Ivanti (Cherwell).\n',
  'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
  'files': {'cmk_addons_plugins': ['cherwell_notify/rulesets/cherwell_notify.py'],
-           'notifications': ['cherwell_notify.py']},
+           'notifications': ['cherwell_notify']},
  'name': 'cherwell_notify',
  'title': 'Cherwell notifcation script',
- 'version': '2.1.0',
+ 'version': '2.0.1',
  'version.min_required': '2.3.0b1',
- 'version.packaged': '2.3.0p9',
+ 'version.packaged': '2.4.0p5',
  'version.usable_until': None}
