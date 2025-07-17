@@ -20,15 +20,25 @@ from cmk.rulesets.v1.rule_specs import (
         SpecialAgent,
         Topic,
         CheckParameters,
-        HostCondition,
         HostAndItemCondition,
 )
 
+
+def _migrate(value):
+    """
+    Migration function to convert old ruleset values to the new format.
+    """
+    if 'cache-time' in value:
+        value['cache_time'] = value.pop('cache-time')
+    if 'useIP' in value:
+        value['use_ip'] = value.pop('useIP')
+    return value
 
 def _valuespec_special_agent_unisphere_powermax():
     return Dictionary(
             title = Title("Unisphere Powermax"),
             help_text = Help("This rules activates the special agent for Unisphere Powermax"),
+            migrate=_migrate,
             elements = {
                 "username": DictElement(
                     parameter_form = String(
@@ -137,7 +147,7 @@ def _valuespec_special_agent_unisphere_powermax():
                         prefill = InputHint(30)
                     ),
                 ),
-                "noCertCheck": DictElement(
+                "no_cert_check": DictElement(
                     parameter_form = BooleanChoice(
                         title = Title("Disable SSL certificate validation"),
                         label = Label("disable SSL"),
@@ -253,7 +263,7 @@ def _parameter_valuespec_unisphere_powermax_powermax_array_performance_wp_cache(
         },
     )
 
-rule_spec_srp_data_reduction_ratio = CheckParameters(
+rule_spec_powermax_array_performnace_wp_cache = CheckParameters(
         name="unisphere_powermax_powermax_array_performance_wp_cache",
         topic=Topic.STORAGE,
         parameter_form = _parameter_valuespec_unisphere_powermax_powermax_array_performance_wp_cache,

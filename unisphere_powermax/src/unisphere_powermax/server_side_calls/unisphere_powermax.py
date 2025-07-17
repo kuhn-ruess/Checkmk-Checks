@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+
 
 from pydantic import BaseModel
 from typing import Optional # type: ignore
@@ -26,7 +32,7 @@ class AgentPowermaxUParams(BaseModel):
     disablegetMaskingViewInfo: Optional[bool] = None
     enableRemoteSymChecks: Optional[bool] = None
     cache_time: Optional[int] = None
-    noCertCheck: Optional[bool] = None
+    no_cert_check: Optional[bool] = None
 
 
 def generate_powermanx_command(params: AgentPowermaxUParams, host_config: HostConfig):
@@ -41,6 +47,9 @@ def generate_powermanx_command(params: AgentPowermaxUParams, host_config: HostCo
     if params.port:
         args.append("--port")
         args.append(str(params.port))
+    if params.cache_time:
+        args.append("--cache_time")
+        args.append(str(params.cache_time))
     for what in [
         "disablegetSrpInfo",
         "disablegetDirectorInfo",
@@ -51,8 +60,7 @@ def generate_powermanx_command(params: AgentPowermaxUParams, host_config: HostCo
         "disablegetAlertInfo",
         "disablegetMaskingViewInfo",
         "enableRemoteSymChecks",
-        "cache_time",
-        "noCertCheck",
+        "no_cert_check",
         ]:
         if getattr(params, what):
             args.append(f'--{what}')

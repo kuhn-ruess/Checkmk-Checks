@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-# -*- encoding: utf-8; py-indent-offset: 4 -*-
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
 #<<<check_mk>>>
 #Version: agent_unisphere_powermax-1.0
 #<<<unisphere_powermax_health_check:sep(30)>>>
@@ -22,9 +26,9 @@
 #{u'item_name': u'DARE Test ', u'result': True}
 #SYMMETRIX_000297900497-RZ2_DARE_Test{"item_name": "DARE Test ", "result": true}
 #{u'item_name': u'Compression And Dedup Test ', u'result': True}
-#SYMMETRIX_000297900497-RZ2_Compression_And_Dedup_Test{"item_name": "Compression And Dedup Test ", "result": true}
+#SYMMETRIX_000297900497-RZ2_Compression_And_Dedup_Test{"item_name":
+# "Compression And Dedup Test ", "result": true}
 
-from .utils import parse_section
 import time
 
 from cmk.agent_based.v2 import (
@@ -35,6 +39,7 @@ from cmk.agent_based.v2 import (
     CheckPlugin,
     AgentSection,
 )
+from .utils import parse_section
 
 agent_section_unispere_powermax_health_check = AgentSection(
     name="unisphere_powermax_health_check",
@@ -42,39 +47,44 @@ agent_section_unispere_powermax_health_check = AgentSection(
 )
 
 def discover_health(section):
+    """
+    Discover health checks for PowerMax systems.
+    """
     for item in section:
         yield Service(item=item)
 
 def check_health(item, params, section):
+    """
+    Check health checks for PowerMax systems.
+    """
 
     # @TODO untestet, no data
     health_data = section[item]
 
     state = State.OK
     info_text = ""
-    
-    info_text = "result: %s" % (health_data.get('result'))
-    l = params.get('criticality', 'crit') 
 
-    if health_data.get('result') != True:
+    health_data_result = health_data.get('result')
+    info_text = f"result: {health_data_result}"
+    l = params.get('criticality', 'crit')
+
+    if not health_data.get('result'):
         if l == 'warn':
-           state = State.WARN
+            state = State.WARN
         else:
-           state = State.CRIT
+            state = State.CRIT
 
-    
-    
     check_age_h = (time.time() - health_data.get('date', 0)/1000.0)/60/60
     if check_age_h >= params.get('max_age', 168):
         state = State.UNKNOWN
-        info_text = "health check is too old! age: %s >= %s hours" % (check_age_h, params.get('max_age', 168))
+        max_age_h = params.get('max_age', 168)
+        info_text = f"health check is too old! age: {check_age_h} s >= {max_age_h} hours"
 
-    perfdata = [('health_check_age', "{}h".format(check_age_h), health_data.get('result'))]
     yield Metric(name='health_check_age',
                  value=check_age_h)
 
     yield Result(state=state, summaary=info_text)
-    
+
 check_plugin_unisphere_powermax_health_check = CheckPlugin(
     name = "unisphere_powermax_health_check",
     service_name = 'Health Check %s',

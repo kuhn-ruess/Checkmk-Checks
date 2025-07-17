@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
-# -*- encoding: utf-8; py-indent-offset: 4 -*-
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
 
-from .utils import parse_section
 
 from cmk.agent_based.v2 import (
     Service,
@@ -13,26 +16,36 @@ from cmk.agent_based.v2 import (
     check_levels,
 )
 
+from .utils import parse_section
+
 agent_section_unispere_powermax_port_group = AgentSection(
     name="unisphere_powermax_port_group",
     parse_function=parse_section,
 )
 
 def discover_port_group_state(section):
+    """
+    Discover port group state for PowerMax systems.
+    """
     for item in section:
         yield Service(item=item)
 
 def check_port_group_state(item, params, section):
+    """
+    Check port group state for PowerMax systems.
+    """
     ports_data = section[item]
 
 
     # @TODO Cleanup these lines
-    n_online_ports = len(list(filter(lambda x: x.get('symmetrixPort', {}).get('director_status') == 'Online', ports_data)))
+    n_online_ports = len(list(
+        filter(lambda x: x.get('symmetrixPort', {}).get('director_status') == 'Online',
+        ports_data)))
     n_ports = len(list(filter(lambda x: x.get('symmetrixPort'), ports_data)))
 
     if n_ports == 0:
-       yield Result(state=State.UNKNOWN, summary="got no data from agent")
-       return
+        yield Result(state=State.UNKNOWN, summary="got no data from agent")
+        return
 
     p_online = round(float(n_online_ports)/float(n_ports)*100, 2)
 
@@ -57,4 +70,3 @@ check_plugin_unisphere_powermax_port_group_state = CheckPlugin(
     check_ruleset_name="unisphere_powermax_port_group_state",
     check_default_parameters = {"levels": ('fixed', (80.0, 50.0))}
 )
-
