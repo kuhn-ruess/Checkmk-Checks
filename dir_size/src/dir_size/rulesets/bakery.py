@@ -8,13 +8,22 @@ from cmk.rulesets.v1.form_specs import (
     DictElement,
     Dictionary,
     FixedValue,
-    Password,
     String,
     TimeMagnitude,
     TimeSpan,
-    validators,
 )
 from cmk.rulesets.v1.rule_specs import AgentConfig, Topic
+
+def _migrate(value):
+    """
+    Migration function to convert old parameter format to new format.
+    """
+    if 'directories' in value:
+        value['folders'] = value.pop('directories')
+    if 'interval' in value:
+        value['deployment'] = ('cached', float(value.pop('interval')))
+        value['cmk-match-type'] = 'dict'
+    return value
 
 
 def _agent_config_dir_size() -> Dictionary:
@@ -23,6 +32,7 @@ def _agent_config_dir_size() -> Dictionary:
             "This will deploy the agent plug-in <tt>dir_size.sh</tt>. "
             "You can configure it to monitor directory sizes.."
         ),
+        migrate=_migrate,
         elements={
             "deployment": DictElement(
                 required=True,

@@ -19,15 +19,17 @@ from cmk.agent_based.v2 import (
 
 def discover_dir_size(section):
     """
-    Discover  Filesystems
+    Discover all directories
     """
     for filesystem in section:
         yield Service(item=filesystem)
 
 def check_dir_size(item, params, section):
-    """
-    Check single Service
-    """
+    """ Check the size of the directory """
+
+    if item not in section:
+        return
+
     folder_size_bytes = section[item]['size_bytes']
 
     yield from check_levels(

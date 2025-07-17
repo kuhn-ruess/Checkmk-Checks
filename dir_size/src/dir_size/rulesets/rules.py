@@ -29,8 +29,20 @@ from cmk.rulesets.v1.rule_specs import (
 
 MAGNITUDES = tuple(IECMagnitude)[:5]
 
+def _migrate(value):
+    """
+    Migration function to convert old parameter format to new format.
+    """
+    if 'levels_upper' in value:
+        value = {
+            "levels": ('fixed', value['levels_upper']),
+        }
+    return value
+
+
 def _parameter_dir_size() -> Dictionary:
     return Dictionary(
+            migrate=_migrate,
             elements={
                 "levels": DictElement(
                     parameter_form=SimpleLevels[int](
