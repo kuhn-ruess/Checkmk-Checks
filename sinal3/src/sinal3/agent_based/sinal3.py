@@ -11,7 +11,11 @@ __email__ = "cmichaelski@conet.de"
 
 
 """
-Updated Imports 2025-05-23 for Checkmk 2.3/2.4 by Bastian Kuhn, bastian.kuhn@kuhn-ruess.de
+Updated 2025-05-23 for Checkmk 2.3/2.4 by Bastian Kuhn, bastian.kuhn@kuhn-ruess.de
+
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
 """
 
 from cmk.agent_based.v2 import (
@@ -22,6 +26,10 @@ from cmk.agent_based.v2 import (
         SNMPTree,
         any_of,
         exists,
+        Service,
+        check_levels,
+        Metric,
+        get_value_store,
 )
 from cmk.plugins.lib.temperature import check_temperature
 
@@ -256,14 +264,27 @@ snmp_section_sinal3 = SNMPSection(
 )
 
 def discover_sinal3_system(section):
+    """
+    Discover the system service for SINA L3.
+    """
     if section.get('system'):
         yield Service()
 
 def check_sinal3_system(params, section):
+    """
+    Check the system service for SINA L3.
+    """
     if 'system' in section:
         hsb_mode, hsb_state, hsb_mode_peer, hsb_state_peer = section["system"][0]
-        infotext = f"HSB: Mode: {HSB_MODE[int(hsb_mode)]}; State: {STATE[int(hsb_state)]}; HSB peer: Mode {HSB_MODE[int(hsb_mode_peer)]}; State {STATE[int(hsb_state_peer)]}"
-        if (int(hsb_mode) == int(hsb_mode_peer) and int(hsb_state) == 1) or (int(hsb_mode_peer) == 3 and int(hsb_state_peer) == 1): 
+        infotext = (
+            f"HSB: Mode: {HSB_MODE[int(hsb_mode)]}; State: {STATE[int(hsb_state)]}; "
+            f"HSB peer: Mode {HSB_MODE[int(hsb_mode_peer)]}; State {STATE[int(hsb_state_peer)]}"
+        )
+        if (
+            int(hsb_mode) == int(hsb_mode_peer) and int(hsb_state) == 1
+        ) or (
+            int(hsb_mode_peer) == 3 and int(hsb_state_peer) == 1
+        ):
             state = State.WARN
             infotext += " - Error HSB peer"
         elif int(hsb_mode) == int(hsb_mode_peer):
@@ -283,10 +304,16 @@ check_plugin_sinal3_system = CheckPlugin(
 )
 
 def discover_sinal3_mgmt(section):
+    """
+    Discover the management service for SINA L3.
+    """
     if section.get('mgmt'):
         yield Service()
 
 def check_sinal3_mgmt(params, section):
+    """
+    Check the management service for SINA L3.
+    """
     if "mgmt" in section:
         state = State.OK
         main, fallb, img, srsu_state, srsu_msg  = section["mgmt"][0]
@@ -309,12 +336,18 @@ check_plugin_sinal3_mgmt = CheckPlugin(
 )
 
 def discover_sinal3_fans(section):
+    """
+    Discover the fans service for SINA L3.
+    """
     if 'fans' in section:
         for nr, name, rpm in section['fans']:
             if int(rpm) > 0:
                 yield Service(item=name)
 
 def check_sinal3_fans(item, params, section):
+    """
+    Check the fans service for SINA L3.
+    """
     if 'fans' in section:
         for nr, name, rpm in section['fans']:
             if name == item:
@@ -340,12 +373,18 @@ check_plugin_sinal3_fans = CheckPlugin(
 
 
 def discover_sinal3_temp(section):
+    """
+    Discover the temperature service for SINA L3.
+    """
     if 'temperature' in section:
         for nr, name, temp in section['temperature']:
             if int(temp) * 0.001 < 200 and int(temp) * 0.001 > 0:
                 yield Service(item=name)
 
 def check_sinal3_temp(item, params, section):
+    """
+    Check the temperature service for SINA L3.
+    """
     if 'temperature' in section:
         for nr, name, temp in section['temperature']:
             if name == item:
@@ -373,11 +412,17 @@ check_plugin_sinal3_temp = CheckPlugin(
 
 
 def discover_sinal3_volts(section):
+    """
+    Discover the voltage service for SINA L3.
+    """
     if 'volts' in section:
         for nr, name, temp in section['volts']:
             yield Service(item=name)
 
 def check_sinal3_volts(item, params, section):
+    """"
+    Check the voltage service for SINA L3.
+    """
     if 'volts' in section:
         for nr, name, volts in section['volts']:
             if name == item:
@@ -403,10 +448,16 @@ check_plugin_sinal3_volts = CheckPlugin(
 )
 
 def discover_sinal3_gstat(section):
+    """
+    Discover the global status service for SINA L3.
+    """
     if 'global' in section:
         yield Service()
 
 def check_sinal3_gstat(params, section):
+    """
+    Check the global status service for SINA L3.
+    """
     if 'global' in section:
         st, tx = section["global"][0]
         if int(st) != 8:
@@ -426,10 +477,16 @@ check_plugin_sinal3_gstat = CheckPlugin(
 )
 
 def discover_sinal3_config(section):
+    """
+    Discover the configuration versions service for SINA L3.
+    """
     if section.get('config'):
         yield Service()
 
 def check_sinal3_config(params, section):
+    """
+    Check the configuration versions service for SINA L3.
+    """
     if section.get('config'):
         active, cfs, smart = section['config'][0]
         infotext = f"Active: {active}; System-CFS: {cfs}; Smartcard: {smart}"
@@ -455,10 +512,16 @@ check_plugin_sinal3_config = CheckPlugin(
 )
 
 def discover_sinal3_aclvers(section):
+    """
+    Discover the ACL versions service for SINA L3.
+    """
     if 'aclvers' in section:
         yield Service()
 
 def check_sinal3_aclvers(params, section):
+    """"
+    Check the ACL versions service for SINA L3.
+    """
     if 'aclvers' in section:
         active, smart = section['aclvers'][0]
         infotext = f"Active ACL: {active}; Smartcard ACL: {smart}"
@@ -478,10 +541,16 @@ check_plugin_sinal3_aclvers = CheckPlugin(
 )
 
 def discover_sinal3_vers(section):
+    """
+    Discover the version service for SINA L3.
+    """
     if 'vers' in section:
         yield Service()
 
 def check_sinal3_vers(params, section):
+    """
+    Check the version service for SINA L3.
+    """
     if 'vers' in section:
         state = State.OK
         active = section['vers'].split("\n")[0].strip()
@@ -498,11 +567,17 @@ check_plugin_sinal3_vers = CheckPlugin(
 )
 
 def discover_sinal3_serial(section):
+    """
+    Discover the serial service for SINA L3.
+    """
     if 'serial' in section:
         if section['serial']:
             yield Service()
 
 def check_sinal3_serial(params, section):
+    """
+    Check the serial service for SINA L3.
+    """
     if 'serial' in section:
         state = State.OK
         serial = section['serial'].strip()
@@ -519,11 +594,17 @@ check_plugin_sinal3_serial = CheckPlugin(
 )
 
 def discover_sinal3_box(section):
+    """
+    Discover the box type service for SINA L3.
+    """
     if 'box' in section:
         if section['box'] != '':
             yield Service()
 
 def check_sinal3_box(params, section):
+    """
+    Check the box type service for SINA L3.
+    """
     if 'box' in section:
         state = State.OK
         boxtype = section['box'].strip()
@@ -540,10 +621,16 @@ check_plugin_sinal3_box = CheckPlugin(
 )
 
 def discover_sinal3_ntp(section):
+    """
+    Discover the NTP service for SINA L3.
+    """
     if 'ntp' in section:
         yield Service()
 
 def check_sinal3_ntp(params, section):
+    """
+    Check the NTP service for SINA L3.
+    """
     if 'ntp' in section:
         state = State.OK
         st, last = section['ntp'][0]
@@ -566,10 +653,16 @@ check_plugin_sinal3_ntp = CheckPlugin(
 )
 
 def discover_sinal3_policycnt(section):
+    """
+    Discover the policy count service for SINA L3.
+    """
     if 'policycnt' in section:
         yield Service()
 
 def check_sinal3_policycnt(params, section):
+    """
+    Check the policy count service for SINA L3.
+    """
     if 'policycnt' in section:
         ev, ec = section['policycnt'][0]
         ev = int(ev)
@@ -579,7 +672,7 @@ def check_sinal3_policycnt(params, section):
         infotext = f"enabled: {ev}; configured: {ev}"
         yield Result(state=State.OK,summary=infotext)
 
-check_plugin_sinal3_plicycnt = CheckPlugin(
+check_plugin_sinal3_sinal3_policycnt = CheckPlugin(
         name="sinal3_policycnt",
         sections=['sinal3'],
         service_name="Policy count",
@@ -589,6 +682,9 @@ check_plugin_sinal3_plicycnt = CheckPlugin(
 )
 
 def discover_sinal3_ipsec(section):
+    """
+    Discover the IPsec service for SINA L3.
+    """
     if 'ipsec' in section:
         one, peer, two, con = section['ipsec'][0]
         yield Service(item="IPsec phase one childs")
@@ -599,6 +695,9 @@ def discover_sinal3_ipsec(section):
             yield Service(item="IPsec connection count")
 
 def check_sinal3_ipsec(item, params, section):
+    """
+    Check the IPsec service for SINA L3.
+    """
     if 'ipsec' in section:
         one, peer, two, con = section['ipsec'][0]
         one = int(one)
@@ -632,11 +731,17 @@ check_plugin_sinal3_ipsec = CheckPlugin(
 )
 
 def discover_sinal3_ike_sa(section):
+    """
+    Discover the IKE-SA service for SINA L3.
+    """
     if 'ike-sa' in section:
         if section['ike-sa'] != '':
             yield Service()
 
 def check_sinal3_ike_sa(params, section):
+    """
+    Check the IKE-SA service for SINA L3.
+    """
     if 'ike-sa' in section:
         cnt = int(section['ike-sa'][0])
         yield Metric("ike_sa", cnt)
