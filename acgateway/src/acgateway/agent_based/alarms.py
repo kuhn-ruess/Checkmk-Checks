@@ -52,7 +52,7 @@ def parse_acgateway_alarms(string_table):
         'alarms': [],
         'archived': len(string_table[1]),
     }
-    for alarm in string_table:
+    for alarm in string_table[0]:
         section['alarms'].append({
             'seq': int(alarm[0]),
             'sysuptime': int(alarm[1]),
