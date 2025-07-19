@@ -32,12 +32,16 @@ class NotifyCherwell():
             'client_id': context['PARAMETER_CLIENT_ID'],
             'token_url': context['PARAMETER_TOKEN_URL'],
             'username': context['PARAMETER_USERNAME'],
-            'password': context['PARAMETER_PASSWORD']
+            'password': utils.get_password_from_env_or_context(
+                key='PARAMETER_PASSWORD',
+                context=context)
         }
 
         self.cmk_server = context['PARAMETER_CMK_SERVER']
         self.cmk_site =  context['PARAMETER_CMK_SITE']
-        self.automation_secret = context['PARAMETER_AUTOMATION_SECRET']
+        self.automation_secret = utils.get_password_from_env_or_context(
+                key='PARAMETER_AUTOMATION_SECRET',
+                context=context)
 
         self.context = context
         if "EC_ID" in context:
