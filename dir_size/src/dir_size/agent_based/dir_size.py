@@ -35,8 +35,9 @@ def check_dir_size(item, params, section):
     yield from check_levels(
         folder_size_bytes,
         levels_upper = params['levels'],
-        label = f"Folder usage: {render.bytes(folder_size_bytes)}",
+        label = f"Folder usage",
         metric_name='bytes',
+        render_func=render.bytes,
     )
 
 def parse_dir_size(string_table):
