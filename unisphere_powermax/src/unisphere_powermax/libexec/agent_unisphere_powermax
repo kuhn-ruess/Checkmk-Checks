@@ -531,7 +531,7 @@ if __name__ == '__main__':
     parser.add_argument('--hostname', help='Hostname or IP of the Unisphere API Server')
     parser.add_argument('--enableRemoteSymChecks',
         help='gather information from remote Symmetrix', action='store_true')
-    parser.add_argument('--noCertCheck', help='do not verify ssl certificates', action='store_true')
+    parser.add_argument('--no_cert_check', help='do not verify ssl certificates', action='store_true')
     parser.add_argument('--randomFailures',
         help='simulate faiures ... e.g. port_status Off', action='store_true')
     for source in dataSources:
