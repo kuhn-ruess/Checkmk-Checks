@@ -543,7 +543,7 @@ if __name__ == '__main__':
     print("<<<check_mk>>>")
     print("Version: agent_unisphere_powermax-3.0")
     pmax = PmaxConnector(args.user, args.password,
-                f"{args.hostname}:{args.port}", not args.noCertCheck)
+                f"{args.hostname}:{args.port}", not args.no_cert_check)
 
     pmax.getVersion()
     pmax.getSymmetrixName('test')
