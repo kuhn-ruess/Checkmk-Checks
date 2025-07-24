@@ -15,7 +15,7 @@
                                   'unisphere_powermax/agent_based/utils.py']},
  'name': 'unisphere_powermax',
  'title': 'Unisphere PowerMax',
- 'version': '3.0.6',
- 'version.min_required': '2.3.0p1',
+ 'version': '3.0.6-dev2',
+ 'version.min_required': '2.3.0p2',
  'version.packaged': '2.4.0',
  'version.usable_until': None}

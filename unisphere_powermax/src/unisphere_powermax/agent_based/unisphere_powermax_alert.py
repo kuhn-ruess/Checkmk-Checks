@@ -5,7 +5,6 @@ Consulting and Development
 https://kuhn-ruess.de
 """
 
-# pytlint: disable=line-too-long
 #<<<unisphere_powermax_alert:sep(30)>>>
 # Server Alert Summary
 # {"warning_acknowledged_count": 0, "minor_acknowledged_count": 0, "all_unacknowledged_count": 0,
@@ -55,6 +54,7 @@ from cmk.agent_based.v2 import (
     CheckPlugin,
     AgentSection,
 )
+
 from .utils import parse_section
 
 agent_section_unispere_powermax_alerts = AgentSection(
