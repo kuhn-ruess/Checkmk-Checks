@@ -5,33 +5,31 @@ SINA L3 Monitoring
 """
 __author__ = "Christian Michaelski"
 __license__ = "GPL"
-__version__ = "3.0.0"
+__version__ = "3.0.2"
 __maintainer__ = "Christian Michaelski"
 __email__ = "cmichaelski@conet.de"
 
-
 """
-Updated 2025-05-23 for Checkmk 2.3/2.4 by Bastian Kuhn, bastian.kuhn@kuhn-ruess.de
-
-Kuhn & Rueß GmbH
-Consulting and Development
-https://kuhn-ruess.de
+Updated Imports 2025-05-23 for Checkmk 2.3/2.4 by Bastian Kuhn, bastian.kuhn@kuhn-ruess.de
+Change logic on version data 2025/06/20 CMI
 """
 
 from cmk.agent_based.v2 import (
-        CheckPlugin,
-        Result,
-        State,
-        SNMPSection,
-        SNMPTree,
-        any_of,
-        exists,
-        Service,
-        check_levels,
-        Metric,
-        get_value_store,
+    CheckPlugin,
+    Result,
+    State,
+    SNMPSection,
+    SNMPTree,
+    any_of,
+    exists,
+    Service,
+    check_levels,
+    Metric,
+    get_value_store,
 )
+
 from cmk.plugins.lib.temperature import check_temperature
+from cmk.plugins.lib.fan import check_fan
 
 STATE = {
     0: "ERROR",
@@ -265,26 +263,26 @@ snmp_section_sinal3 = SNMPSection(
 
 def discover_sinal3_system(section):
     """
-    Discover the system service for SINA L3.
+    Discover the system service for SINA L3
     """
     if section.get('system'):
         yield Service()
 
 def check_sinal3_system(params, section):
     """
-    Check the system service for SINA L3.
+    Check the system service for SINA L3
     """
     if 'system' in section:
         hsb_mode, hsb_state, hsb_mode_peer, hsb_state_peer = section["system"][0]
         infotext = (
-            f"HSB: Mode: {HSB_MODE[int(hsb_mode)]}; State: {STATE[int(hsb_state)]}; "
+            f"HSB: Mode: {HSB_MODE[int(hsb_mode)]}; State: {STATE[int(hsb_state)]}; " 
             f"HSB peer: Mode {HSB_MODE[int(hsb_mode_peer)]}; State {STATE[int(hsb_state_peer)]}"
         )
         if (
             int(hsb_mode) == int(hsb_mode_peer) and int(hsb_state) == 1
         ) or (
             int(hsb_mode_peer) == 3 and int(hsb_state_peer) == 1
-        ):
+        ): 
             state = State.WARN
             infotext += " - Error HSB peer"
         elif int(hsb_mode) == int(hsb_mode_peer):
@@ -305,14 +303,14 @@ check_plugin_sinal3_system = CheckPlugin(
 
 def discover_sinal3_mgmt(section):
     """
-    Discover the management service for SINA L3.
+    Discover the management service for SINA L3
     """
     if section.get('mgmt'):
         yield Service()
 
 def check_sinal3_mgmt(params, section):
     """
-    Check the management service for SINA L3.
+    Check the management service for SINA L3
     """
     if "mgmt" in section:
         state = State.OK
@@ -337,7 +335,7 @@ check_plugin_sinal3_mgmt = CheckPlugin(
 
 def discover_sinal3_fans(section):
     """
-    Discover the fans service for SINA L3.
+    Discover the fan services for SINA L3
     """
     if 'fans' in section:
         for nr, name, rpm in section['fans']:
@@ -346,19 +344,15 @@ def discover_sinal3_fans(section):
 
 def check_sinal3_fans(item, params, section):
     """
-    Check the fans service for SINA L3.
+    Check the fan services for SINA L3
     """
     if 'fans' in section:
         for nr, name, rpm in section['fans']:
             if name == item:
                 name = name.replace(":","_")
-                yield from check_levels(
+                yield from check_fan(
                         float(rpm),
-                        metric_name="fan.%s" % name,
-                        levels_lower=params.get("lower",(None,None)),
-                        levels_upper=params.get("upper",(None,None)),
-                        render_func=lambda v: "%d rpm" % int(rpm),
-                        label="Speed",
+                        params,
                     )
 
 check_plugin_sinal3_fans = CheckPlugin(
@@ -367,14 +361,17 @@ check_plugin_sinal3_fans = CheckPlugin(
         service_name="Fan %s",
         discovery_function=discover_sinal3_fans,
         check_function=check_sinal3_fans,
-        check_default_parameters={ 'lower': (0,0),},
+        check_default_parameters={
+            'lower': (0, 0), 
+            'output_metrics': True,
+        },
         check_ruleset_name="hw_fans",
 )
 
 
 def discover_sinal3_temp(section):
     """
-    Discover the temperature service for SINA L3.
+    Discover the temperature services for SINA L3
     """
     if 'temperature' in section:
         for nr, name, temp in section['temperature']:
@@ -383,7 +380,7 @@ def discover_sinal3_temp(section):
 
 def check_sinal3_temp(item, params, section):
     """
-    Check the temperature service for SINA L3.
+    Check the temperature services for SINA L3
     """
     if 'temperature' in section:
         for nr, name, temp in section['temperature']:
@@ -413,15 +410,15 @@ check_plugin_sinal3_temp = CheckPlugin(
 
 def discover_sinal3_volts(section):
     """
-    Discover the voltage service for SINA L3.
+    Discover the voltage services for SINA L3
     """
     if 'volts' in section:
         for nr, name, temp in section['volts']:
             yield Service(item=name)
 
 def check_sinal3_volts(item, params, section):
-    """"
-    Check the voltage service for SINA L3.
+    """
+    Check the voltage services for SINA L3
     """
     if 'volts' in section:
         for nr, name, volts in section['volts']:
@@ -431,8 +428,8 @@ def check_sinal3_volts(item, params, section):
                 yield from check_levels(
                         volts,
                         metric_name="sina_volts.%s" % name,
-                        levels_lower=params.get("lower_levels",(None,None)),
-                        levels_upper=params.get("levels",(None,None)),
+                        levels_lower=params.get("levels_lower"),
+                        levels_upper=params.get("levels"),
                         render_func=lambda v: "%.2f V" % volts,
                         label="Volts",
                 )
@@ -443,20 +440,20 @@ check_plugin_sinal3_volts = CheckPlugin(
         service_name="Voltage %s",
         discovery_function=discover_sinal3_volts,
         check_function=check_sinal3_volts,
-        check_default_parameters={},
+        check_default_parameters={"levels": ("fixed", (250, 260)), "levels_lower": ("fixed", (0,0))},
         check_ruleset_name="voltage",
 )
 
 def discover_sinal3_gstat(section):
     """
-    Discover the global status service for SINA L3.
+    Discover the global status service for SINA L3
     """
     if 'global' in section:
         yield Service()
 
 def check_sinal3_gstat(params, section):
     """
-    Check the global status service for SINA L3.
+    Check the global status service for SINA L3
     """
     if 'global' in section:
         st, tx = section["global"][0]
@@ -478,14 +475,14 @@ check_plugin_sinal3_gstat = CheckPlugin(
 
 def discover_sinal3_config(section):
     """
-    Discover the configuration versions service for SINA L3.
+    Discover the config service for SINA L3
     """
     if section.get('config'):
         yield Service()
 
 def check_sinal3_config(params, section):
     """
-    Check the configuration versions service for SINA L3.
+    Check the config service for SINA L3
     """
     if section.get('config'):
         active, cfs, smart = section['config'][0]
@@ -493,13 +490,13 @@ def check_sinal3_config(params, section):
         if active >= cfs or active >= smart:
             state = State.OK
             yield Result(state=state, summary=infotext)
+        elif cfs > smart:
+            state = State.WARN
+            infotext += " - System-CFS > Smartcard"
+            yield Result(state=state, summary=infotext)
         else:
             state = State.WARN
             infotext += " - Active lower System-CFS or Smartcard"
-            yield Result(state=state, summary=infotext)
-        if cfs > smart:
-            state = State.WARN
-            infotext += " - System-CFS > Smartcard"
             yield Result(state=state, summary=infotext)
 
 check_plugin_sinal3_config = CheckPlugin(
@@ -513,14 +510,14 @@ check_plugin_sinal3_config = CheckPlugin(
 
 def discover_sinal3_aclvers(section):
     """
-    Discover the ACL versions service for SINA L3.
+    Discover the acl version service for SINA L3
     """
     if 'aclvers' in section:
         yield Service()
 
 def check_sinal3_aclvers(params, section):
-    """"
-    Check the ACL versions service for SINA L3.
+    """
+    Check the acl version service for SINA L3
     """
     if 'aclvers' in section:
         active, smart = section['aclvers'][0]
@@ -542,14 +539,14 @@ check_plugin_sinal3_aclvers = CheckPlugin(
 
 def discover_sinal3_vers(section):
     """
-    Discover the version service for SINA L3.
+    Discover the version service for SINA L3
     """
     if 'vers' in section:
         yield Service()
 
 def check_sinal3_vers(params, section):
     """
-    Check the version service for SINA L3.
+    Check the version service for SINA L3
     """
     if 'vers' in section:
         state = State.OK
@@ -568,7 +565,7 @@ check_plugin_sinal3_vers = CheckPlugin(
 
 def discover_sinal3_serial(section):
     """
-    Discover the serial service for SINA L3.
+    Discover the serial service for SINA L3
     """
     if 'serial' in section:
         if section['serial']:
@@ -576,12 +573,14 @@ def discover_sinal3_serial(section):
 
 def check_sinal3_serial(params, section):
     """
-    Check the serial service for SINA L3.
+    Check the serial service for SINA L3
     """
     if 'serial' in section:
         state = State.OK
         serial = section['serial'].strip()
         infotext = f"{serial}"
+        if infotext.strip() == "":
+            infotext = "No serial"
         yield Result(state=state, summary=infotext)
 
 check_plugin_sinal3_serial = CheckPlugin(
@@ -595,7 +594,7 @@ check_plugin_sinal3_serial = CheckPlugin(
 
 def discover_sinal3_box(section):
     """
-    Discover the box type service for SINA L3.
+    Discover the box service for SINA L3
     """
     if 'box' in section:
         if section['box'] != '':
@@ -603,7 +602,7 @@ def discover_sinal3_box(section):
 
 def check_sinal3_box(params, section):
     """
-    Check the box type service for SINA L3.
+    Check the box service for SINA L3
     """
     if 'box' in section:
         state = State.OK
@@ -622,14 +621,14 @@ check_plugin_sinal3_box = CheckPlugin(
 
 def discover_sinal3_ntp(section):
     """
-    Discover the NTP service for SINA L3.
+    Discover the ntp service for SINA L3
     """
     if 'ntp' in section:
         yield Service()
 
 def check_sinal3_ntp(params, section):
     """
-    Check the NTP service for SINA L3.
+    Check the ntp service for SINA L3
     """
     if 'ntp' in section:
         state = State.OK
@@ -654,14 +653,14 @@ check_plugin_sinal3_ntp = CheckPlugin(
 
 def discover_sinal3_policycnt(section):
     """
-    Discover the policy count service for SINA L3.
+    Discover the policy count service for SINA L3
     """
     if 'policycnt' in section:
         yield Service()
 
 def check_sinal3_policycnt(params, section):
     """
-    Check the policy count service for SINA L3.
+    Check the policy count service for SINA L3
     """
     if 'policycnt' in section:
         ev, ec = section['policycnt'][0]
@@ -672,7 +671,7 @@ def check_sinal3_policycnt(params, section):
         infotext = f"enabled: {ev}; configured: {ev}"
         yield Result(state=State.OK,summary=infotext)
 
-check_plugin_sinal3_sinal3_policycnt = CheckPlugin(
+check_plugin_sinal3_policycnt = CheckPlugin(
         name="sinal3_policycnt",
         sections=['sinal3'],
         service_name="Policy count",
@@ -683,7 +682,7 @@ check_plugin_sinal3_sinal3_policycnt = CheckPlugin(
 
 def discover_sinal3_ipsec(section):
     """
-    Discover the IPsec service for SINA L3.
+    Discover the ipsec service for SINA L3
     """
     if 'ipsec' in section:
         one, peer, two, con = section['ipsec'][0]
@@ -696,7 +695,7 @@ def discover_sinal3_ipsec(section):
 
 def check_sinal3_ipsec(item, params, section):
     """
-    Check the IPsec service for SINA L3.
+    Check the ipsec service for SINA L3
     """
     if 'ipsec' in section:
         one, peer, two, con = section['ipsec'][0]
@@ -732,7 +731,7 @@ check_plugin_sinal3_ipsec = CheckPlugin(
 
 def discover_sinal3_ike_sa(section):
     """
-    Discover the IKE-SA service for SINA L3.
+    Discover the ike-sa service for SINA L3
     """
     if 'ike-sa' in section:
         if section['ike-sa'] != '':
@@ -740,7 +739,7 @@ def discover_sinal3_ike_sa(section):
 
 def check_sinal3_ike_sa(params, section):
     """
-    Check the IKE-SA service for SINA L3.
+    Check the ike-sa service for SINA L3
     """
     if 'ike-sa' in section:
         cnt = int(section['ike-sa'][0])

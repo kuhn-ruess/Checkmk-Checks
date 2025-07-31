@@ -1,4 +1,4 @@
-{'author': 'CONET Solutions GmbH; Christian Michaelski UPD',
+{'author': 'CONET Solutions GmbH; Christian Michaelski Updated by Kuhn & Rueß GmbH',
  'description': '',
  'download_url': '',
  'files': {'cmk_addons_plugins': ['sinal3/agent_based/sinal3.py',
@@ -19,7 +19,7 @@
                                   'sinal3/checkman/sinal3_volts']},
  'name': 'sinal3',
  'title': 'SINA device monitoring K+R Updated',
- 'version': '3.0.1',
+ 'version': '3.0.2',
  'version.min_required': '2.0.0p1',
  'version.packaged': '2.4.0',
  'version.usable_until': None}
