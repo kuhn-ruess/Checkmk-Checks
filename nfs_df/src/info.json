@@ -1,0 +1,1 @@
+{"title":"NFS Filesystem Monitoring","name":"nfs_df","description":"Monitoring of NFS Filesystems\n","version":"1.0.0","version.packaged":"2.4.0p7","version.min_required":"2.3.0","version.usable_until":null,"author":"Kuhn & Rueß GmbH","download_url":"","files":{"cmk_addons_plugins":["nfs_df/agent_based/bakery.py","nfs_df/rulesesets/backery.py"],"agents":["plugins/nfs_df"]}}

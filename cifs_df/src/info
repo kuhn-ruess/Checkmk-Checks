@@ -1,0 +1,12 @@
+{'author': 'Kuhn & Rueß GmbH',
+ 'description': 'DF-based Filesystem Monitoring for CIFS Filesystems\n',
+ 'download_url': '',
+ 'files': {'agents': ['plugins/cifs_df'],
+           'cmk_addons_plugins': ['cifs_df/agent_based/bakery.py',
+                                  'cifs_df/rulesets/bakery.py']},
+ 'name': 'cifs_df',
+ 'title': 'CIFS Filesystem Monitoring',
+ 'version': '1.0.0',
+ 'version.min_required': '2.3.0',
+ 'version.packaged': '2.4.0p7',
+ 'version.usable_until': None}

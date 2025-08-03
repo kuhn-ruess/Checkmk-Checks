@@ -1,0 +1,12 @@
+{'author': 'Kuhn & Rueß GmbH',
+ 'description': 'Monitoring of NFS Filesystems\n',
+ 'download_url': '',
+ 'files': {'agents': ['plugins/nfs_df'],
+           'cmk_addons_plugins': ['nfs_df/agent_based/bakery.py',
+                                  'nfs_df/rulesesets/backery.py']},
+ 'name': 'nfs_df',
+ 'title': 'NFS Filesystem Monitoring',
+ 'version': '1.0.0',
+ 'version.min_required': '2.3.0',
+ 'version.packaged': '2.4.0p7',
+ 'version.usable_until': None}
