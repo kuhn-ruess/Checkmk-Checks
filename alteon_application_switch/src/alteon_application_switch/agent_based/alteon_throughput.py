@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
-from .agent_based_api.v1 import (
-    register,
+from cmk.agent_based.v2 import (
     SNMPTree, 
     startswith,
     Service,
     Result,
     State,
     Metric,
+    CheckPlugin,
+    SNMPSection,
 )
 
 
@@ -19,7 +20,7 @@ def parse_alteon_throughput(string_table): # [[[u'3000']], [[u'2620639424', u'15
     return values
 
 
-register.snmp_section(
+snmp_section_alteon_throughput = SNMPSection(
     name="alteon_throughput",
     detect=startswith('.1.3.6.1.2.1.1.1.0', "Alteon Application Switch"),
     parse_function=parse_alteon_throughput,
@@ -104,7 +105,7 @@ def check_alteon_throughput(item, params, section):
         yield Result(state=State.OK, summary=infotext)
 
 
-register.check_plugin(
+check_plugin_alteon_throughput = CheckPlugin(     
     name='alteon_throughput',
     service_name='%s',
     discovery_function=discover_alteon_throughput,

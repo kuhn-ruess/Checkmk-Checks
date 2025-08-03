@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 
-from .agent_based_api.v1 import (
-    register,
+from cmk.agent_based.v2 import (
     SNMPTree, 
     startswith,
     Service,
     Result,
     State,
     Metric,
+    CheckPlugin,
+    SNMPSection,
+    check_levels,
 )
 
 
@@ -37,8 +39,7 @@ def parse_alteon_cpu(string_table):
 
     return section
 
-
-register.snmp_section(
+snmp_section_alteon_cpu = SNMPSection(
     name="alteon_cpu",
     detect=startswith('.1.3.6.1.2.1.1.1.0', "Alteon Application Switch"),
     parse_function=parse_alteon_cpu,
@@ -67,9 +68,7 @@ register.snmp_section(
 # parsed -> {'CPU MP Core 1 Utilization': {'1sec': 7, '64sec': 9, '4sec': 6}, 'CPU SP 2': {'1sec': 22, '64sec': 23, '4sec': 26}, 'CPU SP 1': {'1sec': 23, '64sec': 21, '4sec': 23}}
 def discover_alteon_cpu(section):
     for core_name, values in section.items():
-        tresholds = {}
-        tresholds["alteon_cpu_utilization_tresholds"] = (80, 90)
-        yield Service(item=core_name, parameters=tresholds)
+        yield Service(item=core_name)
 
 
 
@@ -81,30 +80,28 @@ def discover_alteon_cpu(section):
 # {'alteon_cpu_utilization_tresholds': (33.0, 44)}
 # {'CPU_SP_Core_1_Utilization': {'1sec': 19, '64sec': 19, '4sec': 17}, 'CPU_MP_Core_1_Utilization': {'1sec': 5, '64sec': 6, '4sec': 5}, 'CPU_SP_Core_2_Utilization': {'1sec': 19, '64sec': 21, '4sec': 20}}
 def check_alteon_cpu(item, params, section):
-    treshold_key = "1sec"
+    if item not in section:
+        return
+    
     values = section[item]
-
-    # check for warn/crit
-    warn_treshold, crit_treshold = params["alteon_cpu_utilization_tresholds"]
-    value = values[treshold_key]
-    state = 0
-    infotext = "{}: ".format(item)
-    yield Result(state=State.OK, summary=f"{item}: ")
+    warn_threshold, crit_threshold = params["alteon_cpu_utilization_tresholds"]
+    
+    yield Result(state=State.OK, summary=f"{item}")
+    
     for duration, value in values.items():
-        yield Metric(duration, value, levels=(warn_treshold, crit_treshold))
-        if value >= crit_treshold:
-            yield Result(state=State.CRIT, summary=f"{duration}:{value}")
-        elif value >= warn_treshold:
-            yield Result(state=State.WARN, summary=f"{duration}:{value}")
-        else:
-            yield Result(state=State.OK, summary=f"{duration}:{value}")
+        yield from check_levels(
+            value,
+            levels_upper=(warn_threshold, crit_threshold),
+            metric_name=f"cpu_{duration}",
+            label=f"CPU {duration}",
+            render_func=lambda x: f"{x:.1f}%",
+        )
 
-     
-register.check_plugin(
+check_plugin_alteon_cpu = CheckPlugin(     
     name='alteon_cpu',
     service_name='%s',
     discovery_function=discover_alteon_cpu,
     check_function=check_alteon_cpu,
     check_ruleset_name='alteon_cpu',
-    check_default_parameters={},
+    check_default_parameters={'alteon_cpu_utilization_tresholds': ('fixed', (80.0, 90.0))},
 )

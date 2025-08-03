@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 
-from .agent_based_api.v1 import (
-    register,
+from cmk.agent_based.v2 import (
     SNMPTree, 
     startswith,
     Service,
     Result,
     State,
     Metric,
+    CheckPlugin,
+    SNMPSection,
+    check_levels,
 )
 
 # [[['97619512', '49935420', '1876.988', '1174.395']], [['3', '2'], ['2', '2']]]
@@ -32,7 +34,7 @@ def parse_alteon_memory(string_table):
     return values
 
 
-register.snmp_section(
+snmp_section_alteon_memory = SNMPSection(
     name="alteon_memory",
     detect=startswith('.1.3.6.1.2.1.1.1.0', "Alteon Application Switch"),
     parse_function=parse_alteon_memory,
@@ -61,66 +63,74 @@ register.snmp_section(
 
 
 def discover_alteon_memory(section):
-    tresholds = {}
-    tresholds["alteon_memory_tresholds"] = {
-        "percentVirtual": (75, 90),
-        "percentRss": (75, 90),
-        "CurrentSP": (75, 90),
-    }
-
-    yield Service(item="Alteon Memory", parameters=tresholds)
+    yield Service(item="Alteon Memory")
     for sp_core in section['cores'].keys():
-        yield Service(item="Alteon Memory SP Core {}".format(sp_core + 1),
-                        parameters=tresholds)
+        yield Service(item="Alteon Memory SP Core {}".format(sp_core + 1))
 
 
 def check_alteon_memory(item, params, section):
-
-    yield Result(state=State.OK, summary="{}:".format(item))
-
-    global_stats = section['global']
-
-    global_stats['percentVirtual'] = global_stats['MpMemStatsVirtual'] / global_stats['MpMemStatsTotal'] * 100
-    global_stats['percentRss'] = global_stats['MpMemStatsRss'] / global_stats['MpMemStatsTotal'] * 100
-
     if item == "Alteon Memory":
+        yield Result(state=State.OK, summary=f"{item}")
+        
+        global_stats = section['global']
+        # Calculate percentages
+        global_stats['percentVirtual'] = global_stats['MpMemStatsVirtual'] / global_stats['MpMemStatsTotal'] * 100
+        global_stats['percentRss'] = global_stats['MpMemStatsRss'] / global_stats['MpMemStatsTotal'] * 100
+
+        # Check thresholds for percentage values
+        for key in ['percentVirtual', 'percentRss']:
+            if key in params["alteon_memory_tresholds"]:
+                warn, crit = params["alteon_memory_tresholds"][key]
+                yield from check_levels(
+                    global_stats[key],
+                    levels_upper=(warn, crit),
+                    metric_name=key,
+                    label=f"Memory {key}",
+                    render_func=lambda x: f"{x:.1f}%",
+                )
+        
+        # Yield metrics for other global stats without thresholds
         for key, val in global_stats.items():
-            val_perfdata = None
-            if key in params["alteon_memory_tresholds"].keys():
-                val_perfdata = params["alteon_memory_tresholds"][key]
-                if val > params["alteon_memory_tresholds"][key][1]:
-                    yield Result(state=State.CRIT, summary="{}:{}".format(key, val))
-                elif val > params["alteon_memory_tresholds"][key][0]:
-                    yield Result(state=State.WARN, summary="{}:{}".format(key, val))
-                else:
-                    yield Result(state=State.OK, summary="{}:{}".format(key, val))
-            yield Metric(key, val, levels=val_perfdata)
+            if key not in ['percentVirtual', 'percentRss']:
+                yield Metric(key, val)
 
-    ######
     elif item.startswith("Alteon Memory SP Core"):
-        if not "CurrentSP" in params["alteon_memory_tresholds"].keys():
-            params["alteon_memory_tresholds"]["CurrentSP"] = params["alteon_memory_tresholds"]["Peak"]
-        warn, crit = params["alteon_memory_tresholds"]["CurrentSP"]
+        yield Result(state=State.OK, summary=f"{item}")
+        
         core_id = int(item.split()[4]) - 1
-        for key, val in section['cores'][core_id].items():
-            val_perfdata = None
-            if key.startswith("Current"):
-                val_perfdata = (warn, crit)
-                if val > crit:
-                    yield Result(state=State.CRIT, summary="{}:{}".format(key, val))
-                elif val >  warn:
-                    yield Result(state=State.WARN, summary="{}:{}".format(key, val))
-                else:
-                    yield Result(state=State.OK, summary="{}:{}".format(key, val))
+        if core_id not in section['cores']:
+            return
+            
+        core_stats = section['cores'][core_id]
+        warn, crit = params["alteon_memory_tresholds"]["CurrentSP"]
+        
+        # Check CurrentMemUsageSP with thresholds
+        if "CurrentMemUsageSP" in core_stats:
+            yield from check_levels(
+                core_stats["CurrentMemUsageSP"],
+                levels_upper=(warn, crit),
+                metric_name="CurrentMemUsageSP",
+                label="Current Memory Usage SP",
+                render_func=lambda x: f"{x:.1f}%",
+            )
+        
+        # Yield metrics for other core stats without thresholds
+        for key, val in core_stats.items():
+            if key != "CurrentMemUsageSP":
+                yield Metric(key, val)
 
-            yield Metric(key, val, levels=val_perfdata)
 
-
-register.check_plugin(
+check_plugin_alteon_memory = CheckPlugin(     
     name='alteon_memory',
     service_name='%s',
     discovery_function=discover_alteon_memory,
     check_function=check_alteon_memory,
     check_ruleset_name='alteon_memory',
-    check_default_parameters={},
+    check_default_parameters={
+        "alteon_memory_tresholds": {
+            "percentVirtual": ('fixed', (75.0, 90.0)),
+            "percentRss": ('fixed', (75.0, 90.0)),
+            "CurrentSP": ('fixed', (75.0, 90.0)),
+        }
+    },
 )

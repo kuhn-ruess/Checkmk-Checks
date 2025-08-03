@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
-from .agent_based_api.v1 import (
-    register,
+from cmk.agent_based.v2 import (
     SNMPTree, 
     startswith,
     Service,
@@ -10,7 +9,9 @@ from .agent_based_api.v1 import (
     Metric,
     get_value_store,
     get_rate,
-    GetRateError
+    GetRateError,
+    CheckPlugin,
+    SNMPSection,
 )
 
 import time
@@ -102,7 +103,7 @@ def parse_alteon_interface(string_table):
     return interfaces
 
 
-register.snmp_section(
+snmp_section_alteon_interface = SNMPSection(
     name="alteon_interface",
     detect=startswith('.1.3.6.1.2.1.1.1.0', "Alteon Application Switch"),
     parse_function=parse_alteon_interface,
@@ -342,7 +343,7 @@ def check_alteon_interface(item, params, section):
     yield Result(state=State.OK, summary=infotext)
 
 
-register.check_plugin(
+check_plugin_alteon_interface = CheckPlugin(
     name='alteon_interface',
     service_name='Alteon IF %s',
     discovery_function=discover_alteon_interface,

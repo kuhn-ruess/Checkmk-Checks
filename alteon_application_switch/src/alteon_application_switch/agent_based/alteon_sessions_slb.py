@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
-from .agent_based_api.v1 import (
-    register,
+from cmk.agent_based.v2 import (
     SNMPTree, 
     startswith,
     Service,
     Result,
     State,
     Metric,
+    CheckPlugin,
+    SNMPSection,
 )
 
 #[[[u'2097126', u'35423', u'35386', u'35561']]]
@@ -20,7 +21,7 @@ def parse_alteon_slb_sessions(string_table):
     return values
 
 
-register.snmp_section(
+snmp_section_alteon_sessions_slb = SNMPSection(
     name="alteon_sessions_slb",
     detect=startswith('.1.3.6.1.2.1.1.1.0', "Alteon Application Switch"),
     parse_function=parse_alteon_slb_sessions,
@@ -77,7 +78,7 @@ def check_alteon_slb_sessions(item, params, section):
     yield Result(state=State.OK, summary="(Limit: {})".format(max))
 
 
-register.check_plugin(
+check_plugin_alteon_sessions_slb = CheckPlugin(     
     name='alteon_sessions_slb',
     service_name='%s',
     discovery_function=discover_alteon_slb_sessions,
