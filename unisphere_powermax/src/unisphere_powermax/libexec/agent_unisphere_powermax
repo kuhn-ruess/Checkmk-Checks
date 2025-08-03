@@ -716,7 +716,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     print("<<<check_mk>>>")
-    print("Version: agent_unisphere_powermax-3.0")
+    print("Version: agent_unisphere_powermax-3.6")
 
     if args.debug:
         print("DEBUG: Debug mode enabled", file=sys.stderr)
@@ -728,7 +728,7 @@ if __name__ == '__main__':
     pmax.get_version()
     pmax.get_symmetrix_name('test')
     for ds in data_sources:
-        disable_attr = f'disable{ds.__name__}'
+        disable_attr = f'disable_{ds.__name__}'
         if getattr(args, disable_attr):
             continue
         try:

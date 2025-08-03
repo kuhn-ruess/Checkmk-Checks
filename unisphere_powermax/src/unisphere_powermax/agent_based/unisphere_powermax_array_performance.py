@@ -118,8 +118,8 @@ check_plugin_unisphere_powermax_arrayperformance_wp_cache = CheckPlugin(
     discovery_function = discover_wp_cache,
     check_function = check_wp_cache,
     check_ruleset_name="unisphere_powermax_powermax_array_performance_wp_cache",
-    check_default_parameters =  {"average_levels": ('fixed', (70, 90)),
-                                 "maximum_levels": ('fixed', (70, 90))}
+    check_default_parameters =  {"average_levels": ('fixed', (70.0, 90.0)),
+                                 "maximum_levels": ('fixed', (70.0, 90.0))}
 )
 
 check_plugin_unisphere_powermax_arrayperformance_perf_info = CheckPlugin(

@@ -90,6 +90,6 @@ check_plugin_unisphere_powermax_health_check = CheckPlugin(
     service_name = 'Health Check %s',
     discovery_function = discover_health,
     check_function = check_health,
-    check_ruleset_name='unisphere_powermax_health_check',
+    #check_ruleset_name='unisphere_powermax_health_check',
     check_default_parameters = {"max_age": 168}
 )

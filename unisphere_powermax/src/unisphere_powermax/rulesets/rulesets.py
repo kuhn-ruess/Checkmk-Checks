@@ -178,7 +178,7 @@ def _valuespec_special_agent_unisphere_powermax():
         )
 
 rule_spec_semu_agent = SpecialAgent(
-    name = "agent_unisphere_powermax",
+    name = "unisphere_powermax",
     topic = Topic.STORAGE,
     parameter_form = _valuespec_special_agent_unisphere_powermax,
     title = Title("Unisphere Powermax"),
