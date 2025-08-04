@@ -28,7 +28,11 @@
 # 4 i-4B9008BE running 2048 4.0 2.7
 # 5 i-44F608B6 running 2048 0.0 0.7
 
-from .agent_based_api.v1 import Metric, register, Result, Service, State
+from cmk.agent_based.v2 import AgentSection, CheckPlugin, Metric, Result, Service, State
+
+
+def parse_qemu(string_table):
+    return string_table
 
 
 def qemu_fix_vmname(name):
@@ -88,10 +92,13 @@ def check_qemu(item, params, section):
                 yield Metric(p[0], p[1])
 
 
-register.agent_section(name = "qemu")
+agent_section_qemu = AgentSection(
+    name = "qemu",
+    parse_function = parse_qemu,
+)
 
 
-register.check_plugin(
+check_plugin_qemu = CheckPlugin(
     name = "qemu",
     service_name = "VM %s",
     discovery_function = discover_qemu,
