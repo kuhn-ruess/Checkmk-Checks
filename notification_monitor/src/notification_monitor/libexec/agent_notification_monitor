@@ -1,0 +1,110 @@
+#!/usr/bin/env python3
+
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+
+from sys import argv
+from os import environ
+from requests import get
+
+class AgentNotificationMonitor():
+    """
+    Agent Notification Monitor
+    """
+
+    def get_user(self):
+        """
+        Get automation user and secret
+        """
+        omd_root = environ.get('OMD_ROOT')
+        secret_path = (
+            f"{omd_root}/var/check_mk/web/automation/"
+            "automation.secret"
+        )
+        with open(secret_path, "r", encoding="utf-8") as f:
+            data = f.read()
+            f.close()
+
+        self._username = "automation"
+        self._secret = data.strip()
+
+
+    def __init__(self):
+        """
+        Init
+        """
+        self.timeout = float(argv[1])
+        self.path = argv[2]
+        self.command_regex = argv[3]
+        self.get_user()
+        self._site_url = f"{self.path}check_mk/view.py?"
+
+
+    def get(self, url):
+        """
+        Simple Get
+        """
+        address = f"{self._site_url}{url}"
+        content = get(
+            address,
+            headers = {"Authorization": f"Bearer {self._username} {self._secret}"},
+            timeout = self.timeout,
+        )
+
+
+        if content.status_code == 200 or content.status_code == 204:
+            return content.json()
+        else:
+            return []
+
+
+    def get_notifications(self):
+        """
+        Get Data from Notification Log
+        """
+        print("<<<local>>>")
+        from_hour = 1
+        # Example URL for debugging:
+        # http://checkmk.host-only:5002/cmk/check_mk/view.py?
+        #   filled_in=filter
+        #   &_active=log_type%3Blogtime%3Blog_class%3Blog_command_name_regex
+        #   &log_type=.*NOTIFICATION%20RESULT%24
+        #   &logtime_from=4
+        #   &logtime_from_range=3600
+        #   &logtime_until
+        #   &logtime_until_range=3600
+        #   &logclass3=on
+        #   &log_command_name_regex=cherwell_notify
+        #   &view_name=failed_notifications
+        #   &_show_filter_form=1
+        url = (
+            "filled_in=filter"
+            "&_active=log_type%3Blogtime%3Blog_class%3Blog_command_name_regex"
+            "&log_type=.*NOTIFICATION%20RESULT%24"
+            f"&logtime_from={from_hour}"
+            f"&logtime_from_range={from_hour*900}"
+            "&logtime_until"
+            "&logtime_until_range=1"
+            "&logclass3=on"
+            f"&log_command_name_regex={self.command_regex}"
+            "&view_name=failed_notifications"
+            "&_show_filter_form=1"
+            "&output_format=json"
+        )
+
+
+        errors = self.get(url=url)
+        num_failed = len(errors[1:])
+        state = 0
+        if num_failed >= 1:
+            state = 2
+        print(f"{state} \"Failed Notifications\" count={num_failed} {num_failed} failed")
+        print()
+
+
+if __name__ == "__main__":
+    agent = AgentNotificationMonitor()
+    agent.get_notifications()
