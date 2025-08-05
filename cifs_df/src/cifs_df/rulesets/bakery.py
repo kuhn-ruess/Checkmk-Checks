@@ -51,7 +51,7 @@ def _agent_config_cifs_df() -> Dictionary:
     )
 
 
-rule_spec_passwort_age = AgentConfig(
+rule_spec_cifs_df = AgentConfig(
     name="cifs_df",
     title=Title("Filesystemmonitoring of CIFS_FS via Plugin (Linux)"), 
     topic=Topic.OPERATING_SYSTEM,

@@ -51,7 +51,7 @@ def _agent_config_nfs_df() -> Dictionary:
     )
 
 
-rule_spec_passwort_age = AgentConfig(
+rule_spec_nfs_df = AgentConfig(
     name="nfs_df",
     title=Title("Filesystemmonitoring of NFS Mounts via Plugin (Linux)"), 
     topic=Topic.OPERATING_SYSTEM,
