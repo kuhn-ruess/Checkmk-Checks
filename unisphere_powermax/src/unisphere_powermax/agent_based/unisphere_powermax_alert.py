@@ -89,10 +89,10 @@ check_plugin_unisphere_powermax_alerts = CheckPlugin(
     service_name = 'Alerts - %s',
     discovery_function = discover_alerts,
     check_function = check_alerts,
-    check_default_parameters = {'severity_map': {'fatal': 2,        # State.CRIT
-                                                 'critical': 2,     # State.CRIT
-                                                 'minor': 1,        # State.WARN
-                                                 'warning': 1,      # State.WARN
-                                                 'info': 0          # State.OK
+    check_default_parameters = {'severity_map': {'fatal': State.CRIT,
+                                                 'critical': State.CRIT,
+                                                 'minor': State.WARN,
+                                                 'warning': State.WARN,
+                                                 'info': State.OK
                                                  }}
     )

@@ -28,29 +28,10 @@ def _migrate(value):
     """
     Migration function to convert old ruleset values to the new format.
     """
-    # Legacy parameter migrations
     if 'cache-time' in value:
         value['cache_time'] = value.pop('cache-time')
     if 'useIP' in value:
         value['use_ip'] = value.pop('useIP')
-    
-    # CamelCase to snake_case parameter migrations
-    camel_to_snake_mappings = {
-        'disablegetSrpInfo': 'disable_get_srp_info',
-        'disablegetDirectorInfo': 'disable_get_director_info',
-        'disablegetHealthScoreInfo': 'disable_get_health_score_info',
-        'disablegetHealthCheckInfo': 'disable_get_health_check_info',
-        'disablegetArrayPerformanceInfo': 'disable_get_array_performance_info',
-        'disablegetPortGroupInfo': 'disable_get_port_group_info',
-        'disablegetAlertInfo': 'disable_get_alert_info',
-        'disablegetMaskingViewInfo': 'disable_get_masking_view_info',
-        "enableRemoteSymChecks": 'enable_remote_sym_checks'
-    }
-    
-    for old_key, new_key in camel_to_snake_mappings.items():
-        if old_key in value:
-            value[new_key] = value.pop(old_key)
-    
     return value
 
 def _valuespec_special_agent_unisphere_powermax():
@@ -88,56 +69,56 @@ def _valuespec_special_agent_unisphere_powermax():
                                          "hostname for the SSL connection."),
                     ),
                 ),
-                "disable_get_srp_info": DictElement(
+                "disablegetSrpInfo": DictElement(
                     parameter_form = BooleanChoice(
                         title = Title("Disable SRP checks"),
                         label = Label("disable"),
                         help_text = Help("Check to disable the SRP-Info checks."),
                     ),
                 ),
-                "disable_get_director_info": DictElement(
+                "disablegetDirectorInfo": DictElement(
                     parameter_form = BooleanChoice(
                         title = Title("Disable Director checks"),
                         label = Label("disable"),
                         help_text = Help("Check to disable the Director-Status checks."),
                     ),
                 ),
-                "disable_get_health_score_info": DictElement(
+                "disablegetHealthScoreInfo": DictElement(
                     parameter_form = BooleanChoice(
                         title = Title("Disable health score checks"),
                         label = Label("disable"),
                         help_text = Help("Check to disable the Health-Score-Status checks."),
                     ),
                 ),
-                "disable_get_health_check_info": DictElement(
+                "disablegetHealthCheckInfo": DictElement(
                     parameter_form = BooleanChoice(
                         title = Title("Disable health check checks"),
                         label = Label("disable"),
                         help_text = Help("Check to disable the Health-Check checks."),
                     ),
                 ),
-                "disable_get_array_performance_info": DictElement(
+                "disablegetArrayPerformanceInfo": DictElement(
                     parameter_form = BooleanChoice(
                         title = Title("Disable array performance checks"),
                         label = Label("disable"),
                         help_text = Help("Check to disable the Array-Performance checks."),
                     ),
                 ),
-                "disable_get_port_group_info": DictElement(
+                "disablegetPortGroupInfo": DictElement(
                     parameter_form = BooleanChoice(
                         title = Title("Disable port group checks"),
                         label = Label("disable"),
                         help_text = Help("Check to disable the Port-Group checks."),
                     ),
                 ),
-                "disable_get_alert_info": DictElement(
+                "disablegetAlertInfo": DictElement(
                     parameter_form = BooleanChoice(
                         title = Title("Disable alert summary checks"),
                         label = Label("disable"),
                         help_text = Help("Check to disable the Alert-Summary checks."),
                     ),
                 ),
-                "disable_get_masking_view_info": DictElement(
+                "disablegetMaskingViewInfo": DictElement(
                     parameter_form = BooleanChoice(
                         title = Title("Disable masking view checks"),
                         label = Label("disable"),
@@ -145,7 +126,7 @@ def _valuespec_special_agent_unisphere_powermax():
                                          "Storage- and Volume-Summary checks."),
                     ),
                 ),
-                "enable_remote_sym_checks": DictElement(
+                "enableRemoteSymChecks": DictElement(
                     parameter_form = BooleanChoice(
                         title = Title("Enable remote Symmetrix checks"),
                         label = Label("enable"),
@@ -178,7 +159,7 @@ def _valuespec_special_agent_unisphere_powermax():
         )
 
 rule_spec_semu_agent = SpecialAgent(
-    name = "unisphere_powermax",
+    name = "agent_unisphere_powermax",
     topic = Topic.STORAGE,
     parameter_form = _valuespec_special_agent_unisphere_powermax,
     title = Title("Unisphere Powermax"),

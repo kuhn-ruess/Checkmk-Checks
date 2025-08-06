@@ -228,7 +228,7 @@ check_plugin_unisphere_powermax_port_masking_view_port_summary = CheckPlugin(
     discovery_function = discover_masking_view_port_summary,
     check_function = check_masking_view_port_summary,
     check_ruleset_name="unisphere_powermax_masking_view_port_summary",
-    check_default_parameters = {"levels": ('fixed', (100.0, 50.0))}
+    check_default_parameters = {"levels": ('fixed', (100, 50))}
 )
 
 check_plugin_unisphere_powermax_volume_masking_view_volume_summary = CheckPlugin(
@@ -238,5 +238,5 @@ check_plugin_unisphere_powermax_volume_masking_view_volume_summary = CheckPlugin
     discovery_function = discover_masking_view_volume_summary,
     check_function = check_masking_view_volume_summary,
     check_ruleset_name="unisphere_powermax_masking_view_volume_summary",
-    check_default_parameters = {"levels": ('fixed', (100.0, 100.0))}
+    check_default_parameters = {"levels": ('fixed', (100, 100))}
 )
