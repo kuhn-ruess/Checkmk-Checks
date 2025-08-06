@@ -36,22 +36,27 @@ def parse_alteon_vserver(string_table):
 
 snmp_section_alteon_vserver = SNMPSection(
     name="alteon_vserver",
-    detect=startswith('.1.3.6.1.2.1.1.1.0', "Alteon Application Switch"),
+    detect=startswith(
+        '.1.3.6.1.2.1.1.1.0',
+        "Alteon Application Switch"
+    ),
     parse_function=parse_alteon_vserver,
-    fetch=SNMPTree(
-            base='.1.3.6.1.4.1.1872.2.5.4.2.32.1', # Virtual Server utilization
+    fetch=[
+        SNMPTree(
+            base='.1.3.6.1.4.1.1872.2.5.4.2.32.1',  # Virtual Server utilization
             oids=[
-                '14', # IPs
-                '2', # Current Sessions
-                '3', # Total Sessions
-                '4', # Peak Sessions
-                '5', # Octets In + Out slbStatEnhVServerHCOctetsLow32
-                '6', # Octets In + Out slbStatEnhVServerHCOctetsHigh32
-                '10', # The total HTTP header sessions slbStatEnhVServerHeaderTotalSessions
-                '13', # HC Octets slbStatEnhVServerHCOctets
-                '1', # label?
+                '14',  # IPs
+                '2',   # Current Sessions
+                '3',   # Total Sessions
+                '4',   # Peak Sessions
+                '5',   # Octets In + Out slbStatEnhVServerHCOctetsLow32
+                '6',   # Octets In + Out slbStatEnhVServerHCOctetsHigh32
+                '10',  # The total HTTP header sessions slbStatEnhVServerHeaderTotalSessions
+                '13',  # HC Octets slbStatEnhVServerHCOctets
+                '1',   # label?
             ]
-        ),
+        )
+    ],
 )
 
 

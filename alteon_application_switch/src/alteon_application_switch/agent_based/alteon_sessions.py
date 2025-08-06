@@ -28,7 +28,8 @@ snmp_section_alteon_sessions = SNMPSection(
     name="alteon_sessions",
     detect=startswith('.1.3.6.1.2.1.1.1.0', "Alteon Application Switch"),
     parse_function=parse_alteon_sessions,
-    fetch=SNMPTree(
+    fetch=[
+        SNMPTree(
             base='.1.3.6.1.4.1.1872.2.5.4.2.1.5.1', # SP Session Bindings
             oids=[
                 # http://oidref.com/1.3.6.1.4.1.1872.2.5.4.2.1.5.1.4
@@ -37,7 +38,7 @@ snmp_section_alteon_sessions = SNMPSection(
                 '4', # SP Session Bindings over 4 Sec
                 '5', # SP Session Bindings over 64 sec
             ]
-        ),
+        )],
 )
 
 

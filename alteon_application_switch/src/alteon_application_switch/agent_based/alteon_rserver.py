@@ -38,7 +38,8 @@ snmp_section_alteon_server = SNMPSection(
     name="alteon_rserver",
     detect=startswith('.1.3.6.1.2.1.1.1.0', "Alteon Application Switch"),
     parse_function=parse_alteon_rserver,
-    fetch=SNMPTree(
+    fetch=[
+        SNMPTree(
             base='.1.3.6.1.4.1.1872.2.5.4.2.30.1', # Real Server utilization
             oids=[
                 '1', # Name
@@ -50,7 +51,7 @@ snmp_section_alteon_server = SNMPSection(
                 '7', # Total Octets In + Out Low slbStatEnhRServerHCOctetsLow32
                 '8', # Total rx/tx Octets slbStatEnhRServerHCOctets
             ]
-        ),
+        )],
 )
 
 
