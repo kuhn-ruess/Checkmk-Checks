@@ -1,7 +1,8 @@
 #!/bin/bash
 
-SUMMARY_1="/var/lib/puppet/state/last_run_summary.yaml"
-SUMMARY_2="/opt/puppetlabs/puppet/cache/state/last_run_summary.yaml"
+# requires puppet 7+
+SUMMARY_1="/var/lib/puppet/public/last_run_summary.yaml"
+SUMMARY_2="/opt/puppetlabs/puppet/public/last_run_summary.yaml"
 
 if [ -f $SUMMARY_1 ]; then
     LASTRUN=$SUMMARY_1

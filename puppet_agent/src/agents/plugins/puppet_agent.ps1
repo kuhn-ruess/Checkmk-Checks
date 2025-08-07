@@ -2,8 +2,8 @@
 # https://github.com/allangood/check_mk/tree/master/plugins/puppet
 # Contribution from: https://github.com/jeff-cook
 
-
-$lastrun = "C:\ProgramData\PuppetLabs\puppet\var\state\last_run_summary.yaml"
+# requires puppet 7+
+$lastrun = "C:\ProgramData\PuppetLabs\puppet\public\last_run_summary.yaml"
 if (Test-Path $lastrun) {
   Write-Output "<<<puppet_agent>>>"
   $content = Get-Content $lastrun
