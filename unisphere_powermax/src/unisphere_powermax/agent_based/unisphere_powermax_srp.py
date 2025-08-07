@@ -159,7 +159,7 @@ check_plugin_unisphere_powermax_srp_effective_used = CheckPlugin(
     discovery_function = discover_srp_effective_used,
     check_function = check_srp_effective_used,
     check_ruleset_name="unisphere_powermax_srp_effective_used",
-    check_default_parameters = {"levels": ('fixed', (80, 90))}
+    check_default_parameters = {"levels": ('fixed', (80.0, 90.0))}
 )
 
 check_plugin_unisphere_powermax_srp_pysical_used = CheckPlugin(
@@ -169,7 +169,7 @@ check_plugin_unisphere_powermax_srp_pysical_used = CheckPlugin(
     discovery_function = discover_srp_physical_used,
     check_function = check_srp_physical_used,
     check_ruleset_name = 'unisphere_powermax_srp_physical_used',
-    check_default_parameters = {"levels": ('fixed', (80, 90))}
+    check_default_parameters = {"levels": ('fixed', (80.0, 90.0))}
 )
 
 check_plugin_unisphere_powermax_srp_data_reduction_ratio = CheckPlugin(

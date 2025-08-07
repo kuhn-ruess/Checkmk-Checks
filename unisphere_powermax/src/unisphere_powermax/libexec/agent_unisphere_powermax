@@ -10,6 +10,7 @@ https://kuhn-ruess.de
 import argparse
 import sys
 import os
+from os import getenv
 import json
 import threading
 import queue
@@ -24,8 +25,6 @@ from urllib3.exceptions import InsecureRequestWarning
 import urllib3
 urllib3.disable_warnings(InsecureRequestWarning)
 
-API_VERSION = 100 # from 91
-API_VERSION_2 = 84 # from 84
 
 def camel_to_snake(name):
     """
@@ -52,7 +51,7 @@ class PmaxConnector:
     Class to handle connections to PowerMAX
     """
 
-    def __init__(self, username, password, host, ssl_verify=True, debug=False):
+    def __init__(self, username, password, host, ssl_verify=True, api_version=100, debug=False):
         """
         Initialize the Connector for PowerMAX access
         :param username: Username for authentication
@@ -61,6 +60,8 @@ class PmaxConnector:
         :param ssl_verify: Whether to verify SSL certificates
         :param debug: Whether to enable debug output for HTTP requests
         """
+        self.API_VERSION = api_version
+
         self.header = {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
@@ -201,7 +202,7 @@ class PmaxConnector:
         :return: dict with symmetrixId as key and empty dict as value
         """
         try:
-            return_value = self.get(f'/{API_VERSION}/sloprovisioning/symmetrix')
+            return_value = self.get(f'/{self.API_VERSION}/sloprovisioning/symmetrix')
             return_data = {
             key: {} for key in return_value.json()['symmetrixId']
             }
@@ -215,7 +216,7 @@ class PmaxConnector:
         :return: dict with symmetrixId as key and dict with symmetrix information as value
         """
         for sym_id in self.get_symmetrix():
-            symm_info = self.get(f'/{API_VERSION}/system/symmetrix/{sym_id}').json()
+            symm_info = self.get(f'/{self.API_VERSION}/system/symmetrix/{sym_id}').json()
             self.symmetrix_info[sym_id] = symm_info
 
     def get_symmetrix_name(self, symmetrix_id):
@@ -352,7 +353,7 @@ def get_cached_data(name, max_age):
     :return: Cached data if available, None otherwise
     """
     script_name = sys.argv[0].split('/')[-1]
-    cache_file = f'/tmp/{script_name}_{name}.cache'
+    cache_file = f"{getenv('OMD_ROOT', '')}/tmp/{script_name}_{name}.cache"
     if os.path.isfile(cache_file):
         age = os.stat(cache_file).st_mtime
         if time.time() - age < max_age * 60:
@@ -367,7 +368,7 @@ def write_to_cache(name, data):
     :param data: String data to write to the cache
     """
     script_name = sys.argv[0].split('/')[-1]
-    cache_file = f'/tmp/{script_name}_{name}.cache'
+    cache_file = f"{getenv('OMD_ROOT', '')}/tmp/{script_name}_{name}.cache"
     with open(cache_file, 'w', encoding='utf-8') as f:
         f.write(data)
 
@@ -383,10 +384,10 @@ def get_srp_info(connector, config):
         if not config.enableRemoteSymChecks and not connector.is_symentrix_local(sym_id):
             continue
 
-        srp_url = f'/{API_VERSION}/sloprovisioning/symmetrix/{sym_id}/srp'
+        srp_url = f'/{self.API_VERSION}/sloprovisioning/symmetrix/{sym_id}/srp'
         srp_ids = connector.get(srp_url).json().get('srpId', [])
         for srp_id in srp_ids:
-            srp_detail_url = f'/{API_VERSION}/sloprovisioning/symmetrix/{sym_id}/srp/{srp_id}'
+            srp_detail_url = f'/{self.API_VERSION}/sloprovisioning/symmetrix/{sym_id}/srp/{srp_id}'
             srp_data = connector.get(srp_detail_url).json()
             symmetrix_name = connector.get_symmetrix_name(sym_id)
             output_line = f"SYMMETRIX_{symmetrix_name}_{srp_id}|{json.dumps(srp_data)}"
@@ -403,10 +404,10 @@ def get_director_info(connector, config):
     for sym_id in symmetrix.keys():
         if not config.enableRemoteSymChecks and not connector.is_symentrix_local(sym_id):
             continue
-        director_ids = connector.get(f'/{API_VERSION}/system/symmetrix/{sym_id}/director')\
+        director_ids = connector.get(f'/{self.API_VERSION}/system/symmetrix/{sym_id}/director')\
                               .json().get('directorId', [])
         for director_id in director_ids:
-            director_url = f'/{API_VERSION}/system/symmetrix/{sym_id}/director/{director_id}'
+            director_url = f'/{self.API_VERSION}/system/symmetrix/{sym_id}/director/{director_id}'
             director_data = connector.get(director_url).json()
             symmetrix_name = connector.get_symmetrix_name(sym_id)
             output_line = f"SYMMETRIX_{symmetrix_name}_{director_id}|{json.dumps(director_data)}"
@@ -423,7 +424,7 @@ def get_health_score_info(connector, config):
     for sym_id in symmetrix.keys():
         if not config.enableRemoteSymChecks and not connector.is_symentrix_local(sym_id):
             continue
-        health_score_data = connector.get(f'/{API_VERSION}/system/symmetrix/{sym_id}/health').json()
+        health_score_data = connector.get(f'/{self.API_VERSION}/system/symmetrix/{sym_id}/health').json()
         for metric in health_score_data.get('health_score_metric', []):
             if metric.get('metric', None) is None:
                 continue
@@ -447,13 +448,13 @@ def get_health_check_info(connector, config):
         if not config.enableRemoteSymChecks and not connector.is_symentrix_local(sym_id):
             continue
         try:
-            health_check_url = f'/{API_VERSION}/system/symmetrix/{sym_id}/health/health_check'
+            health_check_url = f'/{self.API_VERSION}/system/symmetrix/{sym_id}/health/health_check'
             health_checks = connector.get(health_check_url).json()
         except: #pylint: disable=bare-except
             continue
         for health_check_id in health_checks.get('health_check_id', []):
             detail_url = (
-                f'/{API_VERSION}/system/symmetrix/{sym_id}/health/health_check/'
+                f'/{self.API_VERSION}/system/symmetrix/{sym_id}/health/health_check/'
                 f'{health_check_id}'
             )
             health_check = connector.get(detail_url).json()
@@ -534,15 +535,15 @@ def get_port_group_info(connector, config):
     for sym_id in symmetrix.keys():
         if not config.enableRemoteSymChecks and not connector.is_symentrix_local(sym_id):
             continue
-        port_group_url = f'/{API_VERSION}/sloprovisioning/symmetrix/{sym_id}/portgroup'
+        port_group_url = f'/{self.API_VERSION}/sloprovisioning/symmetrix/{sym_id}/portgroup'
         port_groups = connector.get(port_group_url).json().get('portGroupId', [])
         for port_group in port_groups:
             ports_info = []
-            ports_url = (f'/{API_VERSION}/sloprovisioning/symmetrix/'
+            ports_url = (f'/{self.API_VERSION}/sloprovisioning/symmetrix/'
                         f'{sym_id}/portgroup/{port_group}')
             ports = connector.get(ports_url).json().get('symmetrixPortKey', [])
             for port in ports:
-                port_status_url = (f'/{API_VERSION_2}/sloprovisioning/symmetrix/{sym_id}/'
+                port_status_url = (f'/{self.API_VERSION}/system/symmetrix/{sym_id}/'
                                  f'director/{port["directorId"]}/port/{port["portId"]}')
                 port_status_info = connector.get(port_status_url).json()
                 if config.randomFailures:
@@ -562,7 +563,7 @@ def get_alert_info(connector, config):
     :param config: Arguments containing configuration options
     """
     print('<<<unisphere_powermax_alerts:sep(124)>>>')
-    alert_info = connector.get(f'/{API_VERSION}/system/alert_summary').json()
+    alert_info = connector.get(f'/{self.API_VERSION}/system/alert_summary').json()
     if alert_info.get('serverAlertSummary', None) is not None:
         server_summary = json.dumps(alert_info.get('serverAlertSummary'))
         print(f"Server Alert Summary|{server_summary}")
@@ -606,12 +607,12 @@ def get_masking_view_info(connector, config):
     mv_map = {}
     port_map = {}
     for sym_id in symmetrix.keys():
-        masking_view_url = f'/{API_VERSION_2}/sloprovisioning/symmetrix/{sym_id}/maskingview'
+        masking_view_url = f'/{self.API_VERSION}/sloprovisioning/symmetrix/{sym_id}/maskingview'
         masking_views = connector.get(masking_view_url).json().get('maskingViewId', [])
         if not config.enableRemoteSymChecks and not connector.is_symentrix_local(sym_id):
             continue
         for masking_view in masking_views:
-            mv_connection_url = (f'/{API_VERSION_2}/sloprovisioning/symmetrix/'
+            mv_connection_url = (f'/{self.API_VERSION}/sloprovisioning/symmetrix/'
                                f'{sym_id}/maskingview/{masking_view}/connections')
             mv_connection_resp = connector.get(mv_connection_url)
             mv_connection_info = mv_connection_resp.json().get(
@@ -625,7 +626,7 @@ def get_masking_view_info(connector, config):
                     continue
                 symmetrix_name = connector.get_symmetrix_name(sym_id)
                 volume_key = f'SYMMETRIX_{symmetrix_name}_{volume}'
-                volume_url = f'/{API_VERSION_2}/sloprovisioning/symmetrix/{sym_id}/volume/{volume}'
+                volume_url = f'/{self.API_VERSION}/sloprovisioning/symmetrix/{sym_id}/volume/{volume}'
                 query_queue.put((volume_key, volume_url, masking_view))
                 mv_map[volume] = True
 
@@ -634,7 +635,7 @@ def get_masking_view_info(connector, config):
                     continue
                 director = port.split(':')[0]
                 port_id = port.split(':')[1]
-                port_url = (f'/{API_VERSION_2}/sloprovisioning/symmetrix/{sym_id}/'
+                port_url = (f'/{self.API_VERSION}/system/symmetrix/{sym_id}/'
                           f'director/{director}/port/{port_id}')
                 symmetrix_name = connector.get_symmetrix_name(sym_id)
                 port_key = f'SYMMETRIX_{symmetrix_name}_{port}'
@@ -644,7 +645,7 @@ def get_masking_view_info(connector, config):
     threads = []
     for t in range(0, 4):
         threads.append(QueryWorker(t, connector, query_queue, result_queue))
-        threads[t].setDaemon(True)
+        threads[t].daemon = True
         threads[t].start()
 
     for t in threads:
@@ -692,6 +693,7 @@ def usage():
     print(f"usage: {script_name} <address> <username> <password>")
 
 if __name__ == '__main__':
+
     parser = argparse.ArgumentParser(description='Unisphere Powermax check_mk special agent.')
     parser.add_argument('--user', dest='user', required=True, help='Unisphere API username')
     parser.add_argument('--password', dest='password', required=True, help='Unisphere API password')
@@ -700,6 +702,8 @@ if __name__ == '__main__':
     parser.add_argument('--cache_time', default=30, type=int, dest='cache',
         help='Use cache for long running queries like masking view info.(default: 30 minutes)')
     parser.add_argument('--hostname', help='Hostname or IP of the Unisphere API Server')
+    parser.add_argument('--api_version', default=100, type=int, dest='api_version',
+        help='Unisphere REST API version (default: 100)')
     parser.add_argument('--enableRemoteSymChecks',
         help='gather information from remote Symmetrix', action='store_true')
     parser.add_argument('--no_cert_check',
@@ -709,26 +713,28 @@ if __name__ == '__main__':
     parser.add_argument('--debug',
         help='enable debug output for HTTP requests', action='store_true')
     for source in data_sources:
-        disable_arg = f'--disable{source.__name__}'
+        disable_arg = f'--disable_{source.__name__}'
         help_text = f'disable {source.__name__} metrics'
         parser.add_argument(disable_arg, help=help_text, action='store_true')
 
     args = parser.parse_args()
 
+    api_version = args.api_version
+
     print("<<<check_mk>>>")
-    print("Version: agent_unisphere_powermax-3.0")
+    print("Version: agent_unisphere_powermax-3.6")
 
     if args.debug:
         print("DEBUG: Debug mode enabled", file=sys.stderr)
         print(f"DEBUG: Arguments: {vars(args)}", file=sys.stderr)
 
     pmax = PmaxConnector(args.user, args.password,
-                f"{args.hostname}:{args.port}", not args.no_cert_check, args.debug)
+                f"{args.hostname}:{args.port}", not args.no_cert_check, api_version, args.debug)
 
     pmax.get_version()
     pmax.get_symmetrix_name('test')
     for ds in data_sources:
-        disable_attr = f'disable{ds.__name__}'
+        disable_attr = f'disable_{ds.__name__}'
         if getattr(args, disable_attr):
             continue
         try:

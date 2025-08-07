@@ -58,6 +58,6 @@ check_plugin_unisphere_powermax_health_score = CheckPlugin(
     service_name = 'Health Score %s',
     discovery_function = discover_health,
     check_function = check_health,
-    check_ruleset_name="unisphere_powermax_health_score",
+    #check_ruleset_name="unisphere_powermax_health_score",
     check_default_parameters = {"levels": ('fixed',(90, 80))}
 )
