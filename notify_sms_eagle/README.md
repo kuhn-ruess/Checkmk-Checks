@@ -1,4 +1,4 @@
-# SMS Eagele Notification
+# SMS Eagle Notification
 
 This Plugin useses the V2 API for SMS Eagle.
 Make sure to create API Credentials like here:
