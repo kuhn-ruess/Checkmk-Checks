@@ -29,8 +29,8 @@ class NotificationParameterSMSEagle(NotificationParameter):
             elements={
                 "api_host": DictElement(
                     parameter_form = String(
-                        title = Title("Username"),
-                        help_text = Help("User to connect via Auth Basic"),
+                        title = Title("API Host"),
+                        help_text = Help("Address of EAGLE API"),
                     ),
                     required = True,
                 ),

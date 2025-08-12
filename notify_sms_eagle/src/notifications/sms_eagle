@@ -62,7 +62,7 @@ class NotifyEagle():
             'access-token': self.config['api_token'],
             'Content-Type': 'application/json',
         }
-        response = requests.get(url, params=payload, headers=headers, timeout=10)
+        response = requests.data(url, json=payload, headers=headers, timeout=10)
         if response.status_code != 200:
             print(response.text, response.url)
             return 1
