@@ -88,7 +88,7 @@ def check_mysql_status(item, params, section):
             state = State.OK
 
             if "levels" in params:
-                warn, crit = params["levels"]
+                warn, crit = params["levels"][1]
                 if is_n:
                     if val <= crit:
                         state = State.CRIT
