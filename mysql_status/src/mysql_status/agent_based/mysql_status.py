@@ -124,8 +124,9 @@ def check_mysql_status(item, params, section):
                     if "target_state" in params:
                         target_state = params["target_state"]
 
-                        if value != target_state:
+                        if value.casefold() != target_state.casefold():
                             state = State.CRIT
+                            message += f" but should be {target_state.casefold()}"
 
                         message += f" but should be {target_state}"
 
