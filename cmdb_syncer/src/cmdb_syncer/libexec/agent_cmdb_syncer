@@ -19,12 +19,13 @@ class CMDBSYncer():
 
     volume_names_map = {}
 
-    def __init__(self, api_host, password, timeout):
+    def __init__(self, api_host, username, password, timeout):
         """
         Init
         """
         self.api_host = api_host
         #self.auth = HTTPBasicAuth(user, password)
+        self.username = username
         self.password = password
         self.timeout = float(timeout)
 
@@ -33,7 +34,7 @@ class CMDBSYncer():
         Request Data
         """
         headers = {
-            'x-login-token': self.password,
+            'x-login-header': f"{self.username}:{self.password}",
         }
         url = f'{self.api_host}/api/v1/{what}'
         response = requests.get(url, headers=headers, timeout=self.timeout)
@@ -60,6 +61,7 @@ class CMDBSYncer():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="CMDBSyncer Special Agent")
     parser.add_argument("--api_url")
+    parser.add_argument("--username")
     parser.add_argument("--password")
     parser.add_argument("--timeout")
     parser.add_argument("--services")
@@ -67,7 +69,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    syncer = CMDBSYncer(args.api_url, args.password, args.timeout)
+    syncer = CMDBSYncer(args.api_url, args.username, args.password, args.timeout)
 
     if args.services:
         print("<<<cmdb_syncer_service:sep(0)>>>")

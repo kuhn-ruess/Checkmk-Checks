@@ -20,15 +20,33 @@ from cmk.rulesets.v1.form_specs.validators import LengthInRange
 from cmk.rulesets.v1.rule_specs import SpecialAgent, Topic
 
 
+def _migrate(value):
+    """
+    Migration function to convert old parameter format to new format.
+    Adds 'username' field if it doesn't exist.
+    """
+    if 'username' not in value:
+        # Set default username to empty string when migrating old configurations
+        value['username'] = ""
+    return value
+
+
 def _parameter_form_special_agents_cmdb_syncer():
     return Dictionary(
         title = Title("cmdb_syncer via WebAPI"),
         help_text = Help("This rule set selects the special agent for cmdb_syncer"),
+        migrate = _migrate,
         elements = {
             "api_url": DictElement(
                 parameter_form = String(
                     title = Title("API URL with http[s]://"),
                     custom_validate=(LengthInRange(min_value=1),),
+                ),
+                required = True,
+            ),
+            "username": DictElement(
+                parameter_form = String(
+                    title = Title("Username"),
                 ),
                 required = True,
             ),

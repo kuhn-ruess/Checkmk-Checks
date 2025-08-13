@@ -23,6 +23,7 @@ class CMDBSyncerParams(BaseModel):
     Param Model
     """
     api_url: str
+    username: str
     password: Secret
     timeout: str
     services: Sequence[str] = Field(default_factory=list)
@@ -34,6 +35,7 @@ def generate_cmdbsyncer_command(params: CMDBSyncerParams, host_config: HostConfi
     """
     args: list[str | Secret] = [
         "--api_url", params.api_url,
+        "--username", params.username,
         "--password", params.password.unsafe(),
         "--timeout", params.timeout,
         "--services", ";".join(params.services),
