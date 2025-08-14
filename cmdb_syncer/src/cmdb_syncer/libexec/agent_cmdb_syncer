@@ -41,7 +41,9 @@ class CMDBSYncer():
         try:
             return response.json()['result']
         except (KeyError, TypeError):
-            return {'error': 'not_found'}
+            if response.status_code == 401:
+                return {'name': "invalid_login", "message": "Please check login", "has_error": True}
+            return {'name': 'not_found', "message": "Object not Found", "has_error": True}
 
     def get_service(self, service_name):
         """

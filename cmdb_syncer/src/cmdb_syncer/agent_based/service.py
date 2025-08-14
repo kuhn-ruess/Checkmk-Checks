@@ -47,14 +47,11 @@ def check_cmdb_syncer_service(item, params, section):
     """
     state = State.OK
     data = section[item]
-    if 'error' in data:
-        yield Result(state=State.CRIT, summary=data['error'])
-        return
     yield Result(state=state, summary=data['message'])
     if data['has_error']:
         yield Result(state=State.CRIT, summary="Has Error")
 
-    for detail in data['details']:
+    for detail in data.get('details', []):
         yield Result(state=State.OK, summary=f"{detail['name']}: {detail['message'][:40]}")
 
     state = State.OK
@@ -80,8 +77,11 @@ def parse_cmdb_syncer_cron(string_table):
     Parse Device Data to Dict
     """
     parsed = {}
-    for line in json.loads(string_table[0][0]):
-        parsed[line['name']] = line
+    try:
+        for line in json.loads(string_table[0][0]):
+            parsed[line['name']] = line
+    except TypeError:
+        return {}
     return parsed
 
 def discover_cmdb_syncer_cron(section):
@@ -97,6 +97,9 @@ def check_cmdb_syncer_cron(item, params, section):
     """
     state = State.OK
     data = section[item]
+    if error := data.get('error'):
+        yield Result(state=State.CRIT, summary=error)
+        return
     yield Result(state=state, summary=f"Last Message: {data['last_message']}")
     yield Result(state=state, summary=f"Is running: {data['is_running']}")
     yield Result(state=state, summary=f"Next planned Run: {data['next_run']}")
@@ -107,7 +110,6 @@ def check_cmdb_syncer_cron(item, params, section):
     if not data['last_start']:
         yield Result(state=State.WARN, summary="Job never started")
         return
-    last_start_obj = "
     last_start_obj = datetime.strptime(data['last_start'], "%Y-%m-%d %H:%M:%S")
     now = datetime.now()
     delta = now - last_start_obj
