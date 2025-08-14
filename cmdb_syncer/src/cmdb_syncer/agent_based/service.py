@@ -100,6 +100,14 @@ def check_cmdb_syncer_cron(item, params, section):
     yield Result(state=state, summary=f"Last Message: {data['last_message']}")
     yield Result(state=state, summary=f"Is running: {data['is_running']}")
     yield Result(state=state, summary=f"Next planned Run: {data['next_run']}")
+    # First check errors
+    if data['has_error']:
+        yield Result(state=State.CRIT, summary="Has Error")
+    # Job never started
+    if not data['last_start']:
+        yield Result(state=State.WARN, summary="Job never started")
+        return
+    last_start_obj = "
     last_start_obj = datetime.strptime(data['last_start'], "%Y-%m-%d %H:%M:%S")
     now = datetime.now()
     delta = now - last_start_obj
@@ -114,8 +122,6 @@ def check_cmdb_syncer_cron(item, params, section):
     else:
         yield Result(state=state,
                      summary=f"Time since last run: {render.time_offset(delta_sec)}")
-    if data['has_error']:
-        yield Result(state=State.CRIT, summary="Has Error")
 
 agent_section_cmdb_syncer_cron = AgentSection(
     name = "cmdb_syncer_cron",
