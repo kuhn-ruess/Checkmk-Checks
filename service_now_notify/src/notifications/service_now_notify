@@ -1,0 +1,151 @@
+#!/usr/bin/env python3
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+import sys
+import requests
+from requests.auth import HTTPBasicAuth
+from cmk.notification_plugins import utils
+
+
+def main():
+    """
+    Main part to send out notification
+    """
+    context = utils.collect_context()
+
+    # Get parameters with improved error handling
+    try:
+        api_url = context['PARAMETER_API_URL']
+        auth_user = context['PARAMETER_API_USER']
+        auth_password = context['PARAMETER_API_PASSWORD']
+        proxy = context.get('PARAMETER_PROXY', '')  # Make proxy optional
+    except KeyError as e:
+        print(f"Missing required parameter: {e}")
+        sys.exit(2)
+
+    proxies = {}
+    if proxy:  # Only set proxy if provided
+        proxies['https'] = proxy
+
+    auth = HTTPBasicAuth(auth_user, auth_password)
+
+    host_name = context['HOSTNAME']
+    site_name = context['OMD_SITE']
+    contacts = context['CONTACTS']
+    service_account = site_name
+    event_time = context['MICROTIME']
+    long_plugin_output = ""
+    assignment_contactgroup = "SNOW_000_OS"
+    contact_groupnames = "N/A"
+
+    assign_overwrite = False
+
+    if context['NOTIFICATIONTYPE'] == "PROBLEM":
+        # in case of the host has the key, we overwrite
+        if context.get("HOST_SNOW_RESP_GRP"):
+            assign_overwrite = context.get("HOST_SNOW_RESP_GRP")
+
+        api_url += "checkmk/incident/create"
+        if context['WHAT'] == "HOST":
+            mngmt_pack = {
+                "hostname": host_name,
+                "contacts" : contacts,
+                }
+            source_id = "{}|{}".format(site_name, host_name)
+            serverity = context['HOSTSTATE']
+            plugin_output = context['HOSTOUTPUT']
+            service_level = context['HOST_SL']
+            contact_groupnames = context['HOSTCONTACTGROUPNAMES']
+
+        else:
+            service_name = context['SERVICEDESC']
+            contact_groupnames = context['SERVICECONTACTGROUPNAMES']
+            mngmt_pack = {
+                "hostname": host_name,
+                "servicename": service_name,
+                "contacts": contacts,
+            }
+
+            source_id = "{}|{}|{}".format(site_name, host_name, service_name)
+            serverity = context['SERVICESTATE']
+            plugin_output = context['SERVICEOUTPUT']
+            service_level = context['SVC_SL']
+            if context.get("SERVICE_SVC_SNOW_RESP_GRP_2"):
+                assign_overwrite = context.get("SERVICE_SVC_SNOW_RESP_GRP_2")
+
+        if contact_groupnames == '':
+            contact_groupnames = context['HOSTCONTACTGROUPNAMES']
+
+        contact_groups = contact_groupnames.split(',')
+        for group in contact_groups:
+            if group.startswith('SNOW_'):
+                saved_number = int(assignment_contactgroup.split('_')[1])
+                current_number = int(group.split('_')[1])
+                if current_number > saved_number:
+                    assignment_contactgroup = group
+
+
+        if service_level == '':
+            service_level = context['HOST_SL']
+
+        service_level_names = {
+            '0': 'Keine_Bereitschaft',
+            '10': 'Bereitschaft',
+        }
+
+        payload = {
+            "QUELLE": "Checkmk",
+            "QUELLEID": source_id,
+            "ZIEL": "ServiceNow",
+            "FUNKTION": "create",
+            "FQDN": host_name,
+            "MP": mngmt_pack,
+            "SERVERITY": serverity,
+            "DIENSTKONTO": service_account,
+            "EVENTZEITPUNKT": event_time,
+            "KURZBESCHREIBUNG": plugin_output,
+            "LANGBESCHREIBUNG": long_plugin_output,
+            "ASSIGNMENT": assignment_contactgroup,
+            "DISPOSITION": service_level_names.get(service_level, "N/A"),
+        }
+        if assign_overwrite:
+            payload['ASSIGNMENT_GROUP'] = assign_overwrite
+
+    elif context['NOTIFICATIONTYPE'] == "RECOVERY":
+        api_url += "checkmk/incident/close"
+        if context['WHAT'] == "HOST":
+            source_id = "{}|{}".format(site_name, host_name)
+        else:
+            service_name = context['SERVICEDESC']
+            source_id = "{}|{}|{}".format(site_name, host_name, service_name)
+
+        payload = {
+            "QUELLEID": source_id,
+            "ZIEL": "ServiceNow",
+            "ZIELID": "TBD",
+            "FUNKTION": "close"
+        }
+    else:
+        print("SNOW Alert Created")
+        sys.exit(0)
+
+    try:
+        response = requests.post(api_url, json=payload, auth=auth, proxies=proxies, timeout=30)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        print(f"Request failed: {e}")
+        sys.exit(2)
+    
+    if response.status_code != 200:
+        try:
+            print("Exception from SNOW: {}".format(response.json()))
+        except Exception:
+            print("Exception from SNOW: {}".format(response.text))
+        sys.exit(2)
+    
+    print("ServiceNow notification sent successfully")
+    sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()
