@@ -3,7 +3,10 @@ import glob, ast, json
 output = []
 for infofile in glob.glob('./*/src/info'):
     with open(infofile, 'r') as f:
-        data = ast.literal_eval(f.read().strip())
+        try:
+            data = ast.literal_eval(f.read().strip())
+        except ValueError:
+            continue
         output.append({
             'title': data['title'],
             'name': data['name'],
