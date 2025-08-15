@@ -384,10 +384,10 @@ def get_srp_info(connector, config):
         if not config.enableRemoteSymChecks and not connector.is_symentrix_local(sym_id):
             continue
 
-        srp_url = f'/{self.API_VERSION}/sloprovisioning/symmetrix/{sym_id}/srp'
+        srp_url = f'/{connector.API_VERSION}/sloprovisioning/symmetrix/{sym_id}/srp'
         srp_ids = connector.get(srp_url).json().get('srpId', [])
         for srp_id in srp_ids:
-            srp_detail_url = f'/{self.API_VERSION}/sloprovisioning/symmetrix/{sym_id}/srp/{srp_id}'
+            srp_detail_url = f'/{connector.API_VERSION}/sloprovisioning/symmetrix/{sym_id}/srp/{srp_id}'
             srp_data = connector.get(srp_detail_url).json()
             symmetrix_name = connector.get_symmetrix_name(sym_id)
             output_line = f"SYMMETRIX_{symmetrix_name}_{srp_id}|{json.dumps(srp_data)}"
@@ -404,10 +404,10 @@ def get_director_info(connector, config):
     for sym_id in symmetrix.keys():
         if not config.enableRemoteSymChecks and not connector.is_symentrix_local(sym_id):
             continue
-        director_ids = connector.get(f'/{self.API_VERSION}/system/symmetrix/{sym_id}/director')\
+        director_ids = connector.get(f'/{connector.API_VERSION}/system/symmetrix/{sym_id}/director')\
                               .json().get('directorId', [])
         for director_id in director_ids:
-            director_url = f'/{self.API_VERSION}/system/symmetrix/{sym_id}/director/{director_id}'
+            director_url = f'/{connector.API_VERSION}/system/symmetrix/{sym_id}/director/{director_id}'
             director_data = connector.get(director_url).json()
             symmetrix_name = connector.get_symmetrix_name(sym_id)
             output_line = f"SYMMETRIX_{symmetrix_name}_{director_id}|{json.dumps(director_data)}"
@@ -424,7 +424,7 @@ def get_health_score_info(connector, config):
     for sym_id in symmetrix.keys():
         if not config.enableRemoteSymChecks and not connector.is_symentrix_local(sym_id):
             continue
-        health_score_data = connector.get(f'/{self.API_VERSION}/system/symmetrix/{sym_id}/health').json()
+        health_score_data = connector.get(f'/{connector.API_VERSION}/system/symmetrix/{sym_id}/health').json()
         for metric in health_score_data.get('health_score_metric', []):
             if metric.get('metric', None) is None:
                 continue
@@ -448,13 +448,13 @@ def get_health_check_info(connector, config):
         if not config.enableRemoteSymChecks and not connector.is_symentrix_local(sym_id):
             continue
         try:
-            health_check_url = f'/{self.API_VERSION}/system/symmetrix/{sym_id}/health/health_check'
+            health_check_url = f'/{connector.API_VERSION}/system/symmetrix/{sym_id}/health/health_check'
             health_checks = connector.get(health_check_url).json()
         except: #pylint: disable=bare-except
             continue
         for health_check_id in health_checks.get('health_check_id', []):
             detail_url = (
-                f'/{self.API_VERSION}/system/symmetrix/{sym_id}/health/health_check/'
+                f'/{connector.API_VERSION}/system/symmetrix/{sym_id}/health/health_check/'
                 f'{health_check_id}'
             )
             health_check = connector.get(detail_url).json()
@@ -535,15 +535,15 @@ def get_port_group_info(connector, config):
     for sym_id in symmetrix.keys():
         if not config.enableRemoteSymChecks and not connector.is_symentrix_local(sym_id):
             continue
-        port_group_url = f'/{self.API_VERSION}/sloprovisioning/symmetrix/{sym_id}/portgroup'
+        port_group_url = f'/{connector.API_VERSION}/sloprovisioning/symmetrix/{sym_id}/portgroup'
         port_groups = connector.get(port_group_url).json().get('portGroupId', [])
         for port_group in port_groups:
             ports_info = []
-            ports_url = (f'/{self.API_VERSION}/sloprovisioning/symmetrix/'
+            ports_url = (f'/{connector.API_VERSION}/sloprovisioning/symmetrix/'
                         f'{sym_id}/portgroup/{port_group}')
             ports = connector.get(ports_url).json().get('symmetrixPortKey', [])
             for port in ports:
-                port_status_url = (f'/{self.API_VERSION}/system/symmetrix/{sym_id}/'
+                port_status_url = (f'/{connector.API_VERSION}/system/symmetrix/{sym_id}/'
                                  f'director/{port["directorId"]}/port/{port["portId"]}')
                 port_status_info = connector.get(port_status_url).json()
                 if config.randomFailures:
@@ -563,7 +563,7 @@ def get_alert_info(connector, config):
     :param config: Arguments containing configuration options
     """
     print('<<<unisphere_powermax_alerts:sep(124)>>>')
-    alert_info = connector.get(f'/{self.API_VERSION}/system/alert_summary').json()
+    alert_info = connector.get(f'/{connector.API_VERSION}/system/alert_summary').json()
     if alert_info.get('serverAlertSummary', None) is not None:
         server_summary = json.dumps(alert_info.get('serverAlertSummary'))
         print(f"Server Alert Summary|{server_summary}")
@@ -607,12 +607,12 @@ def get_masking_view_info(connector, config):
     mv_map = {}
     port_map = {}
     for sym_id in symmetrix.keys():
-        masking_view_url = f'/{self.API_VERSION}/sloprovisioning/symmetrix/{sym_id}/maskingview'
+        masking_view_url = f'/{connector.API_VERSION}/sloprovisioning/symmetrix/{sym_id}/maskingview'
         masking_views = connector.get(masking_view_url).json().get('maskingViewId', [])
         if not config.enableRemoteSymChecks and not connector.is_symentrix_local(sym_id):
             continue
         for masking_view in masking_views:
-            mv_connection_url = (f'/{self.API_VERSION}/sloprovisioning/symmetrix/'
+            mv_connection_url = (f'/{connector.API_VERSION}/sloprovisioning/symmetrix/'
                                f'{sym_id}/maskingview/{masking_view}/connections')
             mv_connection_resp = connector.get(mv_connection_url)
             mv_connection_info = mv_connection_resp.json().get(
@@ -626,7 +626,7 @@ def get_masking_view_info(connector, config):
                     continue
                 symmetrix_name = connector.get_symmetrix_name(sym_id)
                 volume_key = f'SYMMETRIX_{symmetrix_name}_{volume}'
-                volume_url = f'/{self.API_VERSION}/sloprovisioning/symmetrix/{sym_id}/volume/{volume}'
+                volume_url = f'/{connector.API_VERSION}/sloprovisioning/symmetrix/{sym_id}/volume/{volume}'
                 query_queue.put((volume_key, volume_url, masking_view))
                 mv_map[volume] = True
 
@@ -635,7 +635,7 @@ def get_masking_view_info(connector, config):
                     continue
                 director = port.split(':')[0]
                 port_id = port.split(':')[1]
-                port_url = (f'/{self.API_VERSION}/system/symmetrix/{sym_id}/'
+                port_url = (f'/{connector.API_VERSION}/system/symmetrix/{sym_id}/'
                           f'director/{director}/port/{port_id}')
                 symmetrix_name = connector.get_symmetrix_name(sym_id)
                 port_key = f'SYMMETRIX_{symmetrix_name}_{port}'
