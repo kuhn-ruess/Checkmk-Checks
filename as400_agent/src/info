@@ -1,0 +1,15 @@
+{'author': 'Kuhn & Ruess GmbH',
+ 'description': 'Special Agent-Based Monitoring for AS400. The Special Agents '
+                'does use pyodbc to connect to the AS400. Make sure to install '
+                'it using pip3 and also set up the iSeries ODBC Drivers. \n',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks',
+ 'files': {'cmk_addons_plugins': ['as400_agent/agent_based/jobs.py',
+                                  'as400_agent/libexec/agent_as400_agent',
+                                  'as400_agent/rulesets/ruleset.py',
+                                  'as400_agent/server_side_calls/agent_as400.py']},
+ 'name': 'as400_agent',
+ 'title': 'AS 400 Agent',
+ 'version': '0.0.2',
+ 'version.min_required': '2.3.0p1',
+ 'version.packaged': '2.4.0p8',
+ 'version.usable_until': None}

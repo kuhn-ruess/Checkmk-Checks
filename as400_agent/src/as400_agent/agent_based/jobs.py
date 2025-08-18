@@ -11,6 +11,7 @@ from cmk.agent_based.v2 import (
     CheckPlugin,
     Service,
     check_levels,
+    Result,
 )
 
 
@@ -19,8 +20,13 @@ def parse_function(string_table):
     Parse Device Data to Dict
     """
     parsed = {}
+    found_job = None
     for line in string_table:
-        continue
+        if line.startswith('[[['):
+            found_job = line[3:-3]
+        if found_job:
+            parsed.setdefault(found_job, {})
+            parsed[found_job][line[0]] = line[1]
     return parsed
 
 
@@ -38,13 +44,12 @@ def check_service(item, params, section):
     """
     data = section[item]
 
-    yield from check_levels(
-         data['value'],
-         levels_upper = params['levels'],
-         label = data['label'],
-         metric_name=data['metric'],
-    )
-
+    for field_name, field_value in data.items():
+        if field_name in [
+            'JOB_TYPE', 'JOB_STATUS', 'JOB_END_REASON',
+            'JOB_DESCRIPTION', 'JOB_ACTIVE_TIME',
+        ]:
+            yield Result(state=State.OK, summary=f"{field_name}: {field_value}")
 
 
 
@@ -61,5 +66,5 @@ check_plugin_cmdb_syncer_service = CheckPlugin(
     discovery_function = discover_service,
     check_function = check_service,
     check_default_parameters = {'levels': None},
-    check_ruleset_name="as400_agent_jobs",
+    #check_ruleset_name="as400_agent_jobs",
 )
