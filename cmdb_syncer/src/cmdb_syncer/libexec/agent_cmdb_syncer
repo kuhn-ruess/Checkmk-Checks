@@ -34,7 +34,7 @@ class CMDBSYncer():
         Request Data
         """
         headers = {
-            'x-login-header': f"{self.username}:{self.password}",
+            'x-login-user': f"{self.username}:{self.password}",
         }
         url = f'{self.api_host}/api/v1/{what}'
         response = requests.get(url, headers=headers, timeout=self.timeout)
