@@ -10,6 +10,8 @@ from cmk.agent_based.v2 import (
     check_levels,
     Service,
     render,
+    Result,
+    State
 )
 
 # Example Agent Output
@@ -32,13 +34,19 @@ def check_dir_size(item, params, section):
 
     folder_size_bytes = section[item]['size_bytes']
 
-    yield from check_levels(
-        folder_size_bytes,
-        levels_upper = params['levels'],
-        label = f"Folder usage",
-        metric_name='bytes',
-        render_func=render.bytes,
-    )
+    if not params.get('levels'):
+        yield Result(
+            state=State.OK,
+            summary=f"Folder usage: {render.bytes(folder_size_bytes)}"
+        )
+    else:
+        yield from check_levels(
+            folder_size_bytes,
+            levels_upper=params['levels'],
+            label="Folder usage",
+            metric_name='bytes',
+            render_func=render.bytes,
+        )
 
 def parse_dir_size(string_table):
     """
@@ -62,7 +70,7 @@ check_plugin_dir_size = CheckPlugin(
     discovery_function=discover_dir_size,
     check_function=check_dir_size,
     check_default_parameters={
-        'levels': ('fixed', (None, None)),
+        'levels': None,
     },
     check_ruleset_name="dir_size",
 

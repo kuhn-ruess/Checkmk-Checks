@@ -8,7 +8,7 @@
                                   'dir_size/rulesets/bakery.py']},
  'name': 'dir_size',
  'title': 'Directory Size Monitoring',
- 'version': '2.0.2',
+ 'version': '2.0.3',
  'version.min_required': '2.3.0',
- 'version.packaged': '2.4.0',
+ 'version.packaged': '2.4.0p8',
  'version.usable_until': None}
