@@ -22,7 +22,7 @@
            'lib': ['check_mk/base/cee/plugins/bakery/storcli2.py']},
  'name': 'storcli2',
  'title': 'Raid controller monitoring via StorCLI2 tool',
- 'version': '1.0.2',
+ 'version': '1.0.3',
  'version.min_required': '2.3.0b1',
- 'version.packaged': '2.4.0p5',
+ 'version.packaged': '2.4.0p9',
  'version.usable_until': None}

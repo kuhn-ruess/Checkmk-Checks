@@ -27,8 +27,7 @@ def _valuespec_discovery_rule_storcli2_status():
                 parameter_form = List(
                     title=Title("Entries to ignore"),
                     help_text = Help("Which entries to ignore during discovery. Also wildcard (*) is supported at end of name."),
-                    element_template=String(),
-                    custom_validate=(LengthInRange(min_value=1),),
+                    element_template=String(custom_validate = (LengthInRange(min_value=1),),),
                 ),
                 required = True,
             ),
