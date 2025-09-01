@@ -62,7 +62,7 @@ def generate_powermanx_command(params: AgentPowermaxUParams, host_config: HostCo
         "disable_get_port_group_info",
         "disable_get_alert_info",
         "disable_get_masking_view_info",
-        "enableRemoteSymChecks",
+        "enable_remote_sym_checks",
         "no_cert_check",
         ]:
         if getattr(params, what):
