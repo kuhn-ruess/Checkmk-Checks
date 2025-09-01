@@ -160,6 +160,8 @@ class AgentAs400():
         query = 'SELECT * FROM TABLE(QSYS2.ACTIVE_JOB_INFO())'
         c1 = self.connection.cursor()
         c1.execute(query)
+
+        print("<<<as400_agent_jobs>>>")
         
         # Extrahiere nur die Spaltennamen aus der Beschreibung
         field_names = [description[0] for description in c1.description]
