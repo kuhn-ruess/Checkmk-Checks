@@ -31,7 +31,7 @@ class AgentPowermaxUParams(BaseModel):
     disable_get_port_group_info: Optional[bool] = None
     disable_get_alert_info: Optional[bool] = None
     disable_get_masking_view_info: Optional[bool] = None
-    enableRemoteSymChecks: Optional[bool] = None
+    enable_remote_sym_checks: Optional[bool] = None
     cache_time: Optional[int] = None
     no_cert_check: Optional[bool] = None
 
