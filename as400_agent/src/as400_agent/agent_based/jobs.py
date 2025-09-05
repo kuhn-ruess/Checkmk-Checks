@@ -11,6 +11,7 @@ from cmk.agent_based.v2 import (
     CheckPlugin,
     Service,
     check_levels,
+    State,
     Result,
 )
 
@@ -22,8 +23,9 @@ def parse_function(string_table):
     parsed = {}
     found_job = None
     for line in string_table:
-        if line.startswith('[[['):
-            found_job = line[3:-3]
+        if line[0].startswith('[[['):
+            found_job = line[0][3:-3]
+            continue
         if found_job:
             parsed.setdefault(found_job, {})
             parsed[found_job][line[0]] = line[1]
