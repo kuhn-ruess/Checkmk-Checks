@@ -381,7 +381,7 @@ def get_srp_info(connector, config):
     print('<<<unisphere_powermax_srp:sep(124)>>>')
     symmetrix  = connector.get_symmetrix()
     for sym_id in symmetrix.keys():
-        if not config.enableRemoteSymChecks and not connector.is_symentrix_local(sym_id):
+        if not config.enable_remote_sym_checks and not connector.is_symentrix_local(sym_id):
             continue
 
         srp_url = f'/{connector.API_VERSION}/sloprovisioning/symmetrix/{sym_id}/srp'
@@ -402,7 +402,7 @@ def get_director_info(connector, config):
     print('<<<unisphere_powermax_director:sep(124)>>>')
     symmetrix  = connector.get_symmetrix()
     for sym_id in symmetrix.keys():
-        if not config.enableRemoteSymChecks and not connector.is_symentrix_local(sym_id):
+        if not config.enable_remote_sym_checks and not connector.is_symentrix_local(sym_id):
             continue
         director_ids = connector.get(f'/{connector.API_VERSION}/system/symmetrix/{sym_id}/director')\
                               .json().get('directorId', [])
@@ -422,7 +422,7 @@ def get_health_score_info(connector, config):
     print('<<<unisphere_powermax_health_score:sep(124)>>>')
     symmetrix  = connector.get_symmetrix()
     for sym_id in symmetrix.keys():
-        if not config.enableRemoteSymChecks and not connector.is_symentrix_local(sym_id):
+        if not config.enable_remote_sym_checks and not connector.is_symentrix_local(sym_id):
             continue
         health_score_data = connector.get(f'/{connector.API_VERSION}/system/symmetrix/{sym_id}/health').json()
         for metric in health_score_data.get('health_score_metric', []):
@@ -445,7 +445,7 @@ def get_health_check_info(connector, config):
     #             connector.get('/performance/Array/keys').json().get('arrayInfo')]
     symmetrix  = connector.get_symmetrix()
     for sym_id in symmetrix.keys():
-        if not config.enableRemoteSymChecks and not connector.is_symentrix_local(sym_id):
+        if not config.enable_remote_sym_checks and not connector.is_symentrix_local(sym_id):
             continue
         try:
             health_check_url = f'/{connector.API_VERSION}/system/symmetrix/{sym_id}/health/health_check'
@@ -480,7 +480,7 @@ def get_array_performance_info(connector, config):
     array_info = connector.get('/performance/Array/keys').json().get('arrayInfo')
     symmetrix = [x.get('symmetrixId') for x in array_info]
     for sym_id in symmetrix:
-        if not config.enableRemoteSymChecks and not connector.is_symentrix_local(sym_id):
+        if not config.enable_remote_sym_checks and not connector.is_symentrix_local(sym_id):
             continue
 
         perf_data = {}
@@ -533,7 +533,7 @@ def get_port_group_info(connector, config):
     print('<<<unisphere_powermax_port_group:sep(124)>>>')
     symmetrix  = connector.get_symmetrix()
     for sym_id in symmetrix.keys():
-        if not config.enableRemoteSymChecks and not connector.is_symentrix_local(sym_id):
+        if not config.enable_remote_sym_checks and not connector.is_symentrix_local(sym_id):
             continue
         port_group_url = f'/{connector.API_VERSION}/sloprovisioning/symmetrix/{sym_id}/portgroup'
         port_groups = connector.get(port_group_url).json().get('portGroupId', [])
@@ -572,7 +572,7 @@ def get_alert_info(connector, config):
         if sym_id is None:
             continue
 
-        if not config.enableRemoteSymChecks and not connector.is_symentrix_local(sym_id):
+        if not config.enable_remote_sym_checks and not connector.is_symentrix_local(sym_id):
             continue
 
         for key in sym_summary:
