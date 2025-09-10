@@ -14,8 +14,11 @@ from cmk.rulesets.v1.form_specs import (
    Integer,
    String,
    InputHint,
+   DefaultValue,
    SimpleLevels,
    LevelDirection,
+   SingleChoice,
+   SingleChoiceElement,
 )
 from cmk.rulesets.v1.rule_specs import CheckParameters, HostCondition, Topic
 
@@ -117,14 +120,27 @@ def _parameter_galera_cluster_state() -> Dictionary:
             ),
             required=True,
          ),
-         "wsrep_cluster_status": DictElement(
-            parameter_form=String(
-               title=Title("Expected Cluster Status"),
-               prefill=InputHint("Primary"),
-               help_text=Help("Cluster Node component status. Possible values are 'Primary' (primary group configuration, quorum present), 'Non_primary' (non-primary group configuration, quorum lost) or 'Disconnected' (not connected to group, retrying). Normally you want keep PRIMARY (the default)."),
+           "wsrep_cluster_status": DictElement(
+               parameter_form=SingleChoice(
+                  title=Title("Expected Cluster Status"),
+                  elements=[
+                     SingleChoiceElement(
+                        name="Primary",
+                        title=Title("Primary (primary group configuration, quorum present)")
+                     ),
+                     SingleChoiceElement(
+                        name="Non_primary",
+                        title=Title("Non_primary (non-primary group configuration, quorum lost)")
+                     ),
+                     SingleChoiceElement(
+                        name="Disconnected",
+                        title=Title("Disconnected (not connected to group, retrying)")
+                     ),
+                  ],
+                  prefill=DefaultValue("Primary"),
+               ),
+               required=True,
             ),
-            required=True,
-         ),
       },
    )
 

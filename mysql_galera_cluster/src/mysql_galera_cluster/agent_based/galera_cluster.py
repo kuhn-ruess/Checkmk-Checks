@@ -12,6 +12,9 @@ from cmk.agent_based.v2 import (
     Result,
     Service,
     State,
+    check_levels,
+    get_rate,
+    get_value_store,
 )
 
 
@@ -28,26 +31,26 @@ def parse_mysql_galera(string_table):
            value = None
        return varname, value
 
-    parsed = {}
+    section = {}
     instance = False
     for line in info:
         if line[0].startswith("[["):
             instance = line[0][2:-2]
             if instance == "":
                 instance = "mysql"
-            parsed[instance] = {}
+            section[instance] = {}
         elif instance:
             varname, value = parse_line(line)
-            parsed[instance][varname] = value
+            section[instance][varname] = value
 
     # Old Agent Plugin, no Instances in output
     if not instance:
-        parsed['mysql'] = {}
+        section['mysql'] = {}
         for line in info:
             varname, value = parse_line(line)
-            parsed['mysql'][varname] = value
+            section['mysql'][varname] = value
 
-    return parsed
+    return section
 
 
 def discover_mysql_galera(section):
@@ -74,46 +77,33 @@ def check_galera_cluster_state(item, params, section):
     Check Galera Cluster
     """
 
-    # check if agent output is available
-    if item not in parsed:
-        yield Result(state=State.Unknown, summary=f"Could not find instance {item}")
-        return
+    levels = params['wsrep_cluster_size']
 
-    expected, warn, crit = params.get('wsrep_cluster_size')
-    if 'wsrep_cluster_size' not in parsed[item]:
-        yield Result(state=State.Unknown, summary="Could not find 'wsrep_cluster_size' in agent output")
-    elif int(parsed[item]['wsrep_cluster_size']) <= int(crit):
-        yield Result(state=State.Critical, summary=f"Size: {parsed[item]['wsrep_cluster_size']} expected {expected} crit at {crit} (!!)")
-    elif int(parsed[item]['wsrep_cluster_size']) <= int(warn):
-        yield Result(state=State.Warn, summary=f"Size: {parsed[item]['wsrep_cluster_size']} expected {expected} warn at {warn} (!)")
-    else:
-        yield Result(state=State.OK, summary=f"Size: {parsed[item]['wsrep_cluster_size']} expected {expected}")
+    yield from check_levels(
+        float(section[item]['wsrep_cluster_size']),
+        levels_lower=levels,
+        metric_name="cluster_size",
+        render_func=lambda v: "Size: %s" % v
 
-    if 'wsrep_cluster_status' not in parsed[item]:
-        yield Result(state=State.Unknown, summary="Could not find 'wsrep_cluster_status' in agent output")
-    elif str(parsed[item]['wsrep_cluster_status']) == str(params.get('wsrep_cluster_status')):
-        yield Result(state=State.OK, summary=f"Status: {parsed[item]['wsrep_cluster_status']}")
-    else:
-        yield Result(state=State.Critical, summary=f"Status: {parsed[item]['wsrep_cluster_status']} (!!)")
+    )
 
-    if 'wsrep_cluster_conf_id' not in parsed[item]:
-        yield Result(state=State.Critical, summary="Could not find 'wsrep_cluster_conf_id' in agent output")
-    else:
-        yield Result(state=State.OK, summary=f"ConfID: {parsed[item]['wsrep_cluster_conf_id']}")
+    cluster_status = section[item]['wsrep_cluster_status']
+    cluster_status_state = State.Critical
+    if cluster_status == params['wsrep_cluster_status']:
+        cluster_status_state = State.OK
+    yield Result(state=cluster_status_state, summary=f"Status: {cluster_status}")
 
-    if 'wsrep_cluster_state_uuid' not in parsed[item]:
-        yield Result(state=State.Critical, summary="Could not find 'wsrep_cluster_state_uuid' in agent output")
-    else:
-        yield Result(state=State.OK, summary=f"UUID: {parsed[item]['wsrep_cluster_state_uuid']}")
+    yield Result(state=State.OK, summary=f"ConfID: {section[item]['wsrep_cluster_conf_id']}")
+    yield Result(state=State.OK, summary=f"UUID: {section[item]['wsrep_cluster_state_uuid']}")
 
-check_plugin_mysql_status = CheckPlugin(
+check_plugin_mysql_galera_cluster_state = CheckPlugin(
     name = "mysql_galera_cluster_cluster_state",
     sections = ["mysql"],
     service_name = "MySQL Galera Cluster State %s",
     discovery_function = discover_mysql_galera,
     check_function = check_galera_cluster_state,
     check_default_parameters = {
-        'wsrep_cluster_size': (3, 2, 2),
+        'wsrep_cluster_size': ('fixed', (3, 2)),
         'wsrep_cluster_status': "Primary",
     },
     check_ruleset_name = "galera_cluster_state",
@@ -124,44 +114,36 @@ def check_galera_node_state(item, params, section):
     """
     Check Galera Node State
     """
-    # check if agent output is available
-    if item not in parsed:
-        yield Result(state=State.Unknown, summary=f"Could not find instance '{item}' in agent output")
-        return
+    wsrp_ready = section[item]['wsrep_ready']
+    wsrp_ready_state = State.Critical
+    if wrsp_ready == params['wsrep_ready']:
+        wsrp_ready_state = State.OK
+    yield Result(state=wsrp_ready_state, summary=f"Ready: {wsrp_ready}")
 
-    if 'wsrep_ready' not in parsed[item]:
-        yield Result(state=State.Unknown, summary="Could not find 'wsrep_ready' in agent output")
-    elif str(parsed[item]['wsrep_ready']) == str(params.get('wsrep_ready')):
-        yield Result(state=State.OK, summary=f"Ready: {parsed[item]['wsrep_ready']}")
-    else:
-        yield Result(state=State.Critical, summary=f"Ready: {parsed[item]['wsrep_ready']} (!!)")
+    wsrep_connected = section[item]['wsrep_connected']
+    wsrep_connected_state = State.Critical
+    if wsrep_connected == params['wsrep_connected']:
+        wsrep_connected_state = State.OK
+    yield Result(state=wsrep_connected_state, summary=f"Connected: {wsrep_connected}")
 
-    if 'wsrep_connected' not in parsed[item]:
-        yield Result(state=State.Unknown, summary="Could not find 'wsrep_connected' in agent output")
-    elif str(parsed[item]['wsrep_connected']) == str(params.get('wsrep_connected')):
-        yield Result(state=State.OK, summary=f"Connected: {parsed[item]['wsrep_connected']}")
-    else:
-        yield Result(state=State.Critical, summary=f"Connected: {parsed[item]['wsrep_connected']} (!!)")
+    wsrep_local = section[item]['wsrep_local_state_comment']
+    wsrep_local_state = State.OK
+    if wsrep_local == params['wsrep_local_state_comment']:
+        wsrep_local_state = State.Critical
+    yield Result(state=wsrep_local_state, summary=f"State: {wsrep_local}")
 
-    if 'wsrep_local_state_comment' not in parsed[item]:
-        yield Result(state=State.Unknown, summary="Could not find 'wsrep_local_state_comment' in agent output")
-    elif str(parsed[item]['wsrep_local_state_comment']) == str(params.get('wsrep_local_state_comment')):
-        yield Result(state=State.Critical, summary=f"State: {parsed[item]['wsrep_local_state_comment']} (!!)")
-    else:
-        yield Result(state=State.OK, summary=f"State: {parsed[item]['wsrep_local_state_comment']}")
-
-check_plugin_mysql_status = CheckPlugin(
+check_plugin_mysql_galera_cluster_node_state = CheckPlugin(
     name = "mysql_galera_cluster_node_state",
     sections = ["mysql"],
     service_name = "MySQL Galera Node State %s",
     discovery_function = discover_mysql_galera,
     check_function = check_galera_node_state,
+    check_ruleset_name = "galera_node_state",
     check_default_parameters = {
         'wsrep_ready': 'ON',
         'wsrep_connected': 'ON',
         'wsrep_local_state_comment': 'Initialized',
     },
-    check_ruleset_name = "galera_node_state",
 )
 
 
@@ -172,60 +154,48 @@ def check_galera_repl_health(item, params, section):
     cur_time = time.time()
 
     # check if agent output is available
-    if item not in parsed:
+    if item not in section:
         yield Result(state=State.Unknown, summary=f"Could not find instance '{item}' in agent output")
         return
 
     # wsrep_local_recv_queue_avg
-    warn, crit = params.get('wsrep_local_recv_queue_avg')
-    if 'wsrep_local_recv_queue_avg' not in parsed[item]:
-        yield Result(state=State.Unknown, summary="Could not find 'wsrep_local_recv_queue_avg' in agent output")
-    elif float(parsed[item]['wsrep_local_recv_queue_avg']) >= float(crit):
-        yield Result(state=State.Critical, summary=f"RecvQ avg: {round(float(parsed[item]['wsrep_local_recv_queue_avg']), 2)} crit at: {crit} (!!)")
-    elif float(parsed[item]['wsrep_local_recv_queue_avg']) >= float(warn):
-        yield Result(state=State.Warn, summary=f"RecvQ avg: {round(float(parsed[item]['wsrep_local_recv_queue_avg']), 2)} warn at: {warn} (!)")
-    else:
-        yield Result(state=State.OK, summary=f"RecvQ avg: {round(float(parsed[item]['wsrep_local_recv_queue_avg']), 2)}")
-    yield Metric("recv_queue_avg", float(parsed[item]['wsrep_local_recv_queue_avg']), levels=(warn, crit))
-    yield Metric("recv_queue_max", float(parsed[item]['wsrep_local_recv_queue_max']))
-    yield Metric("recv_queue_min", float(parsed[item]['wsrep_local_recv_queue_min']))
-    yield Metric("recv_queue", float(parsed[item]['wsrep_local_recv_queue']))
+    levels = params.get('wsrep_local_recv_queue_avg')
+    yield from check_levels(
+        float(section[item]['wsrep_local_recv_queue_avg']),
+        levels_upper=levels,
+        metric_name="recv_queue_avg"
+    )
+    yield Metric("recv_queue_max", float(section[item]['wsrep_local_recv_queue_max']))
+    yield Metric("recv_queue_min", float(section[item]['wsrep_local_recv_queue_min']))
+    yield Metric("recv_queue", float(section[item]['wsrep_local_recv_queue']))
 
     # wsrep_local_send_queue_avg
-    warn, crit = params.get('wsrep_local_send_queue_avg')
-    if 'wsrep_local_send_queue_avg' not in parsed[item]:
-        yield Result(state=State.Unknown, summary="Could not find 'wsrep_local_send_queue_avg' in agent output")
-    elif float(parsed[item]['wsrep_local_send_queue_avg']) >= float(crit):
-        yield Result(state=State.Critical, summary=f"SendQ avg: {round(float(parsed[item]['wsrep_local_send_queue_avg']), 2)} crit at: {crit} (!!)")
-    elif float(parsed[item]['wsrep_local_send_queue_avg']) >= float(warn):
-        yield Result(state=State.Warn, summary=f"SendQ avg: {round(float(parsed[item]['wsrep_local_send_queue_avg']), 2)} warn at: {warn} (!)")
-    else:
-        yield Result(state=State.OK, summary=f"SendQ avg: {round(float(parsed[item]['wsrep_local_send_queue_avg']), 2)}")
-    yield Metric("send_queue_avg", float(parsed[item]['wsrep_local_send_queue_avg']), levels=(warn, crit))
-    yield Metric("send_queue_max", float(parsed[item]['wsrep_local_send_queue_max']))
-    yield Metric("send_queue_min", float(parsed[item]['wsrep_local_send_queue_min']))
-    yield Metric("send_queue", float(parsed[item]['wsrep_local_send_queue']))
+    levels = params.get('wsrep_local_send_queue_avg')
+    yield from check_levels(
+        float(section[item]['wsrep_local_send_queue_avg']),
+        levels_upper=levels,
+        metric_name='send_queue_avg'
+    )
+
+    yield Metric("send_queue_max", float(section[item]['wsrep_local_send_queue_max']))
+    yield Metric("send_queue_min", float(section[item]['wsrep_local_send_queue_min']))
+    yield Metric("send_queue", float(section[item]['wsrep_local_send_queue']))
 
     # wsrep_flow_control_paused
-    warn, crit = params.get('wsrep_flow_control_paused')
-    if 'wsrep_flow_control_paused' not in parsed[item]:
-        yield Result(state=State.Unknown, summary="Could not find 'wsrep_flow_control_paused' in agent output")
-    elif float(parsed[item]['wsrep_flow_control_paused']) >= float(crit):
-        yield Result(state=State.Critical, summary=f"FlowCtrlPaused: {round(float(parsed[item]['wsrep_flow_control_paused']), 3)} crit at: {crit} (!!)")
-    elif float(parsed[item]['wsrep_flow_control_paused']) >= float(warn):
-        yield Result(state=State.Warn, summary=f"FlowCtrlPaused: {round(float(parsed[item]['wsrep_flow_control_paused']), 3)} warn at: {warn} (!)")
-    else:
-        yield Result(state=State.OK, summary=f"FlowCtrlPaused: {round(float(parsed[item]['wsrep_flow_control_paused']), 3)}")
-    yield Metric("flow_control_paused", float(parsed[item]['wsrep_flow_control_paused']), levels=(warn, crit))
-
-    flow_control_recv = get_rate("flow_control_recv", cur_time, float(parsed[item]['wsrep_flow_control_recv']))
-    flow_control_sent = get_rate("flow_control_sent", cur_time, float(parsed[item]['wsrep_flow_control_sent']))
+    levels = params.get('wsrep_flow_control_paused')
+    yield from check_levels(
+        float(section[item]['wsrep_flow_control_paused']),
+        levels_upper=levels,
+        metric_name='flow_control_paused'
+    )
+    flow_control_recv = get_rate(get_value_store(), "flow_control_recv", cur_time, float(section[item]['wsrep_flow_control_recv']))
+    flow_control_sent = get_rate(get_value_store(), "flow_control_sent", cur_time, float(section[item]['wsrep_flow_control_sent']))
     yield Metric("flow_control_recv", float(flow_control_recv))
     yield Metric("flow_control_sent", float(flow_control_sent))
 
-    yield Metric("cert_deps_distance", float(parsed[item]['wsrep_cert_deps_distance']))
+    yield Metric("cert_deps_distance", float(section[item]['wsrep_cert_deps_distance']))
 
-check_plugin_mysql_status = CheckPlugin(
+check_plugin_mysql_galera_csluter_repl_health = CheckPlugin(
     name = "mysql_galera_cluster_repl_health",
     sections = ["mysql"],
     service_name = "MySQL Galera Replication Health %s",
