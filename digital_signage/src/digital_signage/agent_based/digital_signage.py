@@ -36,12 +36,12 @@ def check(params, section):
             render_func=lambda v: "%.1f" % v
         )
 
-agent_section_hci_cluster_resources = AgentSection(
+agent_section_digital_signage = AgentSection(
     name="digital_signage",
     parse_function=parse
 )
 
-check_plugin_hci_cluster_resources = CheckPlugin(
+check_plugin_digital_signage = CheckPlugin(
     name="digital_signage",
     service_name="Digital Signage",
     discovery_function=discovery,
