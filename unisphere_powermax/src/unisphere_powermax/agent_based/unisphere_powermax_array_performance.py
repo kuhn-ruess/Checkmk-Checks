@@ -74,14 +74,16 @@ def check_wp_cache(item, params, section):
     yield from check_levels(
             average_wp_cache,
             levels_upper=params['average_levels'],
-            metric_name='average_wp_cache',
+            boundaries=(0, 100),
+            metric_name='average_wp_cache_5min',
             label='Cache',
             render_func=lambda v: f"Average WP Cache Usage: {v}%"
     )
     yield from check_levels(
             maximum_wp_cache,
             levels_upper=params['maximum_levels'],
-            metric_name='maximum_wp_cache',
+            boundaries=(0, 100),
+            metric_name='maximum_wp_cache_5min',
             label='Cache',
             render_func=lambda v: f"Maximum WP Cache Usage: {v}%"
     )

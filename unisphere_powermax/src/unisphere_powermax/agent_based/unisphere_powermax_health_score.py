@@ -47,9 +47,10 @@ def check_health(item, params, section):
     yield from check_levels(
         score,
         levels_lower=params['levels'],
+        boundaries=(0, 100),
         metric_name="health_score",
         label="Health Score",
-        render_func=lambda v: f"Health Scrore {v}",
+        render_func=lambda v: f"Health Score {v}",
     )
 
 
@@ -58,6 +59,6 @@ check_plugin_unisphere_powermax_health_score = CheckPlugin(
     service_name = 'Health Score %s',
     discovery_function = discover_health,
     check_function = check_health,
-    #check_ruleset_name="unisphere_powermax_health_score",
+    check_ruleset_name="unisphere_powermax_health_score",
     check_default_parameters = {"levels": ('fixed',(90, 80))}
 )

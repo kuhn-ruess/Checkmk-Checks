@@ -53,6 +53,7 @@ def check_port_group_state(item, params, section):
     yield from check_levels(
        p_online,
        levels_lower=params['levels'],
+       boundaries=(0, 100),
        metric_name="percent_ports_online",
        label="Ports",
        render_func= lambda v: f"Ports Online: {n_online_ports}/{n_ports} ({v}%)"
