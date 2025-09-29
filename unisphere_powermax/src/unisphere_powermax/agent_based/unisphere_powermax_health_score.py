@@ -53,7 +53,7 @@ def check_health(item, params, section):
         render_func=lambda v: f"{v}",
     )
     yield Metric(
-        name="score",
+        name="health_score",
         value=score,
         levels=params['levels'][1],
         boundaries=(0, 100),
