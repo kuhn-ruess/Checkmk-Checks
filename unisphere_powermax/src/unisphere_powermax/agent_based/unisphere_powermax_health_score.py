@@ -16,7 +16,8 @@ from cmk.agent_based.v2 import (
     State,
     CheckPlugin,
     AgentSection,
-    check_levels
+    check_levels,
+    Metric,
 )
 
 from .utils import parse_section
@@ -47,10 +48,15 @@ def check_health(item, params, section):
     yield from check_levels(
         score,
         levels_lower=params['levels'],
-        boundaries=(0, 100),
-        metric_name="health_score",
+        # metric_name="health_score",
         label="Health Score",
-        render_func=lambda v: f"Health Score {v}",
+        render_func=lambda v: f"{v}",
+    )
+    yield Metric(
+        name="score",
+        value=score,
+        levels=params['levels'][1],
+        boundaries=(0, 100),
     )
 
 
