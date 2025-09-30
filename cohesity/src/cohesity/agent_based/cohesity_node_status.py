@@ -1,7 +1,8 @@
 # 2021 created by Sven Rueß, sritd.de
 
-from .agent_based_api.v1 import (
-    register,
+from cmk.agent_based.v2 import (
+    AgentSection,
+    CheckPlugin,
     Service,
     Result,
     State,
@@ -22,7 +23,7 @@ def parse_cohesity_node_status(string_table):
     return section
 
 
-register.agent_section(
+agent_section_cohesity_node_status = AgentSection(
     name="cohesity_node_status",
     parse_function=parse_cohesity_node_status,
 )
@@ -58,7 +59,7 @@ def check_cohesity_node_status(item, params, section):
             )
 
 
-register.check_plugin(
+check_plugin_cohesity_node_status = CheckPlugin(
     name="cohesity_node_status",
     service_name="Node Status %s",
     discovery_function=discovery_cohesity_node_status,

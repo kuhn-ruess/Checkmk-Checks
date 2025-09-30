@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- encoding: utf-8; py-indent-offset: 4 -*-
 #pylint: disable=undefined-variable, missing-docstring
 # +-----------------------------------------------------------------+
@@ -26,10 +26,23 @@
 
 # 2021 reworked by Sven Rueß, sritd.de
 
+from cmk.server_side_calls.v1 import noop_parser, SpecialAgentConfig, SpecialAgentCommand
 
-def agent_cohesity_arguments(params, hostname, ipaddress):
-    args = "'%s' '%s' '%s' '%s'" % (ipaddress, params['user'], params['password'], params['domain'])
-    return args
 
-special_agent_info['cohesity'] = agent_cohesity_arguments
+def _agent_cohesity_arguments(params, host_config):
+    args = [
+        host_config.primary_ip_config.address,
+        params['user'],
+        params['password'].unsafe(),
+        params['domain'],
+        params['verify_cert']
+    ]
+    yield SpecialAgentCommand(command_arguments=args)
+
+
+special_agent_cohesity = SpecialAgentConfig(
+    name="cohesity",
+    parameter_parser=noop_parser,
+    commands_function=_agent_cohesity_arguments
+)
 

@@ -1,0 +1,27 @@
+{
+  "title": "Cohesity checks",
+  "name": "cohesity",
+  "description": "Cohesity checks\n",
+  "version": "1.5.0",
+  "version.packaged": "2.3.0p36",
+  "version.min_required": "2.3.0",
+  "version.usable_until": null,
+  "author": "Kuhn & Rueß GmbH",
+  "download_url": "https://kuhn-ruess.de/en/checkmk_checks.html",
+  "files": {
+    "cmk_addons_plugins": [
+      "cohesity/agent_based/cohesity_alerts.py",
+      "cohesity/agent_based/cohesity_metadata.py",
+      "cohesity/agent_based/cohesity_node_status.py",
+      "cohesity/agent_based/cohesity_storage.py",
+      "cohesity/agent_based/cohesity_unprotected.py",
+      "cohesity/graphing/metrics.py",
+      "cohesity/libexec/agent_cohesity",
+      "cohesity/rulesets/cohesity_agent.py",
+      "cohesity/rulesets/cohesity_metadata.py",
+      "cohesity/rulesets/cohesity_node_status.py",
+      "cohesity/rulesets/cohesity_storage.py",
+      "cohesity/server_side_calls/cohesity_agent.py"
+    ]
+  }
+}
