@@ -72,16 +72,8 @@ def check_cohesity_metadata(params, section):
             summary=text,
         )
 
-    yield Metric(
-        name="used_metadata_space_pct",
-        value=used_metadata_space_pct,
-        levels=(warn_pct, crit_pct),
-        boundaries=(0, 100)
-    )
-    yield Metric(
-        name="avail_metadata_space",
-        value=avail_metadata_space,
-    )
+    yield Metric(name="used_metadata_space_pct", value=used_metadata_space_pct, levels=(warn_pct, crit_pct), boundaries=(0, 100))
+    yield Metric(name="avail_metadata_space", value=avail_metadata_space)
 
 check_plugin_cohesity_metadata_usage = CheckPlugin(
     name="cohesity_metadata_usage",

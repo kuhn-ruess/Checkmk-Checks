@@ -24,7 +24,7 @@ def _formspec_cohesity_metadata():
                     prefill_fixed_levels = InputHint((80, 90)),
                 ),
             ),
-        },
+        }
     )
 
 

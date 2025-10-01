@@ -17,7 +17,7 @@ def usage():
     Print Usage
     """
     print("Cohesity Special Agent for Checkmk")
-    print("./agent_cohesity.py <VIP> <USERNAME> <PASSWORD> <DOMAIN> <VERIFY_CERT>")
+    print("./agent_cohesity <VIP> <USERNAME> <PASSWORD> <DOMAIN> <VERIFY_CERT>")
     sys.exit(0)
 
 if len(sys.argv) != 6:

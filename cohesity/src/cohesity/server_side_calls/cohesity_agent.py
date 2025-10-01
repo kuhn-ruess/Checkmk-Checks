@@ -35,7 +35,7 @@ def _agent_cohesity_arguments(params, host_config):
         params['user'],
         params['password'].unsafe(),
         params['domain'],
-        params['verify_cert']
+        str(params['verify_cert'])
     ]
     yield SpecialAgentCommand(command_arguments=args)
 
