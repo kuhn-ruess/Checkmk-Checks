@@ -16,7 +16,8 @@ from cmk.agent_based.v2 import (
     State,
     CheckPlugin,
     AgentSection,
-    check_levels
+    check_levels,
+    Metric,
 )
 
 from .utils import parse_section
@@ -47,9 +48,15 @@ def check_health(item, params, section):
     yield from check_levels(
         score,
         levels_lower=params['levels'],
-        metric_name="health_score",
+        # metric_name="health_score",
         label="Health Score",
-        render_func=lambda v: f"Health Scrore {v}",
+        render_func=lambda v: f"{v}",
+    )
+    yield Metric(
+        name="health_score",
+        value=score,
+        levels=params['levels'][1],
+        boundaries=(0, 100),
     )
 
 
@@ -58,6 +65,6 @@ check_plugin_unisphere_powermax_health_score = CheckPlugin(
     service_name = 'Health Score %s',
     discovery_function = discover_health,
     check_function = check_health,
-    #check_ruleset_name="unisphere_powermax_health_score",
+    check_ruleset_name="unisphere_powermax_health_score",
     check_default_parameters = {"levels": ('fixed',(90, 80))}
 )

@@ -213,7 +213,7 @@ rule_spec_srp_effective_used = CheckParameters(
         condition=HostAndItemCondition(
             item_title=Title("fitting item name"),
         ),
-        title=Title("Unisphere PowerMax SRP Effective used")
+        title=Title("PowerMax SRP Effective usage")
 )
 
 
@@ -404,7 +404,7 @@ def _parameter_valuespec_unisphere_powermax_masking_view_volume_summary():
         },
     )
 
-rule_spec_unisphere_powermax_health_score = CheckParameters(
+rule_spec_unisphere_powermax_masking_view_volume_summary = CheckParameters(
         name="unisphere_powermax_masking_view_volume_summary",
         topic=Topic.STORAGE,
         parameter_form = _parameter_valuespec_unisphere_powermax_masking_view_volume_summary,
@@ -416,7 +416,7 @@ rule_spec_unisphere_powermax_health_score = CheckParameters(
 
 
 
-def _parameter_valuespec_unisphere_port_group_state():
+def _parameter_valuespec_unisphere_powermax_port_group_state():
     return Dictionary(
         elements = {
             "levels": DictElement(
@@ -430,10 +430,10 @@ def _parameter_valuespec_unisphere_port_group_state():
         },
     )
 
-rule_spec_unisphere_powermax_group_state = CheckParameters(
+rule_spec_unisphere_powermax_port_group_state = CheckParameters(
         name="unisphere_powermax_port_group_state",
         topic=Topic.STORAGE,
-        parameter_form = _parameter_valuespec_unisphere_port_group_state,
+        parameter_form = _parameter_valuespec_unisphere_powermax_port_group_state,
         condition=HostAndItemCondition(
             item_title=Title("fitting item name"),
         ),

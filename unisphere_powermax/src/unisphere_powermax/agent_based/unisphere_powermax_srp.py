@@ -64,6 +64,7 @@ from cmk.agent_based.v2 import (
     CheckPlugin,
     AgentSection,
     check_levels,
+    Metric,
 )
 
 from .utils import parse_section
@@ -94,9 +95,11 @@ def check_srp_effective_used(item, params, section):
 
     yield from check_levels(
         used,
-        metric_name='count',
+        metric_name='used',
         levels_upper=params['levels'],
-        render_func=lambda v: f"{v} used",
+        boundaries=(0, 100),
+        label='Used',
+        render_func=lambda v: f"{v}%",
     )
 
 def discover_srp_physical_used(section):
@@ -123,9 +126,11 @@ def check_srp_physical_used(item, params, section):
 
     yield from check_levels(
         used,
-        metric_name='percent',
+        metric_name='used',
         levels_upper=params['levels'],
-        render_func=lambda v: f"{v}% used",
+        boundaries=(0, 100),
+        label='Used',
+        render_func=lambda v: f"{v}%",
     )
 
 def discover_srp_data_reduction_ratio(section):
@@ -147,9 +152,15 @@ def check_srp_data_reduction_ratio(item, params, section):
 
     yield from check_levels(
         ratio,
-        metric_name='ratio',
+        # metric_name="ratio",
         levels_lower=params['levels'],
-        render_func=lambda v: f"{v}% used",
+        label='current reduction ratio',
+        render_func=lambda v: f"{v}:1",
+    )
+    yield Metric(
+        name="Data_Reduction_Ratio_To_One",
+        value=ratio,
+        levels=params['levels'][1],
     )
 
 check_plugin_unisphere_powermax_srp_effective_used = CheckPlugin(
@@ -162,7 +173,7 @@ check_plugin_unisphere_powermax_srp_effective_used = CheckPlugin(
     check_default_parameters = {"levels": ('fixed', (80.0, 90.0))}
 )
 
-check_plugin_unisphere_powermax_srp_pysical_used = CheckPlugin(
+check_plugin_unisphere_powermax_srp_physical_used = CheckPlugin(
     name = "unisphere_powermax_srp_physical_used",
     sections = ['unisphere_powermax_srp'],
     service_name = 'Physical SRP Capacity %s',
