@@ -216,7 +216,7 @@ class PmaxConnector:
         :return: dict with symmetrixId as key and dict with symmetrix information as value
         """
         for sym_id in self.get_symmetrix():
-            symm_info = self.get(f'/{self.API_VERSION}/system/symmetrix/{sym_id}').json()
+            symm_info = self.get(f'/{self.API_VERSION}/sloprovisioning/symmetrix/{sym_id}').json()
             self.symmetrix_info[sym_id] = symm_info
 
     def get_symmetrix_name(self, symmetrix_id):
