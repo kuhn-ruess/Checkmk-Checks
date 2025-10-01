@@ -1,7 +1,8 @@
 # 2021 created by Sven Rueß, sritd.de
 
-from .agent_based_api.v1 import (
-    register,
+from cmk.agent_based.v2 import (
+    AgentSection,
+    CheckPlugin,
     Service,
     Result,
     State,
@@ -22,7 +23,7 @@ def parse_cohesity_alerts(string_table):
     return section
 
 
-register.agent_section(
+agent_section_cohesity_alerts = AgentSection(
     name="cohesity_alerts",
     parse_function=parse_cohesity_alerts,
 )
@@ -62,7 +63,7 @@ def check_cohesity_alerts(section):
         )
 
 
-register.check_plugin(
+check_plugin_cohesity_alerts = CheckPlugin(
     name="cohesity_alerts",
     service_name="Alert Status",
     discovery_function=discovery_cohesity_alerts,

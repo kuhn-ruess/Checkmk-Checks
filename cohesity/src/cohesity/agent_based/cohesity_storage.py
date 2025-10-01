@@ -1,8 +1,9 @@
 # 2021 created by Sven Rueß, sritd.de
 
-from .agent_based_api.v1 import (
+from cmk.agent_based.v2 import (
+    AgentSection,
+    CheckPlugin,
     Metric,
-    register,
     Service,
     Result,
     State,
@@ -24,7 +25,7 @@ def parse_cohesity_storage(string_table):
     return section
 
 
-register.agent_section(
+agent_section_cohesity_storage_usage = AgentSection(
     name="cohesity_storage_usage",
     parse_function=parse_cohesity_storage,
 )
@@ -34,8 +35,11 @@ def discovery_cohesity_storage(section):
     yield Service()
 
 def check_cohesity_storage(params, section):
-    (warn, crit) = params.get("levels", (None, None))
-    (warn_pct, crit_pct) = params.get("levels %", (None, None))
+    levels = params.get("levels", ('fixed', (None, None)))
+    warn, crit = levels[1]
+    levels_pct = params.get("levels_pct", ('fixed', (None, None)))
+    warn_pct, crit_pct = levels_pct[1]
+
     used_storage = None
     total_storage = None
 
@@ -44,6 +48,13 @@ def check_cohesity_storage(params, section):
 
     if "totalCapacityBytes" in section.keys():
         total_storage = section["totalCapacityBytes"]
+    
+    if used_storage is None or total_storage is None or total_storage == 0:
+        yield Result(
+            state=State.UNKNOWN,
+            summary="No storage space data available",
+        )
+        return
 
     percent_used = used_storage * 100 / total_storage
     text = f"Disk used: {render.percent(percent_used)} ({render.disksize(used_storage)} of {render.disksize(total_storage)})"
@@ -77,7 +88,7 @@ def check_cohesity_storage(params, section):
     yield Metric(name="used_storage", value=used_storage, levels=(warn, crit), boundaries=(0, total_storage))
     yield Metric(name="percent_used", value=percent_used, levels=(warn_pct, crit_pct), boundaries=(0, 100))
 
-register.check_plugin(
+check_plugin_cohesity_storage_usage = CheckPlugin(
     name="cohesity_storage_usage",
     service_name="Storage Status",
     discovery_function=discovery_cohesity_storage,

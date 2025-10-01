@@ -1,8 +1,9 @@
 # 2021 created by Sven Rueß, sritd.de
 
-from .agent_based_api.v1 import (
+from cmk.agent_based.v2 import (
+    AgentSection,
+    CheckPlugin,
     Metric,
-    register,
     Service,
     Result,
     State,
@@ -25,7 +26,7 @@ def parse_cohesity_unprotected(string_table):
     return section
 
 
-register.agent_section(
+agent_section_cohesity_unprotected = AgentSection(
     name="cohesity_unprotected",
     parse_function=parse_cohesity_unprotected,
 )
@@ -52,7 +53,7 @@ def check_cohesity_unprotected(section):
 
     yield Metric(name="unprotected_objects", value=section["numObjectsUnprotected"])
 
-register.check_plugin(
+check_plugin_cohesity_unprotected = CheckPlugin(
     name="cohesity_unprotected",
     service_name="Unproteced Status",
     discovery_function=discovery_cohesity_unprotected,
