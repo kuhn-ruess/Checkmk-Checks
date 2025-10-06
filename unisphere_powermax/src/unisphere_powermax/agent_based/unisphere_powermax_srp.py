@@ -166,7 +166,7 @@ def discover_srp_effective_used(section):
     for item, data in section.items():
         if data.get('srp_capacity', {}).get('effective_used_capacity_percent'):
             yield Service(item=item)
-        if data.get('fba_srp_capacity', {}).get('effective', {}).get('effective_used_percent'):
+        elif data.get('fba_srp_capacity', {}).get('effective', {}).get('effective_used_percent'):
             yield Service(item=item)
 
 def check_srp_effective_used(item, params, section):
@@ -176,7 +176,7 @@ def check_srp_effective_used(item, params, section):
     srp_info = section[item]
     if srp_info.get('srp_capacity', {}).get('effective_used_capacity_percent'):
         used = srp_info.get('srp_capacity', {}).get('effective_used_capacity_percent')
-    if srp_info.get('fba_srp_capacity', {}).get('effective', {}).get('effective_used_percent'):
+    elif srp_info.get('fba_srp_capacity', {}).get('effective', {}).get('effective_used_percent'):
         used = srp_info.get('fba_srp_capacity', {}).get('effective', {}).get('effective_used_percent')
 
     if not used:
@@ -199,7 +199,7 @@ def discover_srp_physical_used(section):
     for item, data in section.items():
         if data.get('srp_capacity', {}).get('usable_used_tb'):
             yield Service(item=item)
-        if data.get('fba_srp_capacity', {}).get('effective', {}).get('physical_capacity', {}).get('used_tb'):
+        elif data.get('fba_srp_capacity', {}).get('effective', {}).get('physical_capacity', {}).get('used_tb'):
             yield Service(item=item)
 
 def check_srp_physical_used(item, params, section):
@@ -210,7 +210,7 @@ def check_srp_physical_used(item, params, section):
         srp_info = section[item].get('srp_capacity')
         used_tb = srp_info.get('usable_used_tb')
         total_tb = srp_info.get('usable_total_tb')
-    if section[item].get('fba_srp_capacity', {}).get('effective', {}).get('physical_capacity'):
+    elif section[item].get('fba_srp_capacity', {}).get('effective', {}).get('physical_capacity'):
         srp_info = section[item].get('fba_srp_capacity', {}).get('effective', {}).get('physical_capacity')
         used_tb = srp_info.get('used_tb')
         total_tb = srp_info.get('total_tb')
