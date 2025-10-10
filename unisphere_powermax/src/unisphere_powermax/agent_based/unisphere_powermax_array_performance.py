@@ -54,8 +54,10 @@ def discover_wp_cache(section):
     Discover WP Cache usage for PowerMax systems.
     """
     for item, data  in section.items():
-        if data.get('Average', {}).get('PercentCacheWP')\
-                and data.get('Maximum', {}).get('PercentCacheWP'):
+        avg = data.get('Average', {}).get('PercentCacheWP')
+        maxi = data.get('Maximum', {}).get('PercentCacheWP')
+        # Use explicit None checks so that 0.0 is considered valid data
+        if avg is not None and maxi is not None:
             yield Service(item=item)
 
 def check_wp_cache(item, params, section):
@@ -67,7 +69,8 @@ def check_wp_cache(item, params, section):
     average_wp_cache = perf_data.get('Average', {}).get('PercentCacheWP')
     maximum_wp_cache = perf_data.get('Maximum', {}).get('PercentCacheWP')
 
-    if not average_wp_cache or not maximum_wp_cache:
+    # Use explicit None checks so that 0.0 is considered valid data
+    if average_wp_cache is None or maximum_wp_cache is None:
         yield Result(state=State.UNKNOWN, summary="got no data from agent")
         return
 

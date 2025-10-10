@@ -56,6 +56,91 @@ https://kuhn-ruess.de
 #   "reserved_cap_percent": 10
 #}
 
+# NEW/ALTERNATIVE FORMAT
+#SYMMETRIX_000220009898_SRP_1{
+#  "srpId": "SRP_1",
+#  "num_of_disk_groups": 1,
+#  "emulation": "FBA",
+#  "reserved_cap_percent": 10,
+#  "total_srdf_dse_allocated_cap_gb": 0.0,
+#  "rdfa_dse": true,
+#  "reliability_state": "Optimal",
+#  "diskGroupId": ["1"],
+#  "fba_srp_capacity": {
+#    "provisioned": {
+#      "provisioned_tb": 41.22,
+#      "effective_capacity_tb": 294.49,
+#      "provisioned_percent": 14.0
+#    },
+#    "effective": {
+#      "used_tb": 1.47,
+#      "total_tb": 294.49,
+#      "free_tb": 293.02,
+#      "effective_used_percent": 1.0,
+#      "target_tb": 294.49,
+#      "physical_capacity": {
+#        "used_tb": 0.49,
+#        "total_tb": 108.95,
+#        "free_tb": 108.46,
+#        "target_tb": 108.95
+#      },
+#      "effective_capacity_resources": {
+#        "used_tb": 1.47,
+#        "total_tb": 840.62,
+#        "free_tb": 839.15
+#      },
+#      "effective_capacity_usage": {
+#        "snapshot_used_tb": 0.0,
+#        "user_used_tb": 1.47,
+#        "free_tb": 293.02
+#      }
+#    },
+#    "snapshot": {
+#      "effective_used_percent": 0.0,
+#      "physical_used_percent": 0.0,
+#      "resource_used_tb": 0.0,
+#      "modified_capacity_tb": 0.0,
+#      "total_capacity_tb": 0.0
+#    },
+#    "data_reduction": {
+#      "data_reduction_ratio_to_one": 6.0,
+#      "reducing_data_percent": 79.0,
+#      "savings_tb": 0.98,
+#      "effective_used": {
+#        "enabled_and_reducing_tb": 1.17,
+#        "enabled_and_unreducible_tb": 0.3,
+#        "enabled_and_unevaluated_tb": 0.0,
+#        "disabled_and_unreduced_tb": 0.0
+#      },
+#      "physical_used": {
+#        "enabled_and_reducing_tb": 0.19,
+#        "enabled_and_unreducible_tb": 0.3,
+#        "enabled_and_unevaluated_tb": 0.0,
+#        "disabled_and_unreduced_tb": 0.0
+#      }
+#    }
+#  },
+#  "srp_efficiency": {
+#    "compression_state": "Enabled",
+#    "overall_efficiency_ratio_to_one": 83.8,
+#    "data_reduction_ratio_to_one": 6.0,
+#    "data_reduction_enabled_percent": 100.0,
+#    "unreducible_data_tb": 0.3,
+#    "reducible_data_tb": 1.17,
+#    "deduplication_and_compression_savings_tb": 0.65,
+#    "pattern_detection_savings_tb": 0.33,
+#    "drr_on_reducible_only_to_one": 6.0
+#  },
+#  "service_levels": [
+#    "Bronze",
+#    "Diamond",
+#    "Gold",
+#    "Optimized",
+#    "Platinum",
+#    "Silver"
+#  ]
+#}
+
 
 from cmk.agent_based.v2 import (
     Service,
@@ -81,13 +166,18 @@ def discover_srp_effective_used(section):
     for item, data in section.items():
         if data.get('srp_capacity', {}).get('effective_used_capacity_percent'):
             yield Service(item=item)
+        elif data.get('fba_srp_capacity', {}).get('effective', {}).get('effective_used_percent'):
+            yield Service(item=item)
 
 def check_srp_effective_used(item, params, section):
     """
     Check effective used capacity for SRP on PowerMax systems.
     """
     srp_info = section[item]
-    used = srp_info.get('srp_capacity', {}).get('effective_used_capacity_percent')
+    if srp_info.get('srp_capacity', {}).get('effective_used_capacity_percent'):
+        used = srp_info.get('srp_capacity', {}).get('effective_used_capacity_percent')
+    elif srp_info.get('fba_srp_capacity', {}).get('effective', {}).get('effective_used_percent'):
+        used = srp_info.get('fba_srp_capacity', {}).get('effective', {}).get('effective_used_percent')
 
     if not used:
         yield Result(state=State.UNKNOWN, summary="got no data from agent")
@@ -109,18 +199,23 @@ def discover_srp_physical_used(section):
     for item, data in section.items():
         if data.get('srp_capacity', {}).get('usable_used_tb'):
             yield Service(item=item)
+        elif data.get('fba_srp_capacity', {}).get('effective', {}).get('physical_capacity', {}).get('used_tb'):
+            yield Service(item=item)
 
 def check_srp_physical_used(item, params, section):
     """
     Check physical used capacity for SRP on PowerMax systems.
     """
-    srp_info = section[item].get('srp_capacity')
+    if section[item].get('srp_capacity'):
+        srp_info = section[item].get('srp_capacity')
+        used_tb = srp_info.get('usable_used_tb')
+        total_tb = srp_info.get('usable_total_tb')
+    elif section[item].get('fba_srp_capacity', {}).get('effective', {}).get('physical_capacity'):
+        srp_info = section[item].get('fba_srp_capacity', {}).get('effective', {}).get('physical_capacity')
+        used_tb = srp_info.get('used_tb')
+        total_tb = srp_info.get('total_tb')
     if not srp_info:
         return
-
-
-    used_tb = srp_info.get('usable_used_tb')
-    total_tb = srp_info.get('usable_total_tb')
 
     used = round((used_tb / total_tb)*100, 2)
 
