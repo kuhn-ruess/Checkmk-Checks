@@ -55,13 +55,13 @@ def check_service(item, params, section):
 
 
 
-agent_section_cmdb_syncer_service = AgentSection(
+agent_section_as400_jobs = AgentSection(
     name = "as400_agent_jobs",
     parse_function = parse_function,
 )
 
 
-check_plugin_cmdb_syncer_service = CheckPlugin(
+check_plugin_as400_jobs = CheckPlugin(
     name = "as400_agent_jobs",
     sections = ["as400_agent_jobs"],
     service_name = "Job %s",
