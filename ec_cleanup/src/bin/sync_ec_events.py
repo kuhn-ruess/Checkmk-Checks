@@ -25,6 +25,7 @@ class Checkmk():
         self.address = config['address']
         self.username = config['username']
         self.password = config['password']
+        self.verify = config['verify']
 
     def request(self, endpoint, method="GET", json=None):
         """
@@ -40,9 +41,9 @@ class Checkmk():
 
 
         if method == "GET":
-            response = requests.get(url, headers=headers)
+            response = requests.get(url, headers=headers, verify=self.verify)
         elif method == "POST":
-            response = requests.post(url, headers=headers, json=json)
+            response = requests.post(url, headers=headers, json=json, verify=self.verify)
 
         try:
            response_json = response.json()
@@ -160,17 +161,20 @@ if __name__ == "__main__":
         ## Get from Environment
         user = 'automation'
         password = get_automation_password()
-        address = f"http://localhost/{environ['CMK_SITE_ID']}"
+        address = f"http://localhost/{environ['OMD_SITE']}"
+        verify = False
 
     else:
         user = args.user
         address = args.url
         password = args.password
+        verify = True
 
     config = {
         'address': address,
         'username': user,
         'password': password,
+        'verify': verify,
     }
     cmk = Checkmk(config)
     cmk.sync_ec_data()
