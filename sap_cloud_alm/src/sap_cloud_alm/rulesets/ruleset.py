@@ -11,8 +11,6 @@ from cmk.rulesets.v1.form_specs import (
     Dictionary,
     DictElement,
     String,
-    DefaultValue,
-    InputHint,
     Password,
 )
 from cmk.rulesets.v1.form_specs.validators import LengthInRange

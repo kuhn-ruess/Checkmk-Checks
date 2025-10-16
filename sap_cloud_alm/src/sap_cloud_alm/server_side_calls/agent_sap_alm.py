@@ -21,8 +21,8 @@ class AgentSapAlmParams(BaseModel):
     instance: str
     client_id: str
     metric_filter: str
-    proxy: str
     client_secret: Secret
+    proxy: str | None = None
 
 
 def generate_agent_command(params: AgentSapAlmParams, host_config: HostConfig):
@@ -35,8 +35,9 @@ def generate_agent_command(params: AgentSapAlmParams, host_config: HostConfig):
     args.append(params.client_secret.unsafe())
     args.append('--filter')
     args.append(quote_plus(params.metric_filter))
-    args.append('--proxy')
-    args.append(quote_plus(params.proxy))
+    if params.proxy:
+        args.append('--proxy')
+        args.append(params.proxy)
 
     yield SpecialAgentCommand(
         command_arguments = args

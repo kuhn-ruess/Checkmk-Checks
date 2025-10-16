@@ -14,7 +14,7 @@ from cmk.agent_based.v2 import (
     check_levels,
     State,
     Result,
-    Metric
+    Metric,
 )
 
 

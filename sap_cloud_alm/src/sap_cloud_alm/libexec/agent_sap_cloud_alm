@@ -99,7 +99,7 @@ if __name__ == "__main__":
         required=True,
         help="oAuth Client Secret",
     )
-    parser.add_argument('--proxy', dest='proxy', required=True, help="Proxy to use")
+    parser.add_argument('--proxy', dest='proxy', help="Proxy to use")
     parser.add_argument('--filter', dest='filter', required=True, help="Filter to use")
     parser.add_argument(
         '--debug',
