@@ -34,7 +34,9 @@ def check_dir_size(item, params, section):
 
     folder_size_bytes = section[item]['size_bytes']
 
-    if not params.get('levels'):
+
+    # if no levels, just show size
+    if params.get('levels', ('fixed', (0, 0)))[1] == (0, 0):
         yield Result(
             state=State.OK,
             summary=f"Folder usage: {render.bytes(folder_size_bytes)}"
@@ -70,7 +72,7 @@ check_plugin_dir_size = CheckPlugin(
     discovery_function=discover_dir_size,
     check_function=check_dir_size,
     check_default_parameters={
-        'levels': None,
+        'levels': ('fixed', (0,0)),
     },
     check_ruleset_name="dir_size",
 
