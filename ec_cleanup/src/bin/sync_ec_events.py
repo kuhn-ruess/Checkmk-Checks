@@ -12,6 +12,7 @@ https://kuhn-ruess.de
 
 import argparse
 import requests
+import urllib.parse
 from os import environ
 
 class Checkmk():
@@ -25,6 +26,7 @@ class Checkmk():
         self.address = config['address']
         self.username = config['username']
         self.password = config['password']
+        self.rule_filter = config['rule_filter']
         self.verify = config['verify']
 
     def request(self, endpoint, method="GET", json=None):
@@ -40,14 +42,16 @@ class Checkmk():
         }
 
 
-        if method == "GET":
-            response = requests.get(url, headers=headers, verify=self.verify)
-        elif method == "POST":
+        if method == "POST":
             response = requests.post(url, headers=headers, json=json, verify=self.verify)
+        else:
+            # Default alsways GET, also for unkown methods
+            response = requests.get(url, headers=headers, verify=self.verify)
 
         try:
            response_json = response.json()
         except requests.exceptions.JSONDecodeError:
+            print(f"Error: {response.text}")
             response_json = {}
 
         return response_json
@@ -56,7 +60,15 @@ class Checkmk():
         """
         Return all Events based on a services
         """
-        events = self.request("/domain-types/event_console/collections/all")
+
+        params = urllib.parse.urlencode({
+            "query": f'{{"op": "=", "left": "event_rule_id", "right": "{self.rule_filter}"}}',
+            "phase": "open",
+        })
+        url = f"/domain-types/event_console/collections/all?{params}" 
+        events = self.request(url)
+        if not events:
+            return
         for event in events['value']:
             event_id = event['id']
             event = event['extensions']
@@ -81,6 +93,8 @@ class Checkmk():
                 f"service_description={service_description}&columns=state"
         )
         service_data = self.request(url)
+        if 'extensions' not in service_data:
+            return False
         state = service_data['extensions']['state']
         self.status_cache[cache_id] = state
         return state
@@ -97,6 +111,8 @@ class Checkmk():
                 f"columns=state"
         )
         service_data = self.request(url)
+        if 'extensions' not in service_data:
+            return False
         state = service_data['extensions']['state']
         self.status_cache[cache_id] = state
         return state 
@@ -127,7 +143,9 @@ class Checkmk():
             else:
                 state = self.get_service_state(event['host_name'], event['service_description'])
 
-            if state == 0:
+            if state is False:
+                print(f"NOT FOUND-> ID: {event['event_id']} ({event['host_name']}, {event['service_description']}) is not in Checkmk")
+            elif state == 0:
                 print(f"OK-> ID: {event['event_id']} ({event['host_name']}, {event['service_description']})")
                 ids_to_close.append((event['event_id'], event['site_id']))
             else:
@@ -152,29 +170,35 @@ def get_automation_password():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='EC Cleanup tool. Cleans Events for Services OK in Checkmk')
     parser.add_argument('--user', dest='user', required=False, help='Checkmk Admin Username')
+    parser.add_argument('--rule-filter', dest='rule_filter', required=True, help='Rule ID for Events to be considered')
     parser.add_argument('--password', dest='password', required=False, help='Password or Automation Token')
     parser.add_argument('--site-url', dest='url', required=False, help='Url to checkmk site, https://hostname/sitename')
+    parser.add_argument('--no-verify', dest='verify', required=False, help='Disable Certificate Verification')
 
     args = parser.parse_args()
+
+    verify = False if args.verify else True
 
     if not args.user:
         ## Get from Environment
         user = 'automation'
         password = get_automation_password()
-        address = f"http://localhost/{environ['OMD_SITE']}"
-        verify = False
-
     else:
         user = args.user
-        address = args.url
         password = args.password
-        verify = True
+    if not args.url:
+        address = f"http://localhost/{environ['OMD_SITE']}"
+        verify = False # Always since only working with localhost
+    else:
+        address = args.url
+
 
     config = {
         'address': address,
         'username': user,
         'password': password,
         'verify': verify,
+        'rule_filter': args.rule_filter,
     }
     cmk = Checkmk(config)
     cmk.sync_ec_data()
