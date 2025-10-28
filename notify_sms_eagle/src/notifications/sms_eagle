@@ -31,6 +31,10 @@ class NotifyEagle():
         }
         self.context = context
 
+        if not self.context['CONTACTPAGER']:
+            sys.stdout.write("Cannot send SMS: empty destination pager address\n")
+            sys.exit(2)
+
     def get_message(self):
         """
         Build SMS Text
