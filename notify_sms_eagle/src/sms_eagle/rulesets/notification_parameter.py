@@ -41,6 +41,18 @@ class NotificationParameterSMSEagle(NotificationParameter):
                     ),
                     required = True,
                 ),
+                "svc_label": DictElement(
+                    parameter_form = String(
+                        title=Title("Show matching Service Label"),
+                        help_text = Help("Enter Key for the Service Label which you want to show in the sms"),
+                    ),
+                ),
+                "host_label": DictElement(
+                    parameter_form = String(
+                        title = Title("Show matching Host Label"),
+                        help_text = Help("Enter Key for the Host Label which you want to show in the sms"),
+                    ),
+                ),
             }
         )
 notification_parameter_registry.register(NotificationParameterSMSEagle)

@@ -35,6 +35,26 @@ class NotifyEagle():
             sys.stdout.write("Cannot send SMS: empty destination pager address\n")
             sys.exit(2)
 
+
+    def get_label(self, type, needle):
+        """
+        Search for given Service or Host Label
+        """
+        prefix = ""
+        if type == "host":
+            prefix = "HOSTLABEL_"
+        elif type == "service":
+            prefix = "SERVICELABEL_"
+
+        found = False
+        for key, value in self.context.items():
+            if key.startswith(f"{prefix}{needle}"):
+                found = value
+                break
+        if found:
+            return found
+        return False
+
     def get_message(self):
         """
         Build SMS Text
@@ -42,6 +62,19 @@ class NotifyEagle():
 
         messages = []
         messages.append(self.context['HOSTNAME'])
+        service_label = False
+        host_label = False
+
+        if needed_host_label := self.context.get('PARAMETER_HOST_LABEL'):
+            host_label = self.get_label('host', needed_host_label)
+        if needed_service_label := self.context.get('PARAMETER_SVC_LABEL'):
+            service_label = self.get_label('service', needed_service_label)
+
+        if service_label:
+            messages.append(f"SL {needed_service_label}:{service_label}")
+        if host_label:
+            messages.append(f"HL {needed_host_label}:{host_label}")
+
         if self.context['WHAT'] == 'HOST':
             messages.append(self.context['HOSTSTATE'])
             messages.append(self.context['HOSTOUTPUT'])
@@ -50,7 +83,8 @@ class NotifyEagle():
             messages.append(self.context['SERVICEDESC'])
             messages.append(self.context['SERVICEOUTPUT'])
 
-        return " ".join(messages)[:160]
+        message = " ".join(messages)[:160]
+        return message 
 
     def notify(self):
         """
