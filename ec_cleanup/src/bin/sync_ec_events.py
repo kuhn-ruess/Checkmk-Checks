@@ -12,6 +12,7 @@ https://kuhn-ruess.de
 
 import argparse
 import requests
+import urllib3
 import urllib.parse
 from os import environ
 
@@ -28,6 +29,9 @@ class Checkmk():
         self.password = config['password']
         self.rule_filter = config['rule_filter']
         self.verify = config['verify']
+        if not self.verify:
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 
     def request(self, endpoint, method="GET", json=None):
         """
@@ -51,7 +55,8 @@ class Checkmk():
         try:
            response_json = response.json()
         except requests.exceptions.JSONDecodeError:
-            print(f"Error: {response.text}")
+            if response.text:
+                print(f"Error: {response.text}")
             response_json = {}
 
         return response_json
@@ -201,4 +206,5 @@ if __name__ == "__main__":
         'rule_filter': args.rule_filter,
     }
     cmk = Checkmk(config)
-    cmk.sync_ec_data()
+    cmk.close_event(2, "cmk")
+    #cmk.sync_ec_data()
