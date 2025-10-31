@@ -27,12 +27,15 @@ def generate_service_counter_command(params: ServiceCounterParams, host_config: 
     if params.timeout:
         args.append(f"{params.timeout}")
     else:
-        args.append("15")
-
-    args.append(params.path)
+        args.append("2.5")
 
     for item in params.service_filters:
-        args.append(f"{item['name']}|{item['pattern']}")
+        args_list = []
+        for what in ['name', 'service_pattern', 'host_label_pattern',
+                'host_name_pattern', 'host_label_pattern_negated', 'site_name_pattern']:
+            args_list.append(item.get(what, "None"))
+
+        args.append("|".join(args_list))
 
     yield SpecialAgentCommand(
         command_arguments = (

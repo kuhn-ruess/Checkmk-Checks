@@ -31,36 +31,58 @@ def _valuespec_special_agent_service_counter():
         elements = {
             "service_filters": DictElement(
                 parameter_form = List(
-                    title = Title("Services"),
+                    title = Title("Service Defition"),
                     help_text = Help("Pair of service names and service output pattern for counting"),
                     custom_validate=(LengthInRange(min_value=1),),
                     element_template = Dictionary(
                         elements = {
                             "name": DictElement(
                                 parameter_form = String(
-                                    title = Title("Complete name of Service"),
-                                    help_text = Help("Service name like Check_MK Agent, ..."),
+                                    title = Title("Service Description Filter"),
+                                    help_text = Help("Exact Service name like Check_MK Agent, ..."),
                                     custom_validate=(LengthInRange(min_value=1),),
                                 ),
-                                required = True,
+                                required = False,
                             ),
-                            "path": DictElement(
+                            "service_pattern": DictElement(
                                 parameter_form = String(
-                                    title = Title("Path to Checkmk Site"),
-                                    help_text = Help("This is needed to access the Web API of "\
-                                                     "the central site, even if plugin is running on remote site."\
-                                                     "Example: https://server/site/"),
-                                    custom_validate=(LengthInRange(min_value=1),),
-                                ),
-                                required = True,
-                            ),
-                            "pattern": DictElement(
-                                parameter_form = String(
-                                    title = Title("Service output pattern for counting"),
+                                    title = Title("Service output Filter"),
                                     help_text = Help("Pattern, which will be searched in agent output for counting"),
                                     custom_validate=(LengthInRange(min_value=1),),
                                 ),
-                                required = True,
+                                required = False,
+                            ),
+                            "host_label_pattern": DictElement(
+                                parameter_form = String(
+                                    title = Title("Host Label Filter"),
+                                    help_text = Help("Comma Seperated list of host label (key:value). Every Label needs to be given"),
+                                    custom_validate=(LengthInRange(min_value=1),),
+                                ),
+                                required = False,
+                            ),
+                            "host_label_pattern_negated": DictElement(
+                                parameter_form = String(
+                                    title = Title("Host Label Filter Negated"),
+                                    help_text = Help("Comma Seperated list of host label (key:value) which are not allowed to exist"),
+                                    custom_validate=(LengthInRange(min_value=1),),
+                                ),
+                                required = False,
+                            ),
+                            "host_name_pattern": DictElement(
+                                parameter_form = String(
+                                    title = Title("Hostname (Regex) Filter"),
+                                    help_text = Help("Enter a Hostname or an Regex for the Condition"),
+                                    custom_validate=(LengthInRange(min_value=1),),
+                                ),
+                                required = False,
+                            ),
+                            "site_name_pattern": DictElement(
+                                parameter_form = String(
+                                    title = Title("Site Name Filter"),
+                                    help_text = Help("Pattern, which will be searched in agent output for counting"),
+                                    custom_validate=(LengthInRange(min_value=1),),
+                                ),
+                                required = False,
                             ),
                         },
                     )

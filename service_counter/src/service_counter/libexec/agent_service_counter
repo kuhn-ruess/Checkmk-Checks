@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
-
 """
 Kuhn & Rueß GmbH
 Consulting and Development
 https://kuhn-ruess.de
 """
 
-from sys import argv
 from json import dumps
 from os import environ
 from requests import get
+from sys import argv
+
+from cmk.ccc.site import get_apache_port, omd_site
+
 
 class AgentServicecounter():
     """
@@ -33,11 +35,16 @@ class AgentServicecounter():
         Init
         """
         self.timeout = float(argv[1])
-        self.path = argv[2]
-        self.config = [ x.split("|") for x in argv[3:]]
+        self.config = []
+        for arg_set in argv[2:]:
+            config_set = {}
+            arg_set_splited = arg_set.split('|')
+            for idx, what in enumerate(['name', 'service_pattern', 'host_label_pattern',
+                    'host_name_pattern', 'host_label_pattern_negated', 'site_name_pattern']):
+                config_set[what] = arg_set_splited[idx]
+            self.config.append(config_set)
         self.get_user()
-        # The Site Url is configured in Case this checks runs on a remote Site
-        self._site_url = f"{self.path}/check_mk/api/1.0"
+        self._site_url = f"http://localhost:{get_apache_port()}/{omd_site()}/check_mk/api/1.0"
 
 
     def get(self, url, params):
@@ -54,22 +61,59 @@ class AgentServicecounter():
         if content.status_code == 200 or content.status_code == 204:
             return content.json()
         else:
+            print(content.text)
             return {}
 
 
     def get_services(self):
         """
         Get services from Livestatus API
+                        
         """
         print("<<<local>>>")
-        for service_name, service_output in self.config:
+        for service_config in self.config:
+            service_filter = []
+            service_output = []
+            for option_name, option in service_config.items():
+                if option == 'None':
+                    continue
+                if option_name == 'name':
+                    # Service Name
+                    service_filter.append({"op": "=", "left": "description", "right": option})
+                    service_output.append(f'Desc: {option}')
+                elif option_name == 'service_pattern':
+                    # Service Output
+                    service_filter.append({"op": "~", "left": "plugin_output", "right": option})
+                    service_output.append(f'Output: {option}')
+                elif option_name == 'host_label_pattern':
+                    # Host Label
+                    labels = []
+                    for label in [x.strip() for x in option.split(',')]:
+                        name, value = label.split(':')
+                        service_filter.append({"op": "=", "left": "host_labels", "right": f"'{name}' '{value}'" })
+                        labels.append(label)
+                    service_output.append(f'Labels: {' '.join(labels)}')
+                elif option_name == 'host_label_pattern_negated':
+                    labels = []
+                    for label in [x.strip() for x in option.split(',')]:
+                        name, value = label.split(':')
+                        service_filter.append({"op": "!=", "left": "host_labels", "right": f"'{name}' '{value}'" })
+                        labels.append(label)
+                    service_output.append(f'Labels negaded: {' '.join(labels)}')
+                elif option_name == 'host_name_pattern':
+                    # Hostname
+                    service_filter.append({"op": "~", "left": "host_name", "right": option})
+                    service_output.append(f'Hostname: {option}')
+                elif option_name == 'site_name_pattern':
+                    # Sitename
+                    service_filter.append({"op": "=", "left": "plugin_output", "right": f"'site' : '{option}'"})
+                    service_output.append(f'Site: {option}')
+
             expr = []
             expr.append(
                 {
-                    "op": "and", "expr": [
-                        {"op": "=", "left": "description", "right": f"{service_name}"},
-                        {"op": "~", "left": "plugin_output", "right": f"{service_output}"}
-                    ]
+                    "op": "and", "expr": service_filter
+                    
                 }
             )
 
@@ -81,12 +125,14 @@ class AgentServicecounter():
                             "expr": expr,
                         }
                     )
-                )
+                ),
+                'columns' : ['host_labels'],
             }
 
             url = "/domain-types/service/collections/all"
-            count = len(self.get(url, params)['value'])
-            print(f"0 \"Count {service_name} {service_output}\" count={count} Found {count} times")
+            resp = self.get(url, params)
+            count = len(resp['value'])
+            print(f"0 \"Count {', '.join(service_output)}\" count={count} Found {count} times")
 
 
 if __name__ == "__main__":
