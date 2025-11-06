@@ -17,7 +17,7 @@ if __name__ == "__main__":
         if service_name.startswith("Filesystem"):
             fs_name = service_name.split()[1].strip()
             inventory = \
-                    literal_eval(open(f"{omd_root}/var/check_mk/inventory/{hostname}").read())['Nodes']['filesystems']['Nodes']['owners']['Table']['Rows']
+                    literal_eval(open(f"{omd_root}/var/check_mk/inventory/{hostname}").read())['Nodes']['software']['Nodes']['filesystem_owners']['Table']['Rows']
             for inventory_fs in inventory:
                 if inventory_fs['Filesystem'] == fs_name:
                     email = inventory_fs['Owner E-Mail']

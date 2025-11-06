@@ -31,7 +31,7 @@ def inventory_inventorize_df(section: StringTable) -> InventoryResult:
     for line in section:
         if len(line) >= 4:
             yield TableRow(
-                path=["software", "applications", "filesystem_owners"],
+                path=["software", "filesystem_owners"],
                 key_columns={
                     "filesystem": line[0],
                 },
