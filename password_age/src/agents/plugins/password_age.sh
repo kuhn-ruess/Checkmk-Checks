@@ -3,4 +3,3 @@ echo "[[[cmkmon]]]"
 chage -l cmkmon | grep "Password expires"
 echo "[[[root]]]"
 chage -l root | grep "Password expires"
-

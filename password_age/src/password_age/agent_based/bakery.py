@@ -4,18 +4,18 @@ from pathlib import Path
 from cmk.base.cee.plugins.bakery.bakery_api.v1 import register, Plugin, OS, FileGenerator
 
 def get_discover_password(conf: Any) -> FileGenerator:
-    mode = conf.get('deployment', ("do_not_deploy", 0,0))
+    mode, interval = conf.get('deployment', ("do_not_deploy", 0))
     match mode:
-        case "do_not_deploy", _:
+        case "do_not_deploy":
             return
-        case "cached", float(raw_interval):
-            interval: int | None = int(raw_interval)
-        case "sync", _:
+        case "cached":
+            interval = int(interval)
+        case "sync":
             interval = None
 
     yield Plugin(
         base_os=OS.LINUX,
-        source=Path("password_age"),
+        source=Path("password_age.sh"),
         interval = interval,
     )
 

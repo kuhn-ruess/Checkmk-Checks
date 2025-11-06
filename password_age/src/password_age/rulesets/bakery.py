@@ -56,7 +56,7 @@ def _agent_config_password_age() -> Dictionary:
 
 
 rule_spec_passwort_age = AgentConfig(
-    name="passwor_age",
+    name="password_age",
     title=Title("password_age: Monitoring Users Password Age (Linux)"),
     topic=Topic.OPERATING_SYSTEM,
     parameter_form=_agent_config_password_age,
