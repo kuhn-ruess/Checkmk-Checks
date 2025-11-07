@@ -1,0 +1,68 @@
+#!/bin/bash
+
+
+##### $meins =  get-cluster $env:computername
+##### write-host "<<<labels:Sep(o)>>>"
+##### Write-Host "{""win_clustername"":""$meins""}"
+
+
+## [root@vlomlop002 ~]# /opt/OV/bin/ovdeploy -inv | grep -iE 'Operations-agent' | awk '{ print $(NF-2) }'
+## 12.12.010
+## [root@vlomlop002 ~]# /opt/OV/bin/ovdeploy -inv | grep -iE 'HPOvSecCo' | awk '{ print $(NF-2) }'
+## 12.12.010
+## [root@vlomlop002 ~]#
+###+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+##### agent_Vers="`/opt/OV/bin/ovdeploy -inv | grep -iE 'Operations-agent' | awk '{ print $(NF-2) }'`"
+##### agent_HPOvSecCo="`/opt/OV/bin/ovdeploy -inv | grep -iE 'HPOvSecCo' | awk '{ print $(NF-2) }'`"
+##### 
+##### echo "<<<labels:sep(0)>>>"
+##### echo "{\"HP_OVO_OA_Vers_gen\": \"${agent_Vers}\"}"
+##### echo "{\"HP_OVO_OA_Vers_HPOvSecCo\": \"${agent_HPOvSecCo}\"}"
+##### 
+###+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+###+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+if type waitmax >/dev/null 2>&1
+then
+        # OS_VEND="`cat /etc/os-release | grep -iE '^ID=' | awk -F'=' '{ print $2 }' | cut -d \\" -f 2`"   ; echo $OS_VEND
+        # OS_VEND_MAJ_VERS="`cat /etc/os-release | grep -iE '^VERSION_ID=' | awk -F'=' '{ print $2 }' | cut -d \\" -f 2 | cut -d \. -f1`"  ; echo $OS_VEND_MAJ_VERS
+        # OS_VEND_MIN_VERS="`cat /etc/os-release | grep -iE '^VERSION_ID=' | awk -F'=' '{ print $2 }' | cut -d \\" -f 2 | cut -d \. -f2`"  ; echo $OS_VEND_MAJ_VERS
+        # OS_VEND_VERS="`cat /etc/os-release | grep -iE '^VERSION_ID=' | awk -F'=' '{ print $2 }' | cut -d \\" -f 2`"  ; echo $OS_VEND_VERS
+
+        OS_VEND=$(waitmax -s 9 2 cat /etc/os-release 2>/dev/null | grep -iE '^ID=' | awk -F'=' '{ print $2 }' | cut -d \" -f 2)
+        OS_VEND_MAJ_VERS=$(waitmax -s 9 2 cat /etc/os-release 2>/dev/null | grep -iE '^VERSION_ID=' | awk -F'=' '{ print $2 }' | cut -d \" -f 2 | cut -d \. -f1)
+        # OS_VEND_MIN_VERS=$(waitmax -s 9 2 cat /etc/os-release 2>/dev/null | grep -iE '^VERSION_ID=' | awk -F'=' '{ print $2 }' | cut -d \" -f 2 | cut -d \. -f2)
+        OS_VEND_VERS=$(waitmax -s 9 2 cat /etc/os-release 2>/dev/null | grep -iE '^VERSION_ID=' | awk -F'=' '{ print $2 }' | cut -d \" -f 2)
+
+        if [ x"${OS_VEND}" == x ] ; then
+                # RedHat
+                        ls -altr /etc/redhat-release 1>/dev/null 2>&1 && OS_VEND="rhel"
+                # SLES - SuSE
+                        ls -altr /etc/SuSE-release 1>/dev/null 2>&1 && OS_VEND="sles"
+                if [ "${OS_VEND}" == "rhel" ] ; then
+                        OS_VEND_MAJ_VERS=$(cat /etc/redhat-release 2> /dev/null | awk -F "release" '{ print $2 }' | cut -d \( -f1 | awk '{ print $NF }' | cut -d \. -f1)
+                        OS_VEND_VERS=$(cat /etc/redhat-release 2> /dev/null | awk -F "release" '{ print $2 }' | cut -d \( -f1 | awk '{ print $NF }')
+                fi
+                if [ "${OS_VEND}" == "sles" ] ; then
+                        OS_VEND_MAJ_VERS=$(cat /etc/SuSE-release 2> /dev/null | head -1 | cut -d \( -f1 | awk '{ print $NF }' | cut -d \. -f1)
+                        OS_VEND_VERS=$(cat /etc/SuSE-release 2> /dev/null | head -1 | cut -d \( -f1 | awk '{ print $NF }')
+                fi
+        fi
+
+
+   if [ x"${OS_VEND}" == x ] ; then
+   echo "<<<labels:sep(0)>>>"
+   echo "{\"OS_Vend_Vers_Detect\": \"in_Place\"}"
+   echo "{\"OS_Vendor\": \"not_found\"}"
+   else
+   echo "<<<labels:sep(0)>>>"
+   echo "{\"OS_Vend_Vers_Detect\": \"in_Place\"}"
+   echo "{\"OS_Vendor\": \"${OS_VEND}\"}"
+   echo "{\"OS_Vendor_Major_Version\": \"${OS_VEND_MAJ_VERS}\"}"
+   echo "{\"OS_Vendor_Maj_Vers\": \"${OS_VEND}_${OS_VEND_MAJ_VERS}\"}"
+   echo "{\"OS_Vendor_Vers\": \"${OS_VEND}_${OS_VEND_VERS}\"}"
+   fi
+fi
+

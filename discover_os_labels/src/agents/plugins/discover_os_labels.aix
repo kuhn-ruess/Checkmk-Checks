@@ -1,0 +1,55 @@
+#!/bin/bash
+
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# Shell version of the waitmax utility, that limits the runtime of
+# commands. This version does not conserve the original exit code
+# of the command. It is successfull if the command terminated
+# in time.
+function waitmax
+{
+   TIMEOUT=${1}0
+   SIGNAL=9
+   shift
+
+   # Run command in background
+   ksh -c "$*" &
+   PID=$!
+
+   # Wait for termination within TIMOUT seconds
+   while [ $TIMEOUT -gt 0 ]
+   do
+       TIMEOUT=$((TIMEOUT - 1))
+       if [ ! -e /proc/$PID ] ; then
+           return 0
+       fi
+       perl -e "select(undef, undef, undef, 0.1);"
+   done
+
+   # Process did not terminate in time. Kill and
+   # return with an error
+   kill -9 $PID
+   return 255
+}
+
+
+# OS_VEND=$(waitmax 9 cat /etc/os-release 2>/dev/null | grep -iE '^ID=' | awk -F'=' '{ print $2 }' | cut -d \" -f 2)
+  OS_VEND=$(waitmax 9 uname -s)
+  OS_VEND_MAJ_VERS=$(waitmax 9 uname -v)
+  OS_VEND_VERS=$(waitmax 9 uname -V | cut -d \  -f 2)
+
+#
+   if [ x"${OS_VEND}" == x ] ; then
+   echo "<<<labels:sep(0)>>>"
+   echo "{\"OS_Vend_Vers_Detect\": \"in_Place\"}"
+   echo "{\"OS_Vendor\": \"not_found\"}"
+   else
+   echo "<<<labels:sep(0)>>>"
+   echo "{\"OS_Vend_Vers_Detect\": \"in_Place\"}"
+   echo "{\"OS_Vendor\": \"${OS_VEND}\"}"
+   echo "{\"OS_Vendor_Major_Version\": \"${OS_VEND_MAJ_VERS}\"}"
+   echo "{\"OS_Vendor_Maj_Vers\": \"${OS_VEND}_${OS_VEND_MAJ_VERS}\"}"
+   echo "{\"OS_Vendor_Vers\": \"${OS_VEND}_${OS_VEND_VERS}\"}"
+   fi
+
+
