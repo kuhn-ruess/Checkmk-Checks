@@ -31,12 +31,13 @@ def discover_password_age(section):
 
 def check_password_age(item, section):
     date = section[item]
+    #BK: ugly, date can be a string or a datetime
     state = State.OK
     if date == 'never':
         yield Result(state=state,
                       summary=f"Never expires")
         return
-    if 'does not' in date:
+    if 'does not' in str(date):
         yield Result(state=State.WARN,
                       summary=str(date))
         return
@@ -44,7 +45,7 @@ def check_password_age(item, section):
     timediff = date - datetime.now()
     days = timediff.days
     if days <= 10:
-        state = State.CRI
+        state = State.CRIT
 
     yield Result(state=state,
                   summary=f"Expires in {days} days")
