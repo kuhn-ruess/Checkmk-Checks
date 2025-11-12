@@ -12,6 +12,7 @@ from cmk.agent_based.v2 import (
     SNMPTree,
     contains,
     CheckPlugin,
+    get_value_store,
 )
 from cmk.plugins.lib.temperature import check_temperature
 
@@ -23,7 +24,7 @@ def discover_querx_webtherm_temp(section):
     yield Service(item="Temperature Sensor")
 
 def check_querx_webtherm_temp(item, params, section):
-    yield from check_temperature(section, params, "temperature")
+    yield from check_temperature(section, params, unique_name="temperature", value_store=get_value_store())
 
 
 snmp_section_querx_webtherm_temp = SimpleSNMPSection(
