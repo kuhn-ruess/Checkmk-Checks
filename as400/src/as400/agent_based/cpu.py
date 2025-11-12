@@ -47,7 +47,7 @@ def check_as400_cpu(params, section):
             {
                 "levels1": None,
                 "levels5": None,
-                "levels15": params["levels"][1],
+                "levels15": params["cpu_levels"][1],
             },
         ),
         section=Section(
@@ -62,6 +62,6 @@ check_plugin_as400_cpu = CheckPlugin(
     service_name="CPU load",
     discovery_function=discover_as400_cpu,
     check_function=check_as400_cpu,
-    check_default_parameters={"levels": ("fixed", (80, 90))},
+    check_default_parameters={"cpu_levels": ("fixed", (80, 90))},
     check_ruleset_name="as400_cpu",
 )

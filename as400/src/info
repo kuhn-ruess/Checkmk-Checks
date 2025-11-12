@@ -13,7 +13,7 @@
                                   'as400/rulesets/users.py']},
  'name': 'as400',
  'title': 'AS400 Checks',
- 'version': '3.0.1',
+ 'version': '3.0.2',
  'version.min_required': '2.3.0b1',
  'version.packaged': '2.3.0p35',
  'version.usable_until': None}
