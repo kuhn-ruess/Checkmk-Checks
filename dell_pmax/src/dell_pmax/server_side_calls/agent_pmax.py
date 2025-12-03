@@ -24,7 +24,7 @@ def generate_powermanx_command(params: AgentDellPowermaxParams, host_config: Hos
     """
     print(host_config)
     args = []
-    args.append("-r")
+    args.append("-u")
     args.append(params.username)
     args.append("-s")
     args.append(params.password.unsafe())
