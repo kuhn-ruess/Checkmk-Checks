@@ -1,0 +1,111 @@
+#!/usr/bin/env python3
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+import argparse
+import requests
+from json import JSONDecodeError
+
+
+class AgentoVirt():
+    """
+    Agent SAP ALM
+    """
+    debug = False
+    proxy = None
+    username = None
+    password = None
+    url = None
+    access_token = False
+
+    def get_token(self):
+        """
+        Get Oauth Client Token
+        """
+        access_token_url = \
+            f"{self.url}/ovirt-engine/sso/oauth/token"
+        if not self.access_token:
+            data = {
+                "grant_type": "password",
+                "scope" : "ovirt-app-api",
+                "username": self.username,
+                "password": self.password,
+            }
+
+            if self.debug:
+                print(f"DEBUG: POST request to {access_token_url}")
+                print(f"DEBUG: Request data: {data}")
+
+            resp = requests.post(access_token_url, data=data, proxies=self.proxy)
+
+            if self.debug:
+                print(f"DEBUG: Response status: {resp.status_code}")
+                print(f"DEBUG: Response headers: {dict(resp.headers)}")
+                print(f"DEBUG: Response content: {resp.text}")
+
+            try:
+                self.access_token = resp.json()['access_token']
+            except (KeyError, JSONDecodeError):
+                print(resp.text)
+                raise Exception("Cant fetch token")
+        return self.access_token
+
+
+    def get_vms(self):
+        """
+        Get List of VMs
+        """
+        login_token = self.get_token()
+
+        headers = {
+            "Authorization", f"Bearer {login_token}"
+        }
+        vm_url = f"{self.url}/ovirt-engine/api/vms"
+        resp = requests.get(vm_url, headers=headers, proxies=self.proxy)
+        print(resp.text)
+        
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="oVirt Agent")
+    parser.add_argument(
+        '--username',
+        dest='username',
+        required=True,
+        help="API Username",
+    )
+    parser.add_argument('--password', dest='password', required=True, help="API Password")
+    parser.add_argument(
+            '--url', 
+            dest='url',
+            required=True,
+            help="API Url without Endpoint and protocol"
+    )
+    parser.add_argument('--proxy', dest='proxy', help="Proxy to use")
+    parser.add_argument(
+        '--debug',
+        action='store_true',
+        help=(
+            "Enable debug mode to show web "
+            "requests and responses"
+        ),
+    )
+
+    args = parser.parse_args()
+
+    url = args.url
+    if not url.startswith('http'):
+        url = "https://" + url
+
+    agent = AgentoVirt()
+    agent.username = args.username
+    agent.password = args.password
+    agent.url = args.url
+    proxy = {}
+    if args.proxy:
+        proxy['https'] = args.proxy
+    agent.proxy = proxy
+    agent.debug = args.debug
+    agent.get_vms()
