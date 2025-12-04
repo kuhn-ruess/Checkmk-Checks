@@ -19,6 +19,7 @@ class AgentoVirt():
     password = None
     url = None
     access_token = False
+    verify = True
 
     def get_token(self):
         """
@@ -38,7 +39,8 @@ class AgentoVirt():
                 print(f"DEBUG: POST request to {access_token_url}")
                 print(f"DEBUG: Request data: {data}")
 
-            resp = requests.post(access_token_url, data=data, proxies=self.proxy)
+            resp = requests.post(access_token_url, data=data,
+                                 proxies=self.proxy, verify=self.verify)
 
             if self.debug:
                 print(f"DEBUG: Response status: {resp.status_code}")
@@ -63,7 +65,8 @@ class AgentoVirt():
             "Authorization", f"Bearer {login_token}"
         }
         vm_url = f"{self.url}/ovirt-engine/api/vms"
-        resp = requests.get(vm_url, headers=headers, proxies=self.proxy)
+        resp = requests.get(vm_url, headers=headers,
+                            proxies=self.proxy, verify=self.verify)
         print(resp.text)
         
 
@@ -84,6 +87,7 @@ if __name__ == "__main__":
             help="API Url without Endpoint and protocol"
     )
     parser.add_argument('--proxy', dest='proxy', help="Proxy to use")
+    parser.add_argument('--no-verify', action='store_true',  dest='verify', help="Proxy to use")
     parser.add_argument(
         '--debug',
         action='store_true',
@@ -99,10 +103,15 @@ if __name__ == "__main__":
     if not url.startswith('http'):
         url = "https://" + url
 
+    verify = True if not args.verify else False
+
+    print(f"Do verify: {verify}")
+
     agent = AgentoVirt()
     agent.username = args.username
     agent.password = args.password
     agent.url = args.url
+    agent.verify = verify
     proxy = {}
     if args.proxy:
         proxy['https'] = args.proxy
