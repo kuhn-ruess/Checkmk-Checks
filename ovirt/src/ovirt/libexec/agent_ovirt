@@ -34,12 +34,16 @@ class AgentoVirt():
                 "username": self.username,
                 "password": self.password,
             }
+            headers = {
+                "Accept": "application/json",
+            }
 
             if self.debug:
                 print(f"DEBUG: POST request to {access_token_url}")
+                print(f"DEBUG: HEADER {headers}")
                 print(f"DEBUG: Request data: {data}")
 
-            resp = requests.post(access_token_url, data=data,
+            resp = requests.post(access_token_url, data=data, headers=headers,
                                  proxies=self.proxy, verify=self.verify)
 
             if self.debug:
@@ -62,13 +66,14 @@ class AgentoVirt():
         login_token = self.get_token()
 
         headers = {
-            "Authorization", f"Bearer {login_token}"
+            "Authorization": f"Bearer {login_token}",
+            "Accept": "application/json",
         }
         vm_url = f"{self.url}/ovirt-engine/api/vms"
         resp = requests.get(vm_url, headers=headers,
                             proxies=self.proxy, verify=self.verify)
         print(resp.text)
-        
+
 
 
 if __name__ == "__main__":
@@ -81,7 +86,7 @@ if __name__ == "__main__":
     )
     parser.add_argument('--password', dest='password', required=True, help="API Password")
     parser.add_argument(
-            '--url', 
+            '--url',
             dest='url',
             required=True,
             help="API Url without Endpoint and protocol"
