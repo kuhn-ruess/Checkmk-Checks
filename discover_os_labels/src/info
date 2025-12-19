@@ -1,9 +1,9 @@
 {'author': 'uywx7ej - Roland Schwarz - Kuhn & Rueß GmbH',
  'description': 'If you activate this option, then the agent plugin '
-                '<tt>discover_os_labels</tt> will be deployed.  "\n'
-                'The plugin <tt>discover_os_labels</tt> allows the detection '
+                'discover_os_labels will be deployed.'
+                'The plugin discover_os_labels allows the detection '
                 'of tne OS Vendor and Version and also Major Version to use in '
-                'orher Rules.  "\n',
+                'orher Rules.',
  'download_url': '',
  'files': {'agents': ['plugins/discover_os_labels.aix',
                       'plugins/discover_os_labels.linux',

@@ -1,5 +1,5 @@
-{'author': 'CONET Solutions GmbH; Christian Michaelski Updated by Kuhn & Rueß GmbH',
- 'description': '',
+{'author': 'Kuhn & Rueß GmbH',
+ 'description': 'Sina Sinal3 Device Monitoring. Based on plugins from CONET Solutions GmbH/ Christian Michaelski',
  'download_url': '',
  'files': {'cmk_addons_plugins': ['sinal3/agent_based/sinal3.py',
                                   'sinal3/checkman/sinal3_aclvers',

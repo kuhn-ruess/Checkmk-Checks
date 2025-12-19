@@ -135,7 +135,6 @@ def main():
         logging.debug("No Event Created cause of wrong notification type")
         sys.exit(0)
 
-    
     logging.debug(f"Request: {payload}")
     response = requests.post(api_url, json=payload, auth=auth, proxies=proxies)
     if response.status_code != 200:

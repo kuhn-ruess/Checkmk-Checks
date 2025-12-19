@@ -1,5 +1,5 @@
 {'author': 'Kuhn & Rueß GmbH',
- 'description': '',
+ 'description': 'Monitoring of MySQL Galera Clusters',
  'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/tree/master/mysql_galera_cluster',
  'files': {'cmk_addons_plugins': ['mysql_galera_cluster/agent_based/galera_cluster.py',
                                   'mysql_galera_cluster/rulesets/params.py']},

@@ -1,5 +1,5 @@
 {'author': 'Kuhn & Rueß GmbH',
- 'description': '',
+ 'description': 'Monitor ts4300 Tabe Libraries',
  'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
  'files': {'cmk_addons_plugins': ['ibm/agent_based/ts4300.py']},
  'name': 'ibm',
