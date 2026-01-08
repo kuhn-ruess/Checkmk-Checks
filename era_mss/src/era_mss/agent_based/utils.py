@@ -12,6 +12,7 @@ from cmk.agent_based.v2 import (
 state_map_era = {
     'OKA' : State.OK,
     'WAR': State.WARN,
+    'n/a': State.UNKNOWN,
 }
 
 detect_era = contains('.1.3.6.1.2.1.1.2.0', ".1.3.6.1.4.1.311.1.1.3.1.2")
