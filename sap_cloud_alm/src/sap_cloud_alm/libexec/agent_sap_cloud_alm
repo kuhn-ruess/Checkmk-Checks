@@ -8,6 +8,7 @@ import argparse
 import requests
 from requests.auth import HTTPBasicAuth
 from json import JSONDecodeError
+from urllib.parse import unquote, quote, urlencode
 
 
 class AgentSapALM():
@@ -55,11 +56,12 @@ class AgentSapALM():
 
     def get_metric(self):
         access_token = self.get_token()
-        metric_url = \
-            f"https://{self.instance_name}.eu10.alm.cloud.sap/api/calm-analytics/v1/odata/v4/analytics/Metrics"
         service_id_filter = {
-            'filter' : self.filter,
+            '$filter' : unquote(self.filter).replace('+', ' '),
         }
+        query = urlencode(service_id_filter, quote_via=quote)
+        metric_url = \
+            f"https://{self.instance_name}.eu10.alm.cloud.sap/api/calm-analytics/v1/odata/v4/analytics/Metrics?{query}"
         headers = {
             "Authorization": f"Bearer {access_token}"
         }
