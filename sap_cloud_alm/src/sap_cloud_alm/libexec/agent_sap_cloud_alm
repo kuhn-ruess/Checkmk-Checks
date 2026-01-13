@@ -71,7 +71,7 @@ class AgentSapALM():
             print(f"DEBUG: Request params: {service_id_filter}")
             print(f"DEBUG: Request headers: {headers}")
 
-        resp = requests.get(metric_url, params=service_id_filter, headers=headers, proxies=self.proxy)
+        resp = requests.get(metric_url, headers=headers, proxies=self.proxy)
 
         if self.debug:
             print(f"DEBUG: Response status: {resp.status_code}")
