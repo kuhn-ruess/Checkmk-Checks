@@ -1,0 +1,14 @@
+{'author': 'Kuhn und Ruess GmbH',
+ 'description': 'Connects an Icinga Instance and mirrors the Hosts as '
+                'Piggyback Data including all Services, States, Outputs and '
+                'Perfdata\n',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
+ 'files': {'cmk_addons_plugins': ['icinga/libexec/agent_icinga',
+                                  'icinga/rulesets/agent.py',
+                                  'icinga/server_side_calls/agent.py']},
+ 'name': 'icinga',
+ 'title': 'Icinga Connector',
+ 'version': '1.0.0',
+ 'version.min_required': '2.4.0p1',
+ 'version.packaged': '2.4.0p18',
+ 'version.usable_until': None}
