@@ -3,6 +3,7 @@
 Checkmk Special Agent for Icinga
 """
 import argparse
+import xml.etree.ElementTree as ET
 
 import requests
 from requests.auth import HTTPBasicAuth
@@ -29,8 +30,47 @@ username = args.username
 password = args.password
 
 auth = HTTPBasicAuth(username, password)
+def convert_perfdata(perf_list):
+    """
+    Converts ICINGA Fromat to Local Checks
+    """
+    if not perf_list:
+        return '-'
+    result = []
+    for entry in perf_list:
+        if isinstance(entry, dict):
+            #{'counter': False, 'crit': None, 'label': 'api_num_conn_endpoints', 'max': None, 'min': None, 'type': 'PerfdataValue', 'unit': '', 'value': 1, 'warn': None},
+            result.append(f"{entry['label']}={entry['value']};{entry['warn']};{entry['crit']};{entry['min']};{entry['max']}")
+        else:
+            result.append(entry)
+    return "|".join(result)
 
-print("<<<check_mk>>>\nVersion: 1.0.0\nAgentOS: icinga  connector\n")
+
+def convert_output(raw_output):
+    if not "<table>" in raw_output:
+        return raw_output.replace('\n', ', ')
+
+    root = ET.fromstring(f"<root>{raw_output}</root>")
+    table = root.find("table")
+
+    rows = list(table)
+
+    headers = [cell.text for cell in rows[0]]
+
+    data = []
+    for row in rows[1:]:
+        cells = [cell.text for cell in row]
+        # fehlende Status-Spalte auffüllen
+        while len(cells) < len(headers):
+            cells.append(None)
+        line = ""
+        for idx, header in enumerate(headers):
+            line += f"{header}: {cells[idx]} "
+        data.append(line)
+
+
+    return ", ".join(data)
+
 
 # Get All Services
 url = f"https://{hostname}/v1/objects/services"
@@ -38,10 +78,10 @@ response = requests.get(url, auth=auth, timeout=30, verify=ssl_verify)
 
 for result_set in response.json()['results']:
     attrs = result_set['attrs']
-    print(f"<<<<{attrs['host_name']}>>>")
+    print(f"<<<<{attrs['host_name']}>>>>")
     print("<<<local>>>")
-    output = attrs['last_check_result']['output']
-    perfdata =attrs['last_check_result']['performance_data']
-    print(f"{attrs['state']} {attrs['name']} {perfdata} {output}")
+    output = convert_output(attrs['last_check_result']['output'])
+    perfdata = convert_perfdata(attrs['last_check_result']['performance_data'])
+    print(f"{attrs['state']} \"{attrs['name']}\" {perfdata} {output}")
 
 print("<<<<>>>>")
