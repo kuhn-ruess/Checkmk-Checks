@@ -68,8 +68,8 @@ snmp_section_fsc_sc2_ilo_disks = SimpleSNMPSection(
     fetch=SNMPTree(
         base=".1.3.6.1.4.1.231.2.49.1.5.2.1",
         oids=[
-            "15.0.8",  # health status
-            "24.0.8" # Name
+            "15",  # health status
+            "24" # Name
         ],
     ),
     parse_function = parse_fsc_sc2_ilo_disks,
