@@ -3,7 +3,9 @@
 Checkmk Special Agent for Icinga
 """
 import argparse
+import sys
 import xml.etree.ElementTree as ET
+from typing import List, Dict, Any
 
 import requests
 from requests.auth import HTTPBasicAuth
@@ -12,27 +14,35 @@ from urllib3.exceptions import InsecureRequestWarning
 from urllib3 import disable_warnings
 
 
-ssl_verify = False
-
-if not ssl_verify:
-    disable_warnings(InsecureRequestWarning)
-
-
 parser = argparse.ArgumentParser(description="Icinga Special Agent")
 parser.add_argument("--hostname")
 parser.add_argument("--username")
 parser.add_argument("--password")
+parser.add_argument("--no-verify", action="store_true", default=False, help="Enable SSL certificate verification")
+parser.add_argument("--timeout", type=int, default=30, help="Request timeout in seconds")
 
 args = parser.parse_args()
 
 hostname = args.hostname
 username = args.username
 password = args.password
+ssl_verify = not args.no_verify
+timeout = args.timeout
+
+if not ssl_verify:
+    disable_warnings(InsecureRequestWarning)
+
 
 auth = HTTPBasicAuth(username, password)
-def convert_perfdata(perf_list):
+def convert_perfdata(perf_list: List[Dict[str, Any]]) -> str:
     """
-    Converts ICINGA Fromat to Local Checks
+    Converts Icinga performance data format to Checkmk local check format.
+    
+    Args:
+        perf_list: List of performance data dictionaries
+        
+    Returns:
+        Formatted performance data string
     """
     if not perf_list:
         return '-'
@@ -50,38 +60,71 @@ def convert_output(raw_output):
     if not "<table>" in raw_output:
         return raw_output.replace('\n', ', ')
 
-    root = ET.fromstring(f"<root>{raw_output}</root>")
+    try:
+        root = ET.fromstring(f"<root>{raw_output}</root>")
+    except ET.ParseError:
+        return raw_output.replace('\n', ', ')
+
     table = root.find("table")
-
     rows = list(table)
-
     headers = [cell.text for cell in rows[0]]
 
     data = []
     for row in rows[1:]:
+        line = []
         cells = [cell.text for cell in row]
         # fehlende Status-Spalte auffüllen
+        state = 0
         while len(cells) < len(headers):
             cells.append(None)
-        line = ""
         for idx, header in enumerate(headers):
-            line += f"{header}: {cells[idx]} "
-        data.append(line)
+            if header.lower() in ['status', 'state']:
+                raw_state = cells[idx]
+                if not raw_state or raw_state.lower() in ['ok']:
+                    state = 0
+                else:
+                    state = 2
+                if not raw_state:
+                    continue
+            line.append(f"{header}: {cells[idx]}")
+        data.append((state, line))
+
+    return data
 
 
-    return ", ".join(data)
+API_ENDPOINT_SERVICES = "/v1/objects/services"
 
+def main():
+    """Main function to structure the code properly"""
 
-# Get All Services
-url = f"https://{hostname}/v1/objects/services"
-response = requests.get(url, auth=auth, timeout=30, verify=ssl_verify)
+    # Get All Services
+    url = f"https://{hostname}{API_ENDPOINT_SERVICES}"
+    try:
+        response = requests.get(url, auth=auth, timeout=timeout, verify=ssl_verify)
+        response.raise_for_status()
+    except requests.RequestException as e:
+        print(f"Error connecting to Icinga: {e}", file=sys.stderr)
+        sys.exit(1)
 
-for result_set in response.json()['results']:
-    attrs = result_set['attrs']
-    print(f"<<<<{attrs['host_name']}>>>>")
-    print("<<<local>>>")
-    output = convert_output(attrs['last_check_result']['output'])
-    perfdata = convert_perfdata(attrs['last_check_result']['performance_data'])
-    print(f"{attrs['state']} \"{attrs['name']}\" {perfdata} {output}")
+    for result_set in response.json()['results']:
+        attrs = result_set.get('attrs')
+        if not attrs:
+            continue
+        print(f"<<<<{attrs['host_name']}>>>>")
+        print("<<<local>>>")
+        output = convert_output(attrs['last_check_result']['output'])
+        service_name = attrs['name']
+        state = attrs['state']
+        if isinstance(output, list):
+            for sub_state, sub_data in output:
+                sub_name, sub_output = sub_data[:2]
+                sub_name = sub_name.replace('Parameter: ', '') #hack
+                print(f"{sub_state} \"{service_name} {sub_name}\" - {sub_ouput}")
+            output = f"General Service {service_name}"
+        perfdata = convert_perfdata(attrs['last_check_result']['performance_data'])
+        print(f"{state} \"{service_name}\" {perfdata} {output}")
 
-print("<<<<>>>>")
+    print("<<<<>>>>")
+
+if __name__ == "__main__":
+    main()

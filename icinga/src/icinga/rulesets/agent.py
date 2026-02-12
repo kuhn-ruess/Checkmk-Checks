@@ -15,6 +15,7 @@ from cmk.rulesets.v1.form_specs import (
     String,
     DictElement,
     List,
+    BooleanChoice,
 )
 
 from cmk.rulesets.v1.rule_specs import SpecialAgent, Topic
@@ -40,6 +41,13 @@ def _form_special_agents_icinga() -> Dictionary:
                     title=Title("Password")
                 ),
                 required=True,
+            ),
+            'ssl_verify': DictElement(
+                parameter_form=BooleanChoice(
+                    title=Title("SSL Certificate Verification"),
+                    label=Title("Verify SSL certificates")
+                ),
+                required=False,
             ),
         }
 

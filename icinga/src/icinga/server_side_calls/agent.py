@@ -15,6 +15,7 @@ class ConfigParser(BaseModel):
     host_name: str
     username: str
     password: Secret
+    ssl_verify: bool = True
 
 def icinga_arguments(params, host_config):
     """
@@ -25,6 +26,10 @@ def icinga_arguments(params, host_config):
         "--username", params.username,
         "--password", params.password.unsafe(),
     ]
+    if not params.ssl_verify:
+        args.append(
+            "--no-verify"
+        )
     yield SpecialAgentCommand(command_arguments=args)
 
 special_agent_icinga = SpecialAgentConfig(
