@@ -1,0 +1,304 @@
+#!/usr/bin/env python3
+"""Azure Extra Agent for monitoring Azure resources."""
+
+import argparse
+import json
+import requests
+
+
+class AzureExtraAgent:
+    """Azure Extra Agent for monitoring Azure network resources."""
+    
+    RESOURCE_CONFIGS = {
+        "virtualnetworkgateways": {
+            "namespace": "microsoft.network/virtualnetworkgateways",
+            "provider": "Microsoft.Network/virtualNetworkGateways",
+            "metrics": [
+                ("TunnelEgressPacketDropCount", "PT5M", "count"),
+                ("TunnelIngressPacketDropCount", "PT5M", "count"),
+                ("TunnelNatPacketDrop", "PT5M", "count"),
+                ("MmsaCount", "PT5M", "count"),
+                ("QmsaCount", "PT5M", "count"),
+                ("BgpPeerStatus", "PT5M", "average"),
+                ("BgpRoutesLearned", "PT5M", "count"),
+                ("AverageBandwidth", "PT5M", "average"),
+                ("TunnelAverageBandwidth", "PT5M", "average"),
+            ]
+        },
+        "connections": {
+            "namespace": "Microsoft.Network/connections",
+            "provider": "Microsoft.Network/connections",
+            "metrics": [
+                ("BitsInPerSecond", "PT1M", "average"),
+                ("BitsOutPerSecond", "PT1M", "average"),
+            ]
+        },
+        # Not found
+        #"dnsresolvers": {
+        #    "namespace": "Microsoft.Network/dnsResolvers",
+        #    "provider": "Microsoft.Network/dnsResolvers",
+        #    "metrics": [
+        #        ("InboundEndpointCount", "PT1H", "average"),
+        #        ("OutboundEndpointCount", "PT1H", "average"),
+        #        ("QPS", "PT5M", "count"),
+        #    ]
+        #},
+        "azurefirewalls": {
+            "namespace": "Microsoft.Network/azureFirewalls",
+            "provider": "Microsoft.Network/azureFirewalls",
+            "metrics": [
+                ("DataProcessed", "PT1M", "count"),
+                ("FirewallHealth", "PT1M", "average"),
+                ("FirewallLatencyPng", "PT1M", "average"),  # PREVIEW feature
+                ("ObservedCapacity", "PT1M", "maximum"),
+                ("Throughput", "PT1M", "average"),
+            ]
+        },
+        "virtualnetworks": {
+            "namespace": "Microsoft.Network/virtualNetworks",
+            "provider": "Microsoft.Network/virtualNetworks",
+            "metrics": [
+                ("IfUnderDDoSAttack", "PT1M", "maximum"),
+                ("PingMeshProbesFailedPercent", "PT1M", "average"),
+                ("PingMeshAverageRoundtripMs", "PT1M", "average"),
+            ]
+        },
+    }
+    
+    def __init__(self, tenant_id, client_id, client_secret, subscription_id, proxy_url=None):
+        """Initialize Azure Extra Agent with authentication parameters."""
+        self.tenant_id = tenant_id
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.subscription_id = subscription_id
+        self.proxy_url = proxy_url
+        self.access_token = None
+    
+    def get_token(self):
+        """Authenticate and get access token for Azure API."""
+        url = f"https://login.microsoftonline.com/{self.tenant_id}/oauth2/v2.0/token"
+        data = {
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+            "scope": "https://management.azure.com/.default",
+            "grant_type": "client_credentials",
+        }
+        proxies = {"http": self.proxy_url, "https": self.proxy_url} if self.proxy_url else None
+        resp = requests.post(url, data=data, proxies=proxies)
+        resp.raise_for_status()
+        self.access_token = resp.json()["access_token"]
+        return self.access_token
+    
+    def get_resource_groups(self):
+        """Get all resource groups in the subscription."""
+        url = f"https://management.azure.com/subscriptions/{self.subscription_id}/resourceGroups"
+        
+        params = {
+            "api-version": "2021-04-01"
+        }
+        
+        headers = {
+            "Authorization": f"Bearer {self.access_token}",
+            "Content-Type": "application/json",
+        }
+        
+        proxies = {"http": self.proxy_url, "https": self.proxy_url} if self.proxy_url else None
+        resp = requests.get(url, headers=headers, params=params, proxies=proxies)
+        resp.raise_for_status()
+        
+        resource_groups = []
+        for rg in resp.json().get("value", []):
+            resource_groups.append(rg["name"])
+        
+        return resource_groups
+    
+    def get_resources_by_type(self, resource_group, resource_type_key):
+        """Get all resources of a specific type in the resource group with detailed properties."""
+        if resource_type_key not in self.RESOURCE_CONFIGS:
+            raise ValueError(f"Unsupported resource type: {resource_type_key}")
+        
+        provider = self.RESOURCE_CONFIGS[resource_type_key]["provider"]
+        url = (
+            f"https://management.azure.com/subscriptions/{self.subscription_id}"
+            f"/resourceGroups/{resource_group}"
+            f"/providers/{provider}"
+        )
+        
+        params = {
+            "api-version": "2023-05-01"
+        }
+        
+        headers = {
+            "Authorization": f"Bearer {self.access_token}",
+            "Content-Type": "application/json",
+        }
+        
+        proxies = {"http": self.proxy_url, "https": self.proxy_url} if self.proxy_url else None
+        resp = requests.get(url, headers=headers, params=params, proxies=proxies)
+        resp.raise_for_status()
+        
+        return resp.json().get("value", [])
+    
+    def get_resource_details(self, resource, resource_type_key):
+        """Get detailed resource information including properties."""
+        resource_name = resource.get("name", "Unknown")
+        resource_type_display = resource_type_key.replace('_', ' ').title().lower()
+        
+        print(f"<<<<{resource_name}>>>>")
+        print(f"<<<azure_extra_{resource_type_display}:sep(0)>>>")
+        
+        properties = resource.get("properties", {})
+        if properties:
+            print(json.dumps(properties))
+        
+    
+    def get_resource_metrics(self, resource, resource_type_key):
+        """Get metrics for a specific Azure resource."""
+        resource_id = resource.get("id")
+        resource_name = resource.get("name", "Unknown")
+        
+        # Get metrics configuration for this resource type
+        metrics_config = self.RESOURCE_CONFIGS.get(resource_type_key, {}).get("metrics", [])
+        
+        if not metrics_config:
+            return
+        
+        print(f"<<<<{resource_name}>>>>")
+        print(f"<<<azure_extra_{resource_type_key}_metrics:sep(0)>>>")
+        
+        for metric_name, timespan, aggregation in metrics_config:
+            try:
+                url = f"https://management.azure.com{resource_id}/providers/microsoft.insights/metrics"
+                
+                params = {
+                    "api-version": "2018-01-01",
+                    "metricnames": metric_name,
+                    "timespan": "PT1H",  # Last hour
+                    "interval": timespan,
+                    "aggregation": aggregation
+                }
+                
+                headers = {
+                    "Authorization": f"Bearer {self.access_token}",
+                    "Content-Type": "application/json",
+                }
+                
+                proxies = {"http": self.proxy_url, "https": self.proxy_url} if self.proxy_url else None
+                resp = requests.get(url, headers=headers, params=params, proxies=proxies)
+                resp.raise_for_status()
+                
+                metrics_data = resp.json()
+                
+                # Extract and format metric values
+                for metric in metrics_data.get("value", []):
+                    metric_display_name = metric.get("name", {}).get("value", metric_name)
+                    timeseries = metric.get("timeseries", [])
+                    
+                    if timeseries:
+                        for ts in timeseries:
+                            data_points = ts.get("data", [])
+                            if data_points:
+                                # Get the latest data point
+                                latest_point = data_points[-1]
+                                timestamp = latest_point.get("timeStamp")
+                                value = latest_point.get(aggregation)
+                                
+                                if value is not None:
+                                    metric_info = {
+                                        "resource_name": resource_name,
+                                        "metric_name": metric_display_name,
+                                        "value": value,
+                                        "aggregation": aggregation,
+                                        "timestamp": timestamp,
+                                        "unit": metric.get("unit", "")
+                                    }
+                                    print(json.dumps(metric_info))
+            
+            except Exception as e:
+                print(f"Error getting metric {metric_name} for {resource_name}: {e}")
+    
+    def run(self):
+        """Main execution method to process all Azure resources."""
+        self.get_token()
+        resource_groups = self.get_resource_groups()
+        
+        if not resource_groups:
+            print(f"No Resource Groups found in subscription '{self.subscription_id}'")
+            return 1
+        
+        for rg_name in resource_groups:
+            for resource_type_key, config in self.RESOURCE_CONFIGS.items():
+                try:
+                    resources = self.get_resources_by_type(rg_name, resource_type_key)
+                    
+                    if not resources:
+                        continue  # Skip if no resources of this type found
+                    
+                    resource_type_display = resource_type_key.replace('_', ' ').title()
+                    # Display detailed resource information and get metrics
+                    for resource in resources:
+                        self.get_resource_details(resource, resource_type_key)
+                        #self.get_resource_metrics(resource, resource_type_key)
+                
+                except Exception as e:
+                    print(f"Error processing {resource_type_key} in resource group '{rg_name}': {e}")
+        
+        return 0
+
+
+def parse_arguments():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(
+        description="Azure Virtual Network Gateway Metrics Agent"
+    )
+
+    parser.add_argument(
+        "--tenant-id",
+        required=True,
+        help="Azure Active Directory Tenant ID"
+    )
+
+    parser.add_argument(
+        "--client-id",
+        required=True,
+        help="Azure Application Client ID"
+    )
+
+    parser.add_argument(
+        "--client-secret",
+        required=True,
+        help="Azure Application Client Secret"
+    )
+
+    parser.add_argument(
+        "--subscription-id",
+        required=True,
+        help="Azure Subscription ID"
+    )
+
+    parser.add_argument(
+        "--proxy-url",
+        required=False,
+        help="Proxy URL (e.g., http://proxy.example.com:8080)"
+    )
+
+    return parser.parse_args()
+
+
+def main():
+    """Main entry point for the application."""
+    args = parse_arguments()
+    
+    agent = AzureExtraAgent(
+        tenant_id=args.tenant_id,
+        client_id=args.client_id,
+        client_secret=args.client_secret,
+        subscription_id=args.subscription_id,
+        proxy_url=args.proxy_url
+    )
+    
+    return agent.run()
+
+
+if __name__ == "__main__":
+    exit(main())
