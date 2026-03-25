@@ -2,10 +2,11 @@
 """
 Report Ports with missing Porstec config
 """
-from .agent_based_api.v1 import (
+from cmk.agent_based.v2 import (
+    CheckPlugin,
+    SNMPSection,
     all_of,
     exists,
-    register,
     Service,
     SNMPTree,
     State,
@@ -93,11 +94,11 @@ def check_cisco_portsec(params, section):
     if not at_least_one_problem:
         yield Result(
             state=State.OK,
-            summary="All Ports Secured"
+            summary="All Ports Secure"
         )
 
 
-register.snmp_section(
+snmp_section_kr_portsec = SNMPSection(
     name="cisco_portsec",
     detect=all_of(
         contains(".1.3.6.1.2.1.1.1.0", "cisco"), exists(".1.3.6.1.4.1.9.9.315.1.2.1.1.1.*")
@@ -117,7 +118,7 @@ register.snmp_section(
 )
 
 
-register.check_plugin(
+check_plugin_kr_cisco_portsec = CheckPlugin(
     name="cisco_portsec",
     service_name="Port Security Status",
     discovery_function=discover_cisco_portsec,
