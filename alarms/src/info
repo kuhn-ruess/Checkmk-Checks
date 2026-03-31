@@ -1,0 +1,11 @@
+{'author': 'Kuhn & Rueß GmbH',
+ 'description': 'Play alarms via API on Windows systems\n',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
+ 'files': {'cmk_addons_plugins': ['alarms/rulesets/alarms.py'],
+           'notifications': ['alarms']},
+ 'name': 'alarms',
+ 'title': 'Alarms',
+ 'version': '1.0.0',
+ 'version.min_required': '2.3.0b1',
+ 'version.packaged': '2.3.0p42',
+ 'version.usable_until': None}

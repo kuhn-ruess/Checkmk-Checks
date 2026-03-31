@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+# Play alarms (call via API)
+
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+
+from os import environ
+from requests import Session
+
+if "SERVICE" == environ.get("NOTIFY_WHAT", "NA") and "OK" != environ.get("NOTIFY_SERVICESTATE", "NA"):
+    API_PROTO = environ.get("NOTIFY_PARAMETER_PROTO", "http")
+    API_HOSTNAME = environ.get("NOTIFY_PARAMETER_HOSTNAME", "localhost")
+    API_URL = environ.get("NOTIFY_PARAMETER_URL", "api.php")
+    API_ALARM = environ.get("NOTIFY_PARAMETER_ALARM", "alarm1")
+
+    HOSTNAME = environ.get("NOTIFY_HOSTNAME", "NA")
+    SERVICENAME = environ.get("NOTIFY_SERVICEDESC", "NA")
+    SERVICESTATE = environ.get("NOTIFY_SERVICESTATE", "NA")
+
+    if "alarm1" == API_ALARM:
+        API_ALARM = "alarm-1.mp3";
+
+    elif "alarm2" == API_ALARM:
+        API_ALARM = "alarm-2.mp3";
+
+    elif "alarm3" == API_ALARM:
+        API_ALARM = "alarm-3.mp3";
+
+    elif "alarm4" == API_ALARM:
+        API_ALARM = "alarm-4.mp3";
+
+    elif "horse" == API_ALARM:
+        API_ALARM = "horse.mp3";
+
+    else:
+        API_ALARM = "horse.mp3";
+
+    session = Session()
+    session.headers["Accept"] = "application/json"
+    resp = session.get(
+        f"{API_PROTO}://{API_HOSTNAME}/{API_URL}?alarm={API_ALARM}",
+    )
+
+    if resp.status_code == 200:
+        exit(0)
+    else:
+        exit(1)
