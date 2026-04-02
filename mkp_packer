@@ -51,14 +51,25 @@ def _file_filter(tarinfo):
 
 
 
-def pack_suptar(package_name, sub_name, sub_path):
+def pack_suptar(package_name, sub_name, entries):
     """
     Helper to create the suptar
     """
     sub_filename = sub_name + ".tar"
     sub_obj = io.BytesIO()
     with tarfile.open(sub_filename, "w:", fileobj=sub_obj) as subtar:
-        subtar.add(f"{package_name}/src/{sub_path}", sub_path, filter=_file_filter)
+        for entry in entries:
+            if sub_name == "cmk_addons_plugins":
+                source_path = f"{package_name}/src/{entry}"
+            else:
+                source_path = f"{package_name}/src/{sub_name}/{entry}"
+
+            if not os.path.exists(source_path):
+                raise FileNotFoundError(
+                    f"Cannot pack missing path '{source_path}' for section '{sub_name}'"
+                )
+
+            subtar.add(source_path, entry, filter=_file_filter)
 
     sub_obj.seek(0)
     tar_info = get_tar_info(sub_filename, sub_obj)
@@ -68,7 +79,7 @@ def pack(package_name):
     """
     Pack a MKP File for Checkmk Version 2.3
     """
-    path = f"{package_name}/src/"
+    path = f"{package_name}/src"
 
     #Create  info:
     info_dict = ast.literal_eval(open(path+"/info", encoding='utf-8').read())
@@ -76,9 +87,6 @@ def pack(package_name):
 
     #Pack Subfolders
     mkp_filename = package_name+f"/{info_dict['name']}-{info_dict['version']}.mkp"
-    dirs = {
-        'cmk_addons_plugins': f"{package_name}",
-    }
     with tarfile.open(mkp_filename, "w:gz") as tar:
         tar.add(path+'/info', 'info')
 
@@ -89,9 +97,9 @@ def pack(package_name):
         tar.addfile(tar_info, info_obj)
 
         # New part:
-        for folder_name, sub_path in dirs.items():
-            if (folder_name in info_dict['files'] and info_dict['files'][folder_name]):
-                sub_obj, tar_info = pack_suptar(package_name, folder_name, sub_path)
+        for folder_name, entries in info_dict['files'].items():
+            if entries:
+                sub_obj, tar_info = pack_suptar(package_name, folder_name, entries)
                 tar.addfile(tar_info, sub_obj)
 def unpack(mkp_path):
     """
