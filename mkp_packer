@@ -21,6 +21,7 @@ def usage():
     print()
     print("OPERATIONS:")
     print(" - pack (Create MKP File in cmk 2.3 Style)")
+    print(" - unpack (Unpack existing mkp into repo)")
     print()
     print("PACKAGENAME:")
     print(" - e.g. namexy is  ./namexy/src")
@@ -160,18 +161,30 @@ def unpack(mkp_path):
 
     print(f"Unpacked {mkp_filename} to {package_name}")
 
-if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        usage()
-        sys.exit(1)
+def main(argv=None):
+    """
+    CLI entrypoint
+    """
+    if argv is None:
+        argv = sys.argv[1:]
 
-    OPERATION = sys.argv[1].lower()
-    # beware of empty name, since we add /src as path
-    NAME = sys.argv[2].lower()
-    if OPERATION == "pack":
-        pack(NAME)
-    elif OPERATION == "unpack":
-        unpack(NAME)
+    if len(argv) < 2:
+        usage()
+        return 1
+
+    operation = argv[0].lower()
+    name = argv[1]
+
+    if operation == "pack":
+        pack(name.lower())
+    elif operation == "unpack":
+        unpack(name)
     else:
         usage()
-        sys.exit(1)
+        return 1
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
