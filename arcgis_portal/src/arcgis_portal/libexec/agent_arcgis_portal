@@ -1,0 +1,130 @@
+#!/usr/bin/env python3
+import argparse
+import requests
+
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(
+        description="Arcgis Portal Monitoring"
+    )
+
+    parser.add_argument(
+        "--host-name",
+        required=True,
+        help="ArcGIS Portal host name from the monitored Checkmk host"
+    )
+
+    parser.add_argument(
+        "--username",
+        required=False,
+        help="Portal username for generateToken authentication"
+    )
+
+    parser.add_argument(
+        "--password",
+        required=False,
+        help="Portal password for generateToken authentication"
+    )
+
+    parser.add_argument(
+        "--proxy-url",
+        required=False,
+        help="Proxy URL (e.g., http://proxy.example.com:8080)"
+    )
+
+    args = parser.parse_args()
+
+    has_user_credentials = bool(args.username and args.password)
+
+    if args.username and not args.password:
+        parser.error("--password is required when --username is set")
+    if args.password and not args.username:
+        parser.error("--username is required when --password is set")
+    if not has_user_credentials:
+        parser.error(
+            "Please provide --username/--password for generateToken authentication"
+        )
+
+    return args
+
+
+class SpecialAgent():
+
+    portal_url = None
+    generate_token_url = None
+    username = None
+    password = None
+    scope = None
+    grant_type = None
+    proxy_url = None
+
+    access_token = False
+
+    def get_token(self):
+        if not self.access_token:
+            proxies = {"http": self.proxy_url, "https": self.proxy_url} if self.proxy_url else None
+
+            if self.username and self.password:
+                data = {
+                    "f": "pjson",
+                    "username": self.username,
+                    "password": self.password,
+                    "client": "requestip",
+                }
+                resp = requests.post(self.generate_token_url, data=data, proxies=proxies, timeout=30)
+                resp.raise_for_status()
+                payload = resp.json()
+                token = payload.get("token")
+                if not token:
+                    raise RuntimeError(f"Token generation failed: {payload}")
+                self.access_token = token
+                return self.access_token
+
+    def get_federation(self):
+        """
+        Retrieve federation settings from the ArcGIS Portal.
+
+        This method fetches the Identity Provider (IdP) federation configuration
+        for the portal using the portal's REST API.
+        """
+        token = self.get_token()
+        proxies = {"http": self.proxy_url, "https": self.proxy_url} if self.proxy_url else None
+        result = requests.get(
+            f"{self.portal_url}/sharing/rest/portals/self/idp/federation",
+            params={"f": "pjson", "token": token},
+            proxies=proxies,
+            timeout=30,
+        )
+        print(result.text)
+
+    def get_certificates(self):
+        """
+        Fetch IdP certificate information from the ArcGIS Portal REST API.
+
+        This method fetches the Certificate Information
+        for the portal using the portal's REST API.
+        """
+        token = self.get_token()
+        proxies = {"http": self.proxy_url, "https": self.proxy_url} if self.proxy_url else None
+        result = requests.get(
+            f"{self.portal_url}/sharing/rest/portals/self/idp/certificates",
+            params={"f": "pjson", "token": token},
+            proxies=proxies,
+            timeout=30,
+        )
+        print(result.text)
+
+
+if __name__ == "__main__":
+    args = parse_arguments()
+
+    agent = SpecialAgent()
+    agent.portal_url = f"https://{args.host_name}"
+    agent.generate_token_url = f"https://{args.host_name}/portal/sharing/rest/generateToken"
+    agent.username = args.username
+    agent.password = args.password
+    agent.proxy_url = args.proxy_url
+    agent.scope = None
+
+    agent.get_federation()
+    agent.get_certificates()

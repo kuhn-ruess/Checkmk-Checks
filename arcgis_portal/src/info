@@ -1,0 +1,13 @@
+{'author': 'Kuhn & Rueß GmbH',
+ 'description': '',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks',
+ 'files': {'cmk_addons_plugins': ['arcgis_portal/agent_based/certificates.py',
+                                  'arcgis_portal/libexec/agent_arcgis_portal',
+                                  'arcgis_portal/rulesets/agent.py',
+                                  'arcgis_portal/server_side_calls/agent.py']},
+ 'name': 'arcgis_portal',
+ 'title': 'Arcgis Portal Monitoring',
+ 'version': '0.0.3',
+ 'version.min_required': '2.4.0',
+ 'version.packaged': '2.4.0p18',
+ 'version.usable_until': None}
