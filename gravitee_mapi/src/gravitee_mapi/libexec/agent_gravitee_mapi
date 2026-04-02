@@ -1,0 +1,149 @@
+#!/usr/bin/env python3
+"""
+Gravitee API Management (MAPI) Special Agent
+
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+import argparse
+import json
+import time
+
+import requests
+
+
+class AgentGraviteeMapi:
+    """
+    Agent Gravitee MAPI
+    """
+    host_name = None
+    token = None
+    environment = "DEFAULT"
+    interval = 60
+    verify_ssl = True
+
+    def _get(self, url, params=None):
+        headers = {"Authorization": f"Bearer {self.token}"}
+        resp = requests.get(
+            url,
+            headers=headers,
+            params=params,
+            timeout=30,
+            verify=self.verify_ssl,
+        )
+        resp.raise_for_status()
+        return resp.json()
+
+    def get_apis(self):
+        url = (
+            f"https://{self.host_name}/management/v2"
+            f"/environments/{self.environment}/apis/"
+        )
+        data = self._get(url)
+        return data.get("data", [])
+
+    def get_stats(self, api_id, from_ts, to_ts):
+        url = (
+            f"https://{self.host_name}/management/v2"
+            f"/environments/{self.environment}/apis/{api_id}/analytics"
+        )
+        return self._get(url, params={
+            "type": "STATS",
+            "from": from_ts,
+            "to": to_ts,
+            "interval": 2000,
+            "field": "gateway-response-time-ms",
+        })
+
+    def get_response_status_ranges(self, api_id, from_ts, to_ts):
+        url = (
+            f"https://{self.host_name}/management/v2"
+            f"/environments/{self.environment}/apis/{api_id}/analytics/response-status-ranges"
+        )
+        return self._get(url, params={"from": from_ts, "to": to_ts})
+
+    def get_health(self, api_id):
+        url = (
+            f"https://{self.host_name}/management/v2"
+            f"/environments/{self.environment}/apis/{api_id}/health/availability"
+        )
+        return self._get(url)
+
+    def run(self):
+        to_ts = int(time.time() * 1000)
+        from_ts = to_ts - (self.interval * 1000)
+
+        apis = self.get_apis()
+
+        print("<<<gravitee_mapi:sep(0)>>>")
+        for api in apis:
+            api_id = api.get("id", "")
+            api_name = api.get("name", api_id)
+
+            entry = {
+                "id": api_id,
+                "name": api_name,
+                "state": api.get("state", ""),
+                "lifecycle_state": api.get("lifecycleState", ""),
+            }
+
+            try:
+                entry["stats"] = self.get_stats(api_id, from_ts, to_ts)
+            except Exception as e:
+                entry["stats"] = {"error": str(e)}
+
+            try:
+                entry["errors"] = self.get_response_status_ranges(api_id, from_ts, to_ts)
+            except Exception as e:
+                entry["errors"] = {"error": str(e)}
+
+            try:
+                entry["health"] = self.get_health(api_id)
+            except Exception as e:
+                entry["health"] = {"error": str(e)}
+
+            print(json.dumps(entry))
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Gravitee MAPI Monitoring")
+    parser.add_argument(
+        "--host-name",
+        required=True,
+        help="Gravitee MAPI host name (e.g. mapi.example.com)"
+    )
+    parser.add_argument(
+        "--token",
+        required=True,
+        help="Bearer token for authentication"
+    )
+    parser.add_argument(
+        "--environment",
+        required=False,
+        default="DEFAULT",
+        help="Gravitee environment name (default: DEFAULT)"
+    )
+    parser.add_argument(
+        "--interval",
+        required=False,
+        type=int,
+        default=60,
+        help="Monitoring interval in seconds (default: 60)"
+    )
+    parser.add_argument(
+        "--no-verify-ssl",
+        required=False,
+        action="store_true",
+        help="Disable SSL certificate verification"
+    )
+
+    args = parser.parse_args()
+
+    agent = AgentGraviteeMapi()
+    agent.host_name = args.host_name
+    agent.token = args.token
+    agent.environment = args.environment
+    agent.interval = args.interval
+    agent.verify_ssl = not args.no_verify_ssl
+    agent.run()
