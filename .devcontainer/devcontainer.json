@@ -1,0 +1,44 @@
+{
+  "name": "Checkmk Dev",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "checkmk",
+  "workspaceFolder": "/omd/sites/cmk/local",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.pylint",
+        "ms-python.mypy-type-checker",
+        "charliermarsh.ruff"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/omd/sites/cmk/bin/python3",
+        "editor.formatOnSave": true,
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff"
+        },
+        "terminal.integrated.profiles.linux": {
+          "cmk": {
+            "path": "su",
+            "args": [
+              "-",
+              "cmk"
+            ]
+          }
+        },
+        "terminal.integrated.defaultProfile.linux": "cmk"
+      }
+    }
+  },
+  "forwardPorts": [
+    5000
+  ],
+  "portsAttributes": {
+    "5000": {
+      "label": "Checkmk Web UI",
+      "onAutoForward": "notify"
+    }
+  },
+  //"postStartCommand": "omd status cmk || omd start cmk && mkdir -p /omd/sites/cmk/local/lib/python3/cmk_addons && ln -sfn /plugins /omd/sites/cmk/local/lib/python3/cmk_addons"
+  "postStartCommand": "omd status cmk || omd start cmk && mkdir -p /omd/sites/cmk/local/lib/python3/cmk_addons && ln -sfn /plugins /omd/sites/cmk/local/lib/python3/cmk_addons"
+}

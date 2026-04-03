@@ -1,0 +1,29 @@
+services:
+  checkmk:
+    image: registry.checkmk.com/enterprise/check-mk-enterprise:2.4.0p19
+    platform: linux/amd64
+    container_name: checkmk-dev
+    init: true
+    restart: no
+
+    ports:
+      - "8080:5000"
+      - "8000:8000"
+
+    environment:
+      - CMK_SITE_ID=cmk
+      - CMK_PASSWORD=admin
+
+    volumes:
+      - ../plugins/:/omd/sites/cmk/local/lib/python3/cmk_addons/plugins
+      - checkmk-data:/omd/sites
+
+    cap_add:
+      - NET_ADMIN
+    tmpfs:
+      - /tmp
+
+volumes:
+  checkmk-data:
+    name: checkmk-dev-data
+    external: true
