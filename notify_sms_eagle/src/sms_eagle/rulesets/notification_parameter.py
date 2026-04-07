@@ -6,7 +6,9 @@ from cmk.rulesets.v1.form_specs import (
     Dictionary,
     String,
     Password,
+    BooleanChoice,
 )
+from cmk.rulesets.v1.form_specs import DefaultValue
 from cmk.gui.form_specs.vue.visitors.recomposers.unknown_form_spec import recompose
 from cmk.gui.watolib.notification_parameter import notification_parameter_registry, NotificationParameter
 
@@ -52,6 +54,14 @@ class NotificationParameterSMSEagle(NotificationParameter):
                         title = Title("Show matching Host Label"),
                         help_text = Help("Enter Key for the Host Label which you want to show in the sms"),
                     ),
+                ),
+                "ssl_verify": DictElement(
+                    parameter_form=BooleanChoice(
+                        title=Title("Verify SSL certificate"),
+                        help_text=Help("Disable this only if the SMS Eagle appliance uses a self-signed or otherwise untrusted certificate."),
+                        prefill=DefaultValue(True),
+                    ),
+                    required=False,
                 ),
             }
         )

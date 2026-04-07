@@ -28,6 +28,7 @@ class NotifyEagle():
         self.config = {
             'api_host': context['PARAMETER_API_HOST'],
             'api_token': get_password_from_env_or_context(key="PARAMETER_API_TOKEN", context=context),
+            'ssl_verify': context.get('PARAMETER_SSL_VERIFY', 'yes').lower() not in ('0', 'false', 'no', 'off'),
         }
         self.context = context
 
@@ -100,7 +101,13 @@ class NotifyEagle():
             'access-token': self.config['api_token'],
             'Content-Type': 'application/json',
         }
-        response = requests.post(url, json=payload, headers=headers, timeout=10)
+        response = requests.post(
+            url,
+            json=payload,
+            headers=headers,
+            timeout=10,
+            verify=self.config['ssl_verify'],
+        )
         if response.status_code != 200:
             print(response.text, response.url)
             return 1
