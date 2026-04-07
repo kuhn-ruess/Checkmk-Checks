@@ -1,6 +1,8 @@
 *.swp
 *.DS_Store
+# Both are for the devcontainers
 docker_mount/*
+plugins/*
 __MACOSX
 
 # Byte-compiled / optimized / DLL files

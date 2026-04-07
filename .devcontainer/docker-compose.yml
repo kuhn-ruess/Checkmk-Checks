@@ -15,7 +15,7 @@ services:
       - CMK_PASSWORD=admin
 
     volumes:
-      - ../plugins/:/omd/sites/cmk/local/lib/python3/cmk_addons/plugins
+      - ../plugins/:/plugins
       - checkmk-data:/omd/sites
 
     cap_add:

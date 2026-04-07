@@ -1,0 +1,50 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Dev Container: Start",
+      "type": "shell",
+      "command": "docker start checkmk-dev 2>/dev/null || docker compose -f .devcontainer/docker-compose.yml up -d",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Dev Container: Shell (cmk)",
+      "type": "shell",
+      "command": "docker exec -it checkmk-dev su - cmk",
+      "dependsOn": "Dev Container: Start",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Dev Container: Logs",
+      "type": "shell",
+      "command": "docker logs -f checkmk-dev",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Dev Container: Stop",
+      "type": "shell",
+      "command": "docker compose -f .devcontainer/docker-compose.yml down",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    }
+  ]
+}
