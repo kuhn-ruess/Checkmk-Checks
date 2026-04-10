@@ -30,6 +30,9 @@ def parse_pure_hardware(string_table):
         elif "FAN" in item:
             section[item]['FAN'] = True
 
+        elif "PWR" in item:
+            section[item]['PSU'] = True
+
         else:
             section[item]['default'] = True
 

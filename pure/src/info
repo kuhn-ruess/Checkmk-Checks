@@ -12,6 +12,7 @@
                                   'pure/agent_based/devices.py',
                                   'pure/agent_based/hardware.py',
                                   'pure/agent_based/hardware_fan.py',
+                                  'pure/agent_based/hardware_psu.py',
                                   'pure/agent_based/hardware_nw.py',
                                   'pure/agent_based/hardware_temp.py',
                                   'pure/agent_based/utils/pure.py',
@@ -22,7 +23,7 @@
                                   'pure/graphing/arraydetails.py']},
  'name': 'pure',
  'title': 'Pure checks',
- 'version': '2.0.3',
+ 'version': '2.0.4',
  'version.min_required': '2.3.0b1',
  'version.packaged': '2.3.0p30',
  'version.usable_until': None}
