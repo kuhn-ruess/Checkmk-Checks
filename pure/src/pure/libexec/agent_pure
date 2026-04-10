@@ -73,7 +73,7 @@ def get_hardware():
             if comp['status'] == 'not_installed':
                 continue
             # Filter Drives
-            if not comp['name'].startswith(('CH', 'SH')):
+            if not comp['name'].startswith(('CH', 'SH')) or 'PWR' in comp['name']:
                 print(f"{comp['name']} {comp['status']} {comp['serial']} {comp['speed']} {comp['temperature']} {comp['voltage']} {comp['slot']}")
             HARDWARE_CACHE[comp['name']] = {
                 'serial': comp['serial'],
