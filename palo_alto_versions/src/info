@@ -1,14 +1,14 @@
-{'author': u'Kuhn & Rueß GmbH',
+{'author': 'Kuhn & Rueß GmbH',
  'description': 'Show Versions for:\n'
                 '\n'
                 '- Thread Version\n'
                 '- Url Filtering Version\n',
- 'download_url': 'https://kuhn-ruess.de/en/checkmk_checks.html',
- 'files': {'agent_based': ['palo_alto_threadid.py',
-                           'palo_alto_urlfilter.py']},
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks',
+ 'files': {'cmk_addons_plugins': ['palo_alto_versions/agent_based/palo_alto_threadid.py',
+                                  'palo_alto_versions/agent_based/palo_alto_urlfilter.py']},
  'name': 'palo_alto_versions',
  'title': 'Check for Palo Alto Versions',
- 'version': '1.0.1',
- 'version.min_required': '2.0.0p22',
- 'version.packaged': '2.0.0p22',
+ 'version': '2.0.0',
+ 'version.min_required': '2.3.0',
+ 'version.packaged': '2.4.0p18',
  'version.usable_until': None}
