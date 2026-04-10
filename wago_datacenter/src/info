@@ -1,0 +1,10 @@
+{'author': 'Kuhn & Rueß GmbH',
+ 'description': 'SNMP monitoring for WAGO PFC200 datacenter controllers\n',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
+ 'files': {'cmk_addons_plugins': ['wago_datacenter/agent_based/wago_datacenter.py']},
+ 'name': 'wago_datacenter',
+ 'title': 'WAGO Datacenter Signals',
+ 'version': '1.0.0',
+ 'version.min_required': '2.4.0b1',
+ 'version.packaged': '2.4.0p24',
+ 'version.usable_until': None}
