@@ -265,7 +265,51 @@ metric_mysql_status_open_files = Metric(
     color = Color.RED,
 )
 
+from cmk.graphing.v1.graphs import Graph
 from cmk.graphing.v1.perfometers import FocusRange, Open, Perfometer
+
+metric_mysql_status_com_select = Metric(
+    name="mysql_status_com_select",
+    title=Title("SELECTs per second"),
+    unit=UNIT_NUMBER,
+    color=Color.BLUE,
+)
+metric_mysql_status_com_insert = Metric(
+    name="mysql_status_com_insert",
+    title=Title("INSERTs per second"),
+    unit=UNIT_NUMBER,
+    color=Color.GREEN,
+)
+metric_mysql_status_com_update = Metric(
+    name="mysql_status_com_update",
+    title=Title("UPDATEs per second"),
+    unit=UNIT_NUMBER,
+    color=Color.YELLOW,
+)
+metric_mysql_status_com_delete = Metric(
+    name="mysql_status_com_delete",
+    title=Title("DELETEs per second"),
+    unit=UNIT_NUMBER,
+    color=Color.RED,
+)
+metric_mysql_status_com_replace = Metric(
+    name="mysql_status_com_replace",
+    title=Title("REPLACEs per second"),
+    unit=UNIT_NUMBER,
+    color=Color.PURPLE,
+)
+
+graph_mysql_query_types = Graph(
+    name="mysql_query_types",
+    title=Title("MySQL Query Types"),
+    compound_lines=[
+        "mysql_status_com_select",
+        "mysql_status_com_insert",
+        "mysql_status_com_update",
+        "mysql_status_com_delete",
+        "mysql_status_com_replace",
+    ],
+)
 
 perfometer_mysql_status_aborted_clients = Perfometer(
     name = "mysql_status_aborted_clients",
