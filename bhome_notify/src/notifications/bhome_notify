@@ -1,0 +1,93 @@
+#!/usr/bin/env python3
+# BHome Events API Notification Plugin for Checkmk
+
+import sys
+import requests
+from time import sleep
+from cmk.notification_plugins import utils
+from cmk.notification_plugins.utils import get_password_from_env_or_context
+
+
+def get_alarm_group(group_list):
+    """Return first contact group ending with '_ALARM', else None."""
+    if group_list:
+        for group in group_list.split(','):
+            if group.endswith('_ALARM'):
+                return group
+    return None
+
+
+def build_payload(context):
+    host = context.get('HOSTNAME', 'unknown_host').split('.')[0]
+    notify_what = context.get('WHAT', 'HOST')
+    host_contact_groups = context.get('HOSTCONTACTGROUPNAMES')
+
+    if notify_what == 'SERVICE':
+        severity = context.get('SERVICESTATE', 'UNKNOWN')
+        msg = context.get('SERVICEOUTPUT', '')
+        source_identifier = context.get('SERVICEDESC', 'unknown_service')
+        checkmk_id = context.get('SERVICEPROBLEMID', '')
+        alarm_contact = get_alarm_group(context.get('SERVICECONTACTGROUPNAMES')) \
+                        or get_alarm_group(host_contact_groups)
+        service_level = context.get('SVC_SL')
+    else:
+        hoststate = context.get('HOSTSTATE', 'UNKNOWN').upper()
+        severity = {'DOWN': 'CRITICAL', 'UP': 'OK'}.get(hoststate, hoststate)
+        msg = hoststate
+        source_identifier = host
+        checkmk_id = ''
+        alarm_contact = get_alarm_group(host_contact_groups)
+        service_level = context.get('HOST_SL')
+
+    return [{
+        'class': 'checkmk_ev',
+        'severity': severity,
+        'priority': 'PRIORITY_3',
+        'msg': msg,
+        'source_identifier': source_identifier,
+        'source_hostname': host,
+        'checkmk_id': checkmk_id,
+        'checkmk_alarm': service_level,
+        'checkmk_tag1': alarm_contact,
+        'checkmk_tag2': context.get('HOSTLABEL_basisdienst'),
+    }]
+
+
+def send_event(payload, config):
+    url = f"https://{config['portal_domain']}/events-service/api/v1.0/events"
+
+    import auth_api
+    jwt = auth_api.login(config)
+
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {jwt}',
+    }
+
+    for attempt in range(1, 6):
+        try:
+            response = requests.post(url, json=payload, headers=headers, timeout=10)
+            response.raise_for_status()
+            print(f"Event sent successfully: {response.text}")
+            return 0
+        except requests.RequestException as e:
+            print(f"Send attempt {attempt}/5 failed: {e}")
+            if attempt < 5:
+                sleep(min(2 ** attempt, 60))
+
+    print("All send attempts failed.")
+    return 2
+
+
+if __name__ == '__main__':
+    context = utils.collect_context()
+
+    config = {
+        'portal_domain': context['PARAMETER_PORTAL_DOMAIN'],
+        'id': context['PARAMETER_ID'],
+        'access': get_password_from_env_or_context(key='PARAMETER_ACCESS', context=context),
+        'secret': get_password_from_env_or_context(key='PARAMETER_SECRET', context=context),
+    }
+
+    payload = build_payload(context)
+    sys.exit(send_event(payload, config))
