@@ -33,8 +33,14 @@ def parse_wago_datacenter(string_table):
     Returns:
         {
           "info": {"asp_name": str, "device_name": str, "company": str},
-          "signals": {description: (State, full_value)},
+          "signals": {index: full_value},
         }
+
+    Signals are keyed by the SNMP table index (not by description), because
+    multiple indices can share the same description in the OK state (e.g.
+    .15/.16/.17 all show "Notstrom") and the description changes when the
+    device reports a fault. Keying by index keeps each signal as its own
+    stable service.
     """
     parsed = {
         "info": {},
@@ -52,19 +58,7 @@ def parse_wago_datacenter(string_table):
             parsed["info"][index_to_info_key[index]] = value
             continue
 
-        # Value format: "<status_word> <description>"
-        # e.g. "OK Klima 1", "Stoerung RCM A", "aktiv USV A Bypassbetrieb"
-        parts = value.split(" ", 1)
-        if len(parts) == 2:
-            _status_word, description = parts
-        else:
-            description = value
-
-        description = description.strip()
-        if not description:
-            description = f"Signal {index}"
-
-        parsed["signals"][description] = value
+        parsed["signals"][index] = value
 
     return parsed
 
@@ -83,17 +77,27 @@ snmp_section_wago_datacenter = SimpleSNMPSection(
 )
 
 
+def _signal_description(value: str) -> str:
+    """Extract description from "<status_word> <description>" payload."""
+    parts = value.split(" ", 1)
+    if len(parts) == 2:
+        return parts[1].strip()
+    return value.strip()
+
+
 def discover_wago_datacenter(section):
-    for description in section["signals"]:
-        yield Service(item=description)
+    for index, value in section["signals"].items():
+        description = _signal_description(value) or f"Signal {index}"
+        yield Service(item=f"{index} {description}")
 
 
 def check_wago_datacenter(item, section):
-    if item not in section["signals"]:
+    index = item.split(" ", 1)[0]
+    if index not in section["signals"]:
         yield Result(state=State.UNKNOWN, summary="Signal not found in SNMP data")
         return
 
-    value = section["signals"][item]
+    value = section["signals"][index]
     status_word = value.split()[0] if value.split() else ""
 
     if status_word == "OK":
