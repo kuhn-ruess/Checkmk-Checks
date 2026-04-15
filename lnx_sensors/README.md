@@ -1,5 +1,9 @@
 # LNX sensors
 
+<!-- compatibility-badges:start -->
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p5-blue)
+<!-- compatibility-badges:end -->
+
 This check is using the output of sensors (lm-sensors) and transfers all data to server. For easy setup there is a baklet called "Sensors" available to bake an agent with plugin. On server side there is a discovery rule "Sensors discovery" available to select the needed items of the output. Only matching on CPU items is currently supported and discovers all CPUs during discovery.
 
 ## Requirements

@@ -1,5 +1,9 @@
 # Pure Checks
 
+<!-- compatibility-badges:start -->
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.3.0p30-blue)
+<!-- compatibility-badges:end -->
+
 This check is an agent based check, which can do monitoring for base services on devices.
 In Order that the Plugin works, you need to install the Pure Storage FlashArray REST Client (https://pypi.org/project/purestorage/) installed in
 your Checkmk Site. This can be done using pip:

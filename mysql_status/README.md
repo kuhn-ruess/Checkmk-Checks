@@ -1,5 +1,9 @@
 # Mysql Status 2.0
 
+<!-- compatibility-badges:start -->
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p8-blue)
+<!-- compatibility-badges:end -->
+
 This Check is based on my mysql status check I created years ago.
 It now supports the Checkmk up to version 2.4 and not longer needs an agent
 plugin since it works as a subcheck for the normal Checkmk Mysql Monitoring.

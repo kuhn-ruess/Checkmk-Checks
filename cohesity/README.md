@@ -1,5 +1,9 @@
 # Cohesity Checks
 
+<!-- compatibility-badges:start -->
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.3.0p36-blue)
+<!-- compatibility-badges:end -->
+
 This check is an agent based check, which can do monitoring for base services on a cluster.
 
 ## Supported checks

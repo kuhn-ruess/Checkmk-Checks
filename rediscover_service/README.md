@@ -1,5 +1,9 @@
 # Rediscovery services
 
+<!-- compatibility-badges:start -->
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p5-blue)
+<!-- compatibility-badges:end -->
+
 Notification plugin is doing a rediscovery on services, which are matching. It will make this service undecided and monitoried again.
 Stored parameters will be updated. It is useful for mount options, interfaces, smart, ...
 

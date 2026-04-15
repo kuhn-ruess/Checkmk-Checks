@@ -1,5 +1,9 @@
 # windows_ping
 
+<!-- compatibility-badges:start -->
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p13-blue)
+<!-- compatibility-badges:end -->
+
 PowerShell-based Nagios/MRPE compatible ping check for the Checkmk Windows
 agent. Similar in spirit to `check_icmp` but implemented with
 `Test-Connection`, so it does not require administrative privileges or a raw
@@ -29,7 +33,7 @@ lives at:
 
 1. Install the MKP on the Checkmk site (Setup → Extension Packages).
 2. Create/edit a rule under **Setup → Deploy custom files
-   with agent rules** and add the `windows_ping` package to the files that
+   with agent** and add the `windows_ping` package to the files that
    should be shipped to the selected hosts.
 
 ## Invoking the check via MRPE

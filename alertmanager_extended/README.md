@@ -1,4 +1,8 @@
 # Alertmanger Extended
+
+<!-- compatibility-badges:start -->
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0-blue)
+<!-- compatibility-badges:end -->
 The Original Version of the Alertmanager Check in Checkmk, does not allow you to remap the severity. This Version of the Check, alows you to do that.
 Also you can enable to get alerted based on the Severity and not only the firing state.
 
