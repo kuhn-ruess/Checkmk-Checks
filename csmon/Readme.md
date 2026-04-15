@@ -1,39 +1,47 @@
-# CSMON Connector
+# CSMON SAP Monitoring Connector
 
 <!-- compatibility-badges:start -->
 ![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.3.0p18-blue)
 <!-- compatibility-badges:end -->
-With this check you can connect your CSMON Instance to Checkmk.
-All Objects from there, will appear as Piggyback Data.
+
+Special agent that imports hosts and services from a CSMON SAP monitoring instance into Checkmk using the CSMON REST API. Each CSMON host is re-published as a piggyback block, and each CSMON service is emitted as a `local` check so it shows up natively under the corresponding Checkmk host.
+
+## How it works
+
+The special agent `agent_csmon` calls `https://<host>/api/monitoring/services?...&page=0&size=50000` with HTTP basic auth and walks the result once. For every row it:
+
+1. Opens a piggyback block `<<<<<hostname>>>>` (once per host) and emits a `<<<local>>>` line for the host state with description and address.
+2. Emits a `<<<local>>>` line per service using `performance_data` mapped to Checkmk perf format (`key=current;warn;crit;min;max`).
+3. Maps CSMON states `OK/WARNING/CRITICAL/UNKOWN` to `0/1/2/3` and `UP/DOWN` to `0/2`.
+
+The agent prints a minimal `<<<check_mk>>>` header identifying itself as `csmon connector`. Host creation happens in Checkmk through Dynamic Host Management against the piggyback data.
+
+## Package contents
+
+| Path | Purpose |
+| --- | --- |
+| `src/csmon/libexec/agent_csmon` | Special agent, queries CSMON REST API and emits piggyback + local checks. |
+| `src/csmon/rulesets/agent.py` | Special agent rule (username, password). |
+| `src/csmon/server_side_calls/agent.py` | Maps params to the agent command line and passes the host name from `HostConfig`. |
+
+## Installation
+
+1. Install the MKP on the Checkmk site.
+2. Create a collector host in Checkmk for the CSMON server, configure the special agent rule, then set up a piggyback folder and Dynamic Host Management so that the incoming CSMON hosts are materialised as Checkmk hosts.
 
 ## Configuration
 
-WARNING: If you upgrade to the 2.0 Version of the Plugin, build for Checkmk 2.3 please first delete your config and recreate it after update
+Rule: **Setup -> Agents -> Other integrations -> CSMON Connector**
 
-### Configure Special Agent
+| Parameter | Type | Meaning |
+| --- | --- | --- |
+| `username` | String | CSMON API user. |
+| `password` | Password | CSMON API password. |
 
-<img width="639" alt="image" src="https://github.com/kuhn-ruess/Checkmk-Checks/assets/899110/e65b5f8b-23d7-44c1-9769-6d5bba7499f9">
+The collector host name itself is used as the CSMON hostname passed to the API.
 
-<img width="1143" alt="image" src="https://github.com/kuhn-ruess/Checkmk-Checks/assets/899110/1243d3a9-a37c-4101-86aa-fbba78e6fe9b">
+## Known limitations
 
-
-### Configure Folder for Piggyback Data
-
-<img width="956" alt="Bildschirmfoto 2023-11-03 um 12 40 39" src="https://github.com/kuhn-ruess/Checkmk-Checks/assets/899110/29fdf502-8e23-45b9-a493-774163a946c4">
-
-
-### Configure collector Host
-
-<img width="924" alt="image" src="https://github.com/kuhn-ruess/Checkmk-Checks/assets/899110/3f638947-a393-42a1-871f-22efe71aeb7e">
-
-
-
-### Configure Dynamic Host Managemnt
-
-<img width="675" alt="image" src="https://github.com/kuhn-ruess/Checkmk-Checks/assets/899110/5ba412dd-79a8-4ee4-b1cc-6c3cf8a52ac1">
-<img width="1225" alt="image" src="https://github.com/kuhn-ruess/Checkmk-Checks/assets/899110/3ddb84cb-52ed-4dca-80a1-9c537e28b370">
-
-
-### See the result
-
-<img width="610" alt="image" src="https://github.com/kuhn-ruess/Checkmk-Checks/assets/899110/30f24a79-b783-423b-8444-af0a202bbe58">
+- SSL verification is hardcoded to `True` in the script via a module-level `ssl_verify` constant.
+- A single page of 50000 services is fetched; larger environments will need an agent change.
+- When upgrading from an earlier 1.x version the existing config should be removed and re-created on Checkmk 2.3.
