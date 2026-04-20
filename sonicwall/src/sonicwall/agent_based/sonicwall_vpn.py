@@ -3,6 +3,8 @@ Kuhn & Rueß GmbH
 Consulting and Development
 https://kuhn-ruess.de
 """
+import time
+
 from cmk.agent_based.v2 import (
     SimpleSNMPSection,
     CheckPlugin,
