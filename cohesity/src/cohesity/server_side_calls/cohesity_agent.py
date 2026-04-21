@@ -26,16 +26,16 @@
 
 # 2021 reworked by Sven Rueß, sritd.de
 
-from cmk.server_side_calls.v1 import noop_parser, SpecialAgentConfig, SpecialAgentCommand
+from cmk.server_side_calls.v1 import noop_parser, Secret, SpecialAgentConfig, SpecialAgentCommand
 
 
 def _agent_cohesity_arguments(params, host_config):
-    args = [
-        host_config.primary_ip_config.address,
-        params['user'],
-        params['password'].unsafe(),
-        params['domain'],
-        str(params['verify_cert'])
+    args: list[str | Secret] = [
+        "--host", host_config.primary_ip_config.address,
+        "--user", params['user'],
+        "--password-id", params['password'],
+        "--domain", params['domain'],
+        "--verify-cert", str(params['verify_cert']),
     ]
     yield SpecialAgentCommand(command_arguments=args)
 

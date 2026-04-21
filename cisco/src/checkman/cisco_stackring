@@ -1,0 +1,11 @@
+title: Cisco Stackwise ring status
+agents: snmp
+author: Udo Woehler <check-mk at bsw-com.de>
+catalog: hw/network/cisco
+license: GPL
+distribution: check_mk
+description:
+ This check monitors the Stackwise ring status on Cisco switches.
+inventory:
+ One check for each Cisco stack is created by the inventory.
+

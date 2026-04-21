@@ -1,58 +1,56 @@
 # Palo Alto enhanced checks
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p4-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p4-blue)
 <!-- compatibility-badges:end -->
 
-Additional SNMP checks for Palo Alto firewalls. Currently ships one check
-that monitors the age of the antivirus signature database and warns when
-the signatures have not been updated for a configurable amount of time.
+Consolidated SNMP checks for Palo Alto firewalls. This package replaces the
+earlier separate `palo_alto_gp_tunnels` and `palo_alto_versions` MKPs (see
+their READMEs), and adds the antivirus signature age check. All services
+keep their existing identifiers, so migrating from the legacy packages does
+not orphan services.
 
-## How it works
+## Provided check plugins
 
-SNMP section `palo_alto_antivirus` fetches the current antivirus version
-string from OID `.1.3.6.1.4.1.25461.2.1.2.1.8`. Detection requires the
-sysDescr to start with `Palo Alto` and the Palo Alto sub-tree
-`.1.3.6.1.4.1.25461.2.1.2.5.1.*` to exist.
+| Check plugin | Service | Purpose |
+| --- | --- | --- |
+| `palo_alto_antivirus` | `Palo Alto antivirus version` | WARN/CRIT when the antivirus signature database has not been updated for longer than the configured age. |
+| `palo_alto_gp_tunnels` | `Palo Alto GlobalProtect Tunnels` | WARN/CRIT when the remaining free GlobalProtect tunnel slots drop below the configured thresholds. |
+| `palo_alto_threadid` | `Palo Alto TheadID Version` | Reports the current Threat content version (always OK, informational). |
+| `palo_alto_urlfilter` | `Palo Alto URL-Filtering Version` | Reports the current URL-Filtering content version (always OK, informational). |
 
-The check compares the current version string against the last one seen
-(persisted in the value store). Whenever the string changes, the
-`last_update` timestamp is refreshed. The service goes WARN/CRIT if the
-time since the last observed change exceeds the configured levels.
+All four checks share the same detection: `sysDescr` must start with
+`Palo Alto` and the Palo Alto sub-tree `.1.3.6.1.4.1.25461.2.1.2.5.1.*` must
+exist.
+
+## Rulesets
+
+| Ruleset | Applies to | Default |
+| --- | --- | --- |
+| `Palo Alto antivirus age` (Applications) | `palo_alto_antivirus` | WARN 24h, CRIT ~29h |
+| `Palo Alto GlobalProtect tunnels` (Applications) | `palo_alto_gp_tunnels` | WARN 50 free slots, CRIT 15 free slots |
 
 ## Package contents
 
 | Path | Purpose |
 | --- | --- |
-| `src/palo_alto/agent_based/antivirus.py` | SNMP section and check plugin `palo_alto_antivirus`. |
-| `src/palo_alto/rulesets/antivirus.py` | WATO ruleset `palo_alto_antivirus` for the maximum update age. |
+| `src/palo_alto/agent_based/antivirus.py` | `palo_alto_antivirus` section + check. |
+| `src/palo_alto/agent_based/gp_tunnels.py` | `palo_alto_gp_tunnels` section + check. |
+| `src/palo_alto/agent_based/threadid.py` | `palo_alto_threadid` section + check. |
+| `src/palo_alto/agent_based/urlfilter.py` | `palo_alto_urlfilter` section + check. |
+| `src/palo_alto/rulesets/antivirus.py` | WATO ruleset for antivirus age. |
+| `src/palo_alto/rulesets/gp_tunnels.py` | WATO ruleset for GlobalProtect tunnel levels. |
 
 ## Installation
 
-1. Install the MKP on the Checkmk site.
-2. Add the Palo Alto firewall as an SNMP host. The section is auto-detected
-   from the Palo Alto sysDescr; run service discovery to pick up the
-   service `Palo Alto antivirus version`.
-
-## Configuration
-
-Rule: **Service monitoring rules -> Applications -> Palo Alto antivirus age**
-
-| Parameter | Type | Meaning |
-| --- | --- | --- |
-| `age` | Upper `SimpleLevels` on time span (days/hours) | WARN/CRIT when the antivirus signature version has not changed for longer than this. Default: 86400 s / 104400 s. |
-
-## Services & metrics
-
-- **Service:** `Palo Alto antivirus version`
-- **Summary:** current antivirus version string, plus WARN/CRIT text
-  `No Updates for the last <timespan>` when the configured age is exceeded.
-- **State logic:** OK while within levels, WARN above warn level, CRIT
-  above crit level.
+1. Uninstall any previously installed `palo_alto_gp_tunnels` and
+   `palo_alto_versions` MKPs.
+2. Install this MKP on the Checkmk site.
+3. Add the Palo Alto firewall as an SNMP host and run service discovery.
 
 ## Known limitations
 
-- The "age" is measured from the moment the plugin first sees a given
-  version, not from the actual last update on the firewall. Freshly added
-  hosts will therefore not produce a meaningful WARN/CRIT until a full
-  age window has passed.
+- The antivirus "age" is measured from the first time the plugin sees a
+  given version string, not from the actual last update on the firewall.
+- The service name for the Threat content version is kept as the historical
+  typo `TheadID Version` so existing services stay intact.

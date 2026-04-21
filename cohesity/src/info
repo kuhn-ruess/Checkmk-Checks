@@ -15,7 +15,7 @@
                                   'cohesity/server_side_calls/cohesity_agent.py']},
  'name': 'cohesity',
  'title': 'Cohesity checks',
- 'version': '1.5.0',
- 'version.min_required': '2.3.0',
- 'version.packaged': '2.3.0p36',
+ 'version': '1.5.1',
+ 'version.min_required': '2.4.0',
+ 'version.packaged': '2.4.0p4',
  'version.usable_until': None}

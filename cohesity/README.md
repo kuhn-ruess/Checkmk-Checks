@@ -1,7 +1,7 @@
 # Cohesity checks
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.3.0p36-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p4-blue)
 <!-- compatibility-badges:end -->
 
 Special agent based monitoring for a Cohesity cluster. It queries the Iris REST API on the cluster VIP and produces services for cluster-wide alerts, per-node service health, storage and metadata usage, and counts of unprotected objects.
@@ -67,4 +67,3 @@ Additional check parameter rules:
 
 - The unprotected service is spelled `Unproteced Status` in the source and kept that way for compatibility.
 - Alerts are fetched for a fixed 24 hour window.
-- `verify=False` is hardcoded in the REST client regardless of the `verify_cert` rule option.

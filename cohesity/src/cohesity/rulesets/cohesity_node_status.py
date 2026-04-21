@@ -19,7 +19,7 @@ def _formspec_cohesity_node_status():
                     help_text=Help("Specify all services to ignore"),
                     element_template=String(),
                 ),
-                required=True,
+                required=False,
             ),
         },
     )

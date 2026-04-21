@@ -1,0 +1,4 @@
+This package checks the status of the stackring of Cisco 3850, 3650, 3750 and 2960S switch stacks.
+It will only be inventorized if the stack consists of at least two switches.
+Version 1.2: Corrected a problem with check filename and a typo.
+

@@ -1,11 +1,18 @@
 {'author': 'Kuhn & Rueß GmbH',
- 'description': 'Enhanced SNMP checks for Palo Alto:\n- Antivirus\n',
+ 'description': 'Enhanced SNMP checks for Palo Alto:\n'
+                '- Antivirus signature age\n'
+                '- GlobalProtect tunnel usage\n'
+                '- Threat and URL-Filtering database versions\n',
  'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
- 'files': {'cmk_addons_plugins': ['palo_alto/rulesets/antivirus.py',
-                                  'palo_alto/agent_based/antivirus.py']},
+ 'files': {'cmk_addons_plugins': ['palo_alto/agent_based/antivirus.py',
+                                  'palo_alto/agent_based/gp_tunnels.py',
+                                  'palo_alto/agent_based/threadid.py',
+                                  'palo_alto/agent_based/urlfilter.py',
+                                  'palo_alto/rulesets/antivirus.py',
+                                  'palo_alto/rulesets/gp_tunnels.py']},
  'name': 'palo_alto',
  'title': 'Palo Alto enhanced checks',
- 'version': '1.0.1',
- 'version.min_required': '2.3.0b1',
+ 'version': '1.1.0',
+ 'version.min_required': '2.4.0',
  'version.packaged': '2.4.0p4',
  'version.usable_until': None}
