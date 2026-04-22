@@ -1,0 +1,20 @@
+title: ERA MSS output channels
+agents: snmp
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Reads the outChannTable (OID .1.3.6.1.4.1.11588.1.5.105) and creates one
+ service per output channel. Reports outChannState, outChannEnc1/Enc2 labels
+ and emits perfdata for throughput (outChannBps) and total bytes sent
+ (outChannBytes). Configurable upper and lower WARN/CRIT levels for the
+ throughput are available via the {ERA output channels} ruleset.
+
+perfdata:
+ era_outchann_bps (B/s), era_outchann_bytes (total B)
+
+item:
+ "<index> <encoder label>" (outChannIndex + outChannEnc1).
+
+inventory:
+ One service per channel with a populated, non-"n/a" state.

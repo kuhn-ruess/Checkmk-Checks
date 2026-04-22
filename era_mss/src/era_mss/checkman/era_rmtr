@@ -1,0 +1,15 @@
+title: ERA MSS reference monitoring transponders
+agents: snmp
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Reads the rmtrTable (OID .1.3.6.1.4.1.11588.1.5.104) and creates one service
+ per reference monitoring transponder. The service reports rmtrStatus as the
+ Checkmk state via the common ERA status map.
+
+item:
+ Transponder site name (rmtrSiteName).
+
+inventory:
+ One service per RMTR with a non-empty site name.

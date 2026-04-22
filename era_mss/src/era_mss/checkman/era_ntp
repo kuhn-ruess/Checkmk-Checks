@@ -1,0 +1,15 @@
+title: ERA MSS NTP servers
+agents: snmp
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Reads the ntpTable (OID .1.3.6.1.4.1.11588.1.5.115.4) and creates one
+ service per NTP server index reporting ntpStatus via the common ERA status
+ map.
+
+item:
+ SNMP row index (ntpIndex).
+
+inventory:
+ One service per NTP row with a non-empty status cell.

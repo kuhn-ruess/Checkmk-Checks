@@ -1,0 +1,26 @@
+title: ERA MSS target processor server
+agents: snmp
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Reads the tpServerTable (OID .1.3.6.1.4.1.11588.1.5.101) of an ERA MSS target
+ processor. Reports the status cells (tpSwVer, tpSwProcesses, tpTimeSync, tpIrrMode,
+ tpCpu, tpMemory, tpDriveC/D, tpLan1/2) and emits perfdata for the numeric
+ utilisation cells (tpCpuLoad, tpMemoryUsage, tpDriveC/DUsage, tpLan1/2Usage) as
+ well as the tracked target counts (tpMlatCnt, tpAdsbCnt).
+
+ Configurable upper WARN/CRIT levels are available for every numeric metric via
+ the {ERA vServer} ruleset.
+
+perfdata:
+ era_cpu_load (%), era_memory_usage (%), era_drive_c_usage (%),
+ era_drive_d_usage (%), era_lan1_usage (%), era_lan2_usage (%),
+ era_mlat_targets, era_adsb_targets
+
+item:
+ SNMP row index (tpServerIndex). Typically 0 and 1 for the primary/backup
+ target processor.
+
+inventory:
+ One service per row that returns any tpServer data.

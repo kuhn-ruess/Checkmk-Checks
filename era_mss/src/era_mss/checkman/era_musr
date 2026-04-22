@@ -1,0 +1,14 @@
+title: ERA MSS MUSR modules
+agents: snmp
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Reads the musrTable (OID .1.3.6.1.4.1.11588.1.5.112) and creates one service
+ per MUSR index. Reports musrCommunication, musrHw, musrTimeSync and musrTemp.
+
+item:
+ SNMP row index (musrIndex).
+
+inventory:
+ One service per MUSR row with any populated status cell.

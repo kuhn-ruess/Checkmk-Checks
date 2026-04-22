@@ -1,0 +1,27 @@
+title: ERA MSS RX receivers
+agents: snmp
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Walks all eight tp<n>-rx sub-tables under OID .1.3.6.1.4.1.11588.1.5.102 and
+ creates one service per (target processor, receiver site) pair. Reports the
+ status cells rxStatus, rxPower, rxFOAStatus, rxFOBStatus and rxActiveFO and
+ emits perfdata for the A/C code counter (rxAcAll), the Mode-S message counter
+ (rxModesAll, also exported as a rate via get_rate) and the garbled Mode-S
+ counter (rxModesGarbled).
+
+ The derived metric {era_rx_modes_garbled_ratio} (in percent of total Mode-S
+ messages) has configurable WARN/CRIT upper levels via the {ERA RX receivers}
+ ruleset; upper levels for the raw counters are available in the same ruleset.
+
+perfdata:
+ era_rx_ac_all, era_rx_modes_all, era_rx_modes_all_rate,
+ era_rx_modes_garbled, era_rx_modes_garbled_ratio (%)
+
+item:
+ "TP<n> <site name>" where <n> is the target processor index (1..8) and the
+ site name is read from rxSiteName.
+
+inventory:
+ One service per RX site with populated status columns.

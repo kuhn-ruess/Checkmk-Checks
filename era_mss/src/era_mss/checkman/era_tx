@@ -1,0 +1,17 @@
+title: ERA MSS TX transmitters
+agents: snmp
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Walks the tx sub-table under OID .1.3.6.1.4.1.11588.1.5.103.1 and creates one
+ service per transmitter site. Reports the status cells txStatus, txLan1,
+ txLan2, txOutPower, txVSWR, txOutPul, txNtpComm, txDutyCycle, txInputData,
+ txOverheating, txPower plus informational addresses (txModesAddr, txLan1Addr,
+ txLan2Addr).
+
+item:
+ Transmitter site name (txSiteName).
+
+inventory:
+ One service per TX site with a non-empty site name.

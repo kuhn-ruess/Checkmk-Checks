@@ -1,0 +1,18 @@
+title: ERA MSS overall system status
+agents: snmp
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Reads the rollup status cells from the ERA MSS main branch (OID .1.3.6.1.4.1.11588.1.5.100).
+ One service per target processor (tpAsterixStatus, tpServerStatus, rxs, inputData)
+ plus an aggregated "System" service that bundles txs, rmtr, rack and networkDevices.
+ Each status value is mapped to Checkmk state via the common ERA status map
+ (OKA/ON/ACTIVE/BACKUP → OK, WAR/DEG → WARN, ERR/OFF/NOC → CRIT, UNK/n/a → UNKNOWN).
+
+item:
+ "TP <index>" for per-target-processor entries, "System" for the global rollup.
+
+inventory:
+ One service per populated tpTable row plus one "System" service if any of the
+ global rollup cells are present.

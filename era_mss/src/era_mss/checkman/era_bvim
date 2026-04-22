@@ -1,0 +1,16 @@
+title: ERA MSS BVIM modules
+agents: snmp
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Walks all eight tp<n>-bvim sub-tables under OID .1.3.6.1.4.1.11588.1.5.111
+ and creates one service per (target processor, BVIM index) pair. Reports
+ bvimTemp, bvimPowerX, bvimPowerY and bvimDinStatus.
+
+item:
+ "TP<n> BVIM <index>" where <n> is the target processor (1..8) and <index>
+ is the BVIM row index.
+
+inventory:
+ One service per BVIM row that returns any status cell.

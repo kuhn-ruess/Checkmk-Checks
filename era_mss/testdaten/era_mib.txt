@@ -1,0 +1,1954 @@
+-----------------------------------------------------------------------
+--  ERA MSS Target Processor MIB version 2.2.0
+-----------------------------------------------------------------------
+
+ERA-MSS-TP DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, NOTIFICATION-TYPE, enterprises    FROM SNMPv2-SMI
+    OBJECT-GROUP, NOTIFICATION-GROUP                                FROM SNMPv2-CONF
+    TEXTUAL-CONVENTION                                              FROM SNMPv2-TC;
+
+era MODULE-IDENTITY
+    LAST-UPDATED    "201908080000Z"
+    ORGANIZATION    "www.era.aero"
+    CONTACT-INFO    ""
+    DESCRIPTION     "Management Information Base for ERA surveillance systems"
+    REVISION        "201908080000Z"
+    DESCRIPTION     "MIB generation edition (v2.2.0);"
+    ::= { enterprises 11588 }
+
+--    main branches enumeration
+systems     OBJECT IDENTIFIER ::= { era 1 }
+
+--    era.systems enumeration
+mssTp       OBJECT IDENTIFIER ::= { systems 5 }
+
+
+--
+-- Type definitions
+--
+
+StatusValueS ::= TEXTUAL-CONVENTION
+    STATUS      current
+    DESCRIPTION "Represents a MSS status. The value can be: OKA,ERR,DEG,WAR,ON,OFF,ACTIVE,BACKUP,NOC,UNK"
+    SYNTAX      OCTET STRING (SIZE (3))
+
+
+--
+-- MSS status
+--
+
+main OBJECT IDENTIFIER ::= { mssTp 100 }
+
+tpTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF TpEntryS
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "A list of TPs."
+    ::= { main 1 }
+
+tpEntry OBJECT-TYPE
+    SYNTAX      TpEntryS
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "TP entry."
+    INDEX       { tpIndex }
+    ::= { tpTable 1 }
+
+TpEntryS ::=
+    SEQUENCE {
+        tpIndex         INTEGER,
+        tpAsterixStatus StatusValueS,
+        tpServerStatus  StatusValueS,
+        rxs             StatusValueS,
+        inputData       StatusValueS
+    }
+
+tpIndex OBJECT-TYPE
+    SYNTAX      INTEGER (0..63)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A unique value for each tpEntry."
+    ::= { tpEntry 1 }
+
+tpAsterixStatus OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Status information coded into Asterix (a sensor status)."
+    ::= { tpEntry 2  }
+
+tpServerStatus OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Overall status of Target Processor."
+    ::= { tpEntry 3 }
+
+rxs OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Overall status of receivers."
+    ::= { tpEntry 4 }
+
+inputData OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of Input data."
+    ::= { tpEntry 5 }
+
+rpu OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Overall status of remote processing units. Available only for DT systems."
+    ::= { main 2 }
+
+txs OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Overall status of transmitters."
+    ::= { main 3 }	
+
+rmtr OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Overall status of Reference Monitoring Transponders."
+    ::= { main 4 }	
+
+rack OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Overall status of rack."
+    ::= { main 5 }
+
+networkDevices OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Overall status of network devices."
+    ::= { main 6 }
+
+
+--
+-- tpServerTable
+--
+
+tpServerTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF TpServerEntryS
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "A list of TPServers."
+    ::= { mssTp 101 }
+
+tpServerEntry OBJECT-TYPE
+    SYNTAX      TpServerEntryS
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "TPServer entry."
+    INDEX       { tpServerIndex }
+    ::= { tpServerTable 1 }
+
+TpServerEntryS ::=
+    SEQUENCE {
+        tpServerIndex   INTEGER,
+        tpSwVer         StatusValueS,
+        tpSwProcesses   StatusValueS,
+        tpTimeSync      StatusValueS,
+        tpIrrMode       OCTET STRING,
+        tpCpu           StatusValueS,
+        tpCpuLoad       INTEGER,
+        tpMemory        StatusValueS,
+        tpMemoryUsage   INTEGER,
+        tpDriveC        StatusValueS,
+        tpDriveCUsage   INTEGER,
+        tpDriveD        StatusValueS,
+        tpDriveDUsage   INTEGER,
+        tpLan1          StatusValueS,
+        tpLan1Usage     INTEGER,
+        tpLan2          StatusValueS,
+        tpLan2Usage     INTEGER,
+        tpMlatCnt       INTEGER,
+        tpAdsbCnt       INTEGER,
+        tpRestartSw     INTEGER,
+        tpRestartComp   INTEGER
+    }
+
+tpServerIndex OBJECT-TYPE
+    SYNTAX      INTEGER (0..63)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A unique value for each tpServerEntry."
+    ::= { tpServerEntry 1 }
+
+tpSwVer OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of Target Processor software versions."
+    ::= { tpServerEntry 2 }
+
+tpSwProcesses OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of Target Processor software processes."
+    ::= { tpServerEntry 3 }
+
+tpTimeSync OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of Target Processor time synchronisation."
+    ::= { tpServerEntry 4 }
+
+tpIrrMode OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE (20))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "An Interrogation mode of Target Processor."
+    ::= { tpServerEntry 5  }
+
+tpCpu OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of Target Processor CPU load."
+    ::= { tpServerEntry 6 }
+
+tpCpuLoad OBJECT-TYPE
+    SYNTAX      INTEGER { na(-9999) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Target Processor CPU load [pct]."
+    ::= { tpServerEntry 7 }
+
+tpMemory OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of Target Processor memory."
+    ::= { tpServerEntry 8 }
+
+tpMemoryUsage OBJECT-TYPE
+    SYNTAX      INTEGER { na(-9999) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Target Processor memory usage [pct]."
+    ::= { tpServerEntry 9 }
+
+tpDriveC OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of Drive C usage."
+    ::= { tpServerEntry 10 }
+
+tpDriveCUsage OBJECT-TYPE
+    SYNTAX      INTEGER { na(-9999) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Drive C usage [pct]."
+    ::= { tpServerEntry 11 }
+
+tpDriveD OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of Drive D usage."
+    ::= { tpServerEntry 12 }
+
+tpDriveDUsage OBJECT-TYPE
+    SYNTAX      INTEGER { na(-9999) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Drive D usage [pct]."
+    ::= { tpServerEntry 13 }
+
+tpLan1 OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of LAN1."
+    ::= { tpServerEntry 14  }
+
+tpLan1Usage OBJECT-TYPE
+    SYNTAX      INTEGER { na(-9999) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "LAN1 usage [pct]."
+    ::= { tpServerEntry 15 }
+
+tpLan2 OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of LAN2."
+    ::= { tpServerEntry 16  }
+
+tpLan2Usage OBJECT-TYPE
+    SYNTAX      INTEGER { na(-9999) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "LAN2 usage [pct]."
+    ::= { tpServerEntry 17 }
+
+tpMlatCnt OBJECT-TYPE
+    SYNTAX      INTEGER { na(-9999) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A count of MLAT targets tracked by Target Processor."
+    ::= { tpServerEntry 71 }
+
+tpAdsbCnt OBJECT-TYPE
+    SYNTAX      INTEGER { na(-9999) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A count of ADS-B targets tracked by Target Processor."
+    ::= { tpServerEntry 72 }
+
+tpRestartSw OBJECT-TYPE
+    SYNTAX      INTEGER { na(-9999) }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Set-operation (1) enables to restart Target Processor software."
+    ::= { tpServerEntry 91 }
+
+tpRestartComp OBJECT-TYPE
+    SYNTAX      INTEGER { na(-9999) }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Set-operation (1) enables to restart Target Processor server (hardware reboot)."
+    ::= { tpServerEntry 92 }
+
+
+--
+-- status.rxs
+--
+
+rxsTp OBJECT IDENTIFIER ::= { mssTp 102 }
+
+rxTp1 OBJECT-TYPE SYNTAX SEQUENCE OF RxTp1EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "A list of RXs."                                                      ::= { rxsTp 1 }
+rxTp1Entry OBJECT-TYPE SYNTAX RxTp1EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "RX entry." INDEX { tp1-rxIndex }                                            ::= { rxTp1 1 }
+RxTp1EntryS ::= SEQUENCE { tp1-rxIndex INTEGER, tp1-rxStatus StatusValueS, tp1-rxPower StatusValueS, tp1-rxFOAStatus StatusValueS, tp1-rxFOBStatus StatusValueS, tp1-rxActiveFO StatusValueS, tp1-rxAcAll INTEGER, tp1-rxModesAll INTEGER, tp1-rxModesGarbled INTEGER, tp1-rxSiteName OCTET STRING }
+tp1-rxIndex OBJECT-TYPE SYNTAX INTEGER (0..63) MAX-ACCESS read-only STATUS current DESCRIPTION "A unique value for each rxsEntry."                                          ::= { rxTp1Entry 1 }
+tp1-rxStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "Overall status of RX equipment."                                              ::= { rxTp1Entry 2 }
+tp1-rxPower OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of RX power supply. This indicates failure of mains or batteries."    ::= { rxTp1Entry 3 }
+tp1-rxFOAStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of fibre-optic line A. Available only for CT systems."            ::= { rxTp1Entry 4 }
+tp1-rxFOBStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of fibre-optic line B. Available only for CT systems."            ::= { rxTp1Entry 5 }
+tp1-rxActiveFO OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "An active fibre-optic line. Available only for CT systems."                 ::= { rxTp1Entry 6 }
+tp1-rxAcAll OBJECT-TYPE SYNTAX INTEGER { na(-9999) } MAX-ACCESS read-only STATUS current DESCRIPTION "A count of A/C codes received on RX."                                 ::= { rxTp1Entry 71 }
+tp1-rxModesAll OBJECT-TYPE SYNTAX INTEGER { na(-9999) } MAX-ACCESS read-only STATUS current DESCRIPTION "A count of mode S DF messages received on RX."                     ::= { rxTp1Entry 73 }
+tp1-rxModesGarbled OBJECT-TYPE SYNTAX INTEGER { na(-9999) } MAX-ACCESS read-only STATUS current DESCRIPTION "A count of garbled mode S DF messages received on RX."         ::= { rxTp1Entry 74 }
+tp1-rxSiteName OBJECT-TYPE SYNTAX OCTET STRING (SIZE (64)) MAX-ACCESS read-only STATUS current DESCRIPTION "A site name where a RX equipment is located."                   ::= { rxTp1Entry 81 }
+
+rxTp2 OBJECT-TYPE SYNTAX SEQUENCE OF RxTp2EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "A list of RXs."                                                      ::= { rxsTp 2 }
+rxTp2Entry OBJECT-TYPE SYNTAX RxTp2EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "RX entry." INDEX { tp2-rxIndex }                                            ::= { rxTp2 1 }
+RxTp2EntryS ::= SEQUENCE { tp2-rxIndex INTEGER, tp2-rxStatus StatusValueS, tp2-rxPower StatusValueS, tp2-rxFOAStatus StatusValueS, tp2-rxFOBStatus StatusValueS, tp2-rxActiveFO StatusValueS, tp2-rxAcAll INTEGER, tp2-rxModesAll INTEGER, tp2-rxModesGarbled INTEGER, tp2-rxSiteName OCTET STRING }
+tp2-rxIndex OBJECT-TYPE SYNTAX INTEGER (0..63) MAX-ACCESS read-only STATUS current DESCRIPTION "A unique value for each rxsEntry."                                          ::= { rxTp2Entry 1 }
+tp2-rxStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "Overall status of RX equipment."                                              ::= { rxTp2Entry 2 }
+tp2-rxPower OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of RX power supply. This indicates failure of mains or batteries."    ::= { rxTp2Entry 3 }
+tp2-rxFOAStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of fibre-optic line A. Available only for CT systems."            ::= { rxTp2Entry 4 }
+tp2-rxFOBStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of fibre-optic line B. Available only for CT systems."            ::= { rxTp2Entry 5 }
+tp2-rxActiveFO OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "An active fibre-optic line. Available only for CT systems."                 ::= { rxTp2Entry 6 }
+tp2-rxAcAll OBJECT-TYPE SYNTAX INTEGER { na(-9999) } MAX-ACCESS read-only STATUS current DESCRIPTION "A count of A/C codes received on RX."                                 ::= { rxTp2Entry 71 }
+tp2-rxModesAll OBJECT-TYPE SYNTAX INTEGER { na(-9999) } MAX-ACCESS read-only STATUS current DESCRIPTION "A count of mode S DF messages received on RX."                     ::= { rxTp2Entry 73 }
+tp2-rxModesGarbled OBJECT-TYPE SYNTAX INTEGER { na(-9999) } MAX-ACCESS read-only STATUS current DESCRIPTION "A count of garbled mode S DF messages received on RX."         ::= { rxTp2Entry 74 }
+tp2-rxSiteName OBJECT-TYPE SYNTAX OCTET STRING (SIZE (64)) MAX-ACCESS read-only STATUS current DESCRIPTION "A site name where a RX equipment is located."                   ::= { rxTp2Entry 81 }
+
+rxTp3 OBJECT-TYPE SYNTAX SEQUENCE OF RxTp3EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "A list of RXs."                                                      ::= { rxsTp 3 }
+rxTp3Entry OBJECT-TYPE SYNTAX RxTp3EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "RX entry." INDEX { tp3-rxIndex }                                            ::= { rxTp3 1 }
+RxTp3EntryS ::= SEQUENCE { tp3-rxIndex INTEGER, tp3-rxStatus StatusValueS, tp3-rxPower StatusValueS, tp3-rxFOAStatus StatusValueS, tp3-rxFOBStatus StatusValueS, tp3-rxActiveFO StatusValueS, tp3-rxAcAll INTEGER, tp3-rxModesAll INTEGER, tp3-rxModesGarbled INTEGER, tp3-rxSiteName OCTET STRING }
+tp3-rxIndex OBJECT-TYPE SYNTAX INTEGER (0..63) MAX-ACCESS read-only STATUS current DESCRIPTION "A unique value for each rxsEntry."                                          ::= { rxTp3Entry 1 }
+tp3-rxStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "Overall status of RX equipment."                                              ::= { rxTp3Entry 2 }
+tp3-rxPower OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of RX power supply. This indicates failure of mains or batteries."    ::= { rxTp3Entry 3 }
+tp3-rxFOAStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of fibre-optic line A. Available only for CT systems."            ::= { rxTp3Entry 4 }
+tp3-rxFOBStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of fibre-optic line B. Available only for CT systems."            ::= { rxTp3Entry 5 }
+tp3-rxActiveFO OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "An active fibre-optic line. Available only for CT systems."                 ::= { rxTp3Entry 6 }
+tp3-rxAcAll OBJECT-TYPE SYNTAX INTEGER { na(-9999) } MAX-ACCESS read-only STATUS current DESCRIPTION "A count of A/C codes received on RX."                                 ::= { rxTp3Entry 71 }
+tp3-rxModesAll OBJECT-TYPE SYNTAX INTEGER { na(-9999) } MAX-ACCESS read-only STATUS current DESCRIPTION "A count of mode S DF messages received on RX."                     ::= { rxTp3Entry 73 }
+tp3-rxModesGarbled OBJECT-TYPE SYNTAX INTEGER { na(-9999) } MAX-ACCESS read-only STATUS current DESCRIPTION "A count of garbled mode S DF messages received on RX."         ::= { rxTp3Entry 74 }
+tp3-rxSiteName OBJECT-TYPE SYNTAX OCTET STRING (SIZE (64)) MAX-ACCESS read-only STATUS current DESCRIPTION "A site name where a RX equipment is located."                   ::= { rxTp3Entry 81 }
+
+rxTp4 OBJECT-TYPE SYNTAX SEQUENCE OF RxTp4EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "A list of RXs."                                                      ::= { rxsTp 4 }
+rxTp4Entry OBJECT-TYPE SYNTAX RxTp4EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "RX entry." INDEX { tp4-rxIndex }                                            ::= { rxTp4 1 }
+RxTp4EntryS ::= SEQUENCE { tp4-rxIndex INTEGER, tp4-rxStatus StatusValueS, tp4-rxPower StatusValueS, tp4-rxFOAStatus StatusValueS, tp4-rxFOBStatus StatusValueS, tp4-rxActiveFO StatusValueS, tp4-rxAcAll INTEGER, tp4-rxModesAll INTEGER, tp4-rxModesGarbled INTEGER, tp4-rxSiteName OCTET STRING }
+tp4-rxIndex OBJECT-TYPE SYNTAX INTEGER (0..63) MAX-ACCESS read-only STATUS current DESCRIPTION "A unique value for each rxsEntry."                                          ::= { rxTp4Entry 1 }
+tp4-rxStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "Overall status of RX equipment."                                              ::= { rxTp4Entry 2 }
+tp4-rxPower OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of RX power supply. This indicates failure of mains or batteries."    ::= { rxTp4Entry 3 }
+tp4-rxFOAStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of fibre-optic line A. Available only for CT systems."            ::= { rxTp4Entry 4 }
+tp4-rxFOBStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of fibre-optic line B. Available only for CT systems."            ::= { rxTp4Entry 5 }
+tp4-rxActiveFO OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "An active fibre-optic line. Available only for CT systems."                 ::= { rxTp4Entry 6 }
+tp4-rxAcAll OBJECT-TYPE SYNTAX INTEGER { na(-9999) } MAX-ACCESS read-only STATUS current DESCRIPTION "A count of A/C codes received on RX."                                 ::= { rxTp4Entry 71 }
+tp4-rxModesAll OBJECT-TYPE SYNTAX INTEGER { na(-9999) } MAX-ACCESS read-only STATUS current DESCRIPTION "A count of mode S DF messages received on RX."                     ::= { rxTp4Entry 73 }
+tp4-rxModesGarbled OBJECT-TYPE SYNTAX INTEGER { na(-9999) } MAX-ACCESS read-only STATUS current DESCRIPTION "A count of garbled mode S DF messages received on RX."         ::= { rxTp4Entry 74 }
+tp4-rxSiteName OBJECT-TYPE SYNTAX OCTET STRING (SIZE (64)) MAX-ACCESS read-only STATUS current DESCRIPTION "A site name where a RX equipment is located."                   ::= { rxTp4Entry 81 }
+
+rxTp5 OBJECT-TYPE SYNTAX SEQUENCE OF RxTp5EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "A list of RXs."                                                      ::= { rxsTp 5 }
+rxTp5Entry OBJECT-TYPE SYNTAX RxTp5EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "RX entry." INDEX { tp5-rxIndex }                                            ::= { rxTp5 1 }
+RxTp5EntryS ::= SEQUENCE { tp5-rxIndex INTEGER, tp5-rxStatus StatusValueS, tp5-rxPower StatusValueS, tp5-rxFOAStatus StatusValueS, tp5-rxFOBStatus StatusValueS, tp5-rxActiveFO StatusValueS, tp5-rxAcAll INTEGER, tp5-rxModesAll INTEGER, tp5-rxModesGarbled INTEGER, tp5-rxSiteName OCTET STRING }
+tp5-rxIndex OBJECT-TYPE SYNTAX INTEGER (0..63) MAX-ACCESS read-only STATUS current DESCRIPTION "A unique value for each rxsEntry."                                          ::= { rxTp5Entry 1 }
+tp5-rxStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "Overall status of RX equipment."                                              ::= { rxTp5Entry 2 }
+tp5-rxPower OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of RX power supply. This indicates failure of mains or batteries."    ::= { rxTp5Entry 3 }
+tp5-rxFOAStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of fibre-optic line A. Available only for CT systems."            ::= { rxTp5Entry 4 }
+tp5-rxFOBStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of fibre-optic line B. Available only for CT systems."            ::= { rxTp5Entry 5 }
+tp5-rxActiveFO OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "An active fibre-optic line. Available only for CT systems."                 ::= { rxTp5Entry 6 }
+tp5-rxAcAll OBJECT-TYPE SYNTAX INTEGER { na(-9999) } MAX-ACCESS read-only STATUS current DESCRIPTION "A count of A/C codes received on RX."                                 ::= { rxTp5Entry 71 }
+tp5-rxModesAll OBJECT-TYPE SYNTAX INTEGER { na(-9999) } MAX-ACCESS read-only STATUS current DESCRIPTION "A count of mode S DF messages received on RX."                     ::= { rxTp5Entry 73 }
+tp5-rxModesGarbled OBJECT-TYPE SYNTAX INTEGER { na(-9999) } MAX-ACCESS read-only STATUS current DESCRIPTION "A count of garbled mode S DF messages received on RX."         ::= { rxTp5Entry 74 }
+tp5-rxSiteName OBJECT-TYPE SYNTAX OCTET STRING (SIZE (64)) MAX-ACCESS read-only STATUS current DESCRIPTION "A site name where a RX equipment is located."                   ::= { rxTp5Entry 81 }
+
+rxTp6 OBJECT-TYPE SYNTAX SEQUENCE OF RxTp6EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "A list of RXs."                                                      ::= { rxsTp 6 }
+rxTp6Entry OBJECT-TYPE SYNTAX RxTp6EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "RX entry." INDEX { tp6-rxIndex }                                            ::= { rxTp6 1 }
+RxTp6EntryS ::= SEQUENCE { tp6-rxIndex INTEGER, tp6-rxStatus StatusValueS, tp6-rxPower StatusValueS, tp6-rxFOAStatus StatusValueS, tp6-rxFOBStatus StatusValueS, tp6-rxActiveFO StatusValueS, tp6-rxAcAll INTEGER, tp6-rxModesAll INTEGER, tp6-rxModesGarbled INTEGER, tp6-rxSiteName OCTET STRING }
+tp6-rxIndex OBJECT-TYPE SYNTAX INTEGER (0..63) MAX-ACCESS read-only STATUS current DESCRIPTION "A unique value for each rxsEntry."                                          ::= { rxTp6Entry 1 }
+tp6-rxStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "Overall status of RX equipment."                                              ::= { rxTp6Entry 2 }
+tp6-rxPower OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of RX power supply. This indicates failure of mains or batteries."    ::= { rxTp6Entry 3 }
+tp6-rxFOAStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of fibre-optic line A. Available only for CT systems."            ::= { rxTp6Entry 4 }
+tp6-rxFOBStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of fibre-optic line B. Available only for CT systems."            ::= { rxTp6Entry 5 }
+tp6-rxActiveFO OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "An active fibre-optic line. Available only for CT systems."                 ::= { rxTp6Entry 6 }
+tp6-rxAcAll OBJECT-TYPE SYNTAX INTEGER { na(-9999) } MAX-ACCESS read-only STATUS current DESCRIPTION "A count of A/C codes received on RX."                                 ::= { rxTp6Entry 71 }
+tp6-rxModesAll OBJECT-TYPE SYNTAX INTEGER { na(-9999) } MAX-ACCESS read-only STATUS current DESCRIPTION "A count of mode S DF messages received on RX."                     ::= { rxTp6Entry 73 }
+tp6-rxModesGarbled OBJECT-TYPE SYNTAX INTEGER { na(-9999) } MAX-ACCESS read-only STATUS current DESCRIPTION "A count of garbled mode S DF messages received on RX."         ::= { rxTp6Entry 74 }
+tp6-rxSiteName OBJECT-TYPE SYNTAX OCTET STRING (SIZE (64)) MAX-ACCESS read-only STATUS current DESCRIPTION "A site name where a RX equipment is located."                   ::= { rxTp6Entry 81 }
+
+rxTp7 OBJECT-TYPE SYNTAX SEQUENCE OF RxTp7EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "A list of RXs."                                                      ::= { rxsTp 7 }
+rxTp7Entry OBJECT-TYPE SYNTAX RxTp7EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "RX entry." INDEX { tp7-rxIndex }                                            ::= { rxTp7 1 }
+RxTp7EntryS ::= SEQUENCE { tp7-rxIndex INTEGER, tp7-rxStatus StatusValueS, tp7-rxPower StatusValueS, tp7-rxFOAStatus StatusValueS, tp7-rxFOBStatus StatusValueS, tp7-rxActiveFO StatusValueS, tp7-rxAcAll INTEGER, tp7-rxModesAll INTEGER, tp7-rxModesGarbled INTEGER, tp7-rxSiteName OCTET STRING }
+tp7-rxIndex OBJECT-TYPE SYNTAX INTEGER (0..63) MAX-ACCESS read-only STATUS current DESCRIPTION "A unique value for each rxsEntry."                                          ::= { rxTp7Entry 1 }
+tp7-rxStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "Overall status of RX equipment."                                              ::= { rxTp7Entry 2 }
+tp7-rxPower OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of RX power supply. This indicates failure of mains or batteries."    ::= { rxTp7Entry 3 }
+tp7-rxFOAStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of fibre-optic line A. Available only for CT systems."            ::= { rxTp7Entry 4 }
+tp7-rxFOBStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of fibre-optic line B. Available only for CT systems."            ::= { rxTp7Entry 5 }
+tp7-rxActiveFO OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "An active fibre-optic line. Available only for CT systems."                 ::= { rxTp7Entry 6 }
+tp7-rxAcAll OBJECT-TYPE SYNTAX INTEGER { na(-9999) } MAX-ACCESS read-only STATUS current DESCRIPTION "A count of A/C codes received on RX."                                 ::= { rxTp7Entry 71 }
+tp7-rxModesAll OBJECT-TYPE SYNTAX INTEGER { na(-9999) } MAX-ACCESS read-only STATUS current DESCRIPTION "A count of mode S DF messages received on RX."                     ::= { rxTp7Entry 73 }
+tp7-rxModesGarbled OBJECT-TYPE SYNTAX INTEGER { na(-9999) } MAX-ACCESS read-only STATUS current DESCRIPTION "A count of garbled mode S DF messages received on RX."         ::= { rxTp7Entry 74 }
+tp7-rxSiteName OBJECT-TYPE SYNTAX OCTET STRING (SIZE (64)) MAX-ACCESS read-only STATUS current DESCRIPTION "A site name where a RX equipment is located."                   ::= { rxTp7Entry 81 }
+
+rxTp8 OBJECT-TYPE SYNTAX SEQUENCE OF RxTp8EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "A list of RXs."                                                      ::= { rxsTp 8 }
+rxTp8Entry OBJECT-TYPE SYNTAX RxTp8EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "RX entry." INDEX { tp8-rxIndex }                                            ::= { rxTp8 1 }
+RxTp8EntryS ::= SEQUENCE { tp8-rxIndex INTEGER, tp8-rxStatus StatusValueS, tp8-rxPower StatusValueS, tp8-rxFOAStatus StatusValueS, tp8-rxFOBStatus StatusValueS, tp8-rxActiveFO StatusValueS, tp8-rxAcAll INTEGER, tp8-rxModesAll INTEGER, tp8-rxModesGarbled INTEGER, tp8-rxSiteName OCTET STRING }
+tp8-rxIndex OBJECT-TYPE SYNTAX INTEGER (0..63) MAX-ACCESS read-only STATUS current DESCRIPTION "A unique value for each rxsEntry."                                          ::= { rxTp8Entry 1 }
+tp8-rxStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "Overall status of RX equipment."                                              ::= { rxTp8Entry 2 }
+tp8-rxPower OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of RX power supply. This indicates failure of mains or batteries."    ::= { rxTp8Entry 3 }
+tp8-rxFOAStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of fibre-optic line A. Available only for CT systems."            ::= { rxTp8Entry 4 }
+tp8-rxFOBStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of fibre-optic line B. Available only for CT systems."            ::= { rxTp8Entry 5 }
+tp8-rxActiveFO OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "An active fibre-optic line. Available only for CT systems."                 ::= { rxTp8Entry 6 }
+tp8-rxAcAll OBJECT-TYPE SYNTAX INTEGER { na(-9999) } MAX-ACCESS read-only STATUS current DESCRIPTION "A count of A/C codes received on RX."                                 ::= { rxTp8Entry 71 }
+tp8-rxModesAll OBJECT-TYPE SYNTAX INTEGER { na(-9999) } MAX-ACCESS read-only STATUS current DESCRIPTION "A count of mode S DF messages received on RX."                     ::= { rxTp8Entry 73 }
+tp8-rxModesGarbled OBJECT-TYPE SYNTAX INTEGER { na(-9999) } MAX-ACCESS read-only STATUS current DESCRIPTION "A count of garbled mode S DF messages received on RX."         ::= { rxTp8Entry 74 }
+tp8-rxSiteName OBJECT-TYPE SYNTAX OCTET STRING (SIZE (64)) MAX-ACCESS read-only STATUS current DESCRIPTION "A site name where a RX equipment is located."                   ::= { rxTp8Entry 81 }
+
+
+--
+--  status.txs
+--
+
+txsTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF TxsEntryS
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "A list of TXs."
+    ::= { mssTp 103 }
+
+txsEntry OBJECT-TYPE
+    SYNTAX      TxsEntryS
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "TX entry."
+    INDEX       { txsIndex }
+    ::= { txsTable 1 }
+
+TxsEntryS ::=
+    SEQUENCE {
+        txsIndex        INTEGER,
+        txStatus        StatusValueS,
+        txLan1          StatusValueS,
+        txLan2          StatusValueS,
+        txOutPower      StatusValueS,
+        txVSWR          StatusValueS,
+        txOutPul        StatusValueS,
+        txNtpComm       StatusValueS,
+        txDutyCycle     StatusValueS,
+        txInputData     StatusValueS,
+        txOverheating   StatusValueS,
+        txPower         StatusValueS,
+        txModesAddr     OCTET STRING,
+        txLan1Addr      OCTET STRING,
+        txLan2Addr      OCTET STRING,
+        txSiteName      OCTET STRING
+    }
+
+txsIndex OBJECT-TYPE
+    SYNTAX      INTEGER (0..63)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A unique value for each txsEntry."
+    ::= { txsEntry 1 }
+
+txStatus OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Overall status of TX equipment."
+    ::= { txsEntry 2 }
+
+txLan1 OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of LAN1 communication."
+    ::= { txsEntry 3 }
+
+txLan2 OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of LAN2 communication."
+    ::= { txsEntry 4 }
+
+txOutPower OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of transmitting output power."
+    ::= { txsEntry 5 }
+
+txVSWR OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of voltage standing wave ratio."
+    ::= { txsEntry 6 }
+
+txOutPul OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of output pulses."
+    ::= { txsEntry 7 }
+
+txNtpComm OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of NTP communication."
+    ::= { txsEntry 8 }
+
+txDutyCycle OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of Duty cycle."
+    ::= { txsEntry 9 }
+
+txInputData OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of Input data."
+    ::= { txsEntry 10 }
+
+txOverheating OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of Overheating."
+    ::= { txsEntry 11 }
+
+txPower OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of UPS."
+    ::= { txsEntry 12 }
+
+txModesAddr OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE (6))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Mode S address [hex]."
+    ::= { txsEntry 13 }
+
+txLan1Addr OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE (20))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "LAN1 IP address."
+    ::= { txsEntry 14 }
+
+txLan2Addr OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE (20))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "LAN2 IP address."
+    ::= { txsEntry 15 }
+
+txSiteName OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE (64))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A site name where a TX equipment is located."
+    ::= { txsEntry 81 }
+
+
+--
+--  status.rmtr
+--
+
+rmtrTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF RmtrEntryS
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "A list of RMTR (reference and monitoring transponder) equipment."
+    ::= { mssTp 104 }
+
+rmtrEntry OBJECT-TYPE
+    SYNTAX      RmtrEntryS
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "TX entry."
+    INDEX       { rmtrIndex }
+    ::= { rmtrTable 1 }
+
+RmtrEntryS ::=
+    SEQUENCE {
+        rmtrIndex       INTEGER,
+        rmtrStatus      StatusValueS,
+        rmtrSiteName    OCTET STRING
+    }
+
+rmtrIndex OBJECT-TYPE
+    SYNTAX      INTEGER (0..63)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A unique value for each rmtrEntry."
+    ::= { rmtrEntry 1 }
+
+rmtrStatus OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Overall status of a RMTR equipment."
+    ::= { rmtrEntry 2 }
+
+rmtrSiteName OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE (64))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A site name of a RMTR equipment."
+    ::= { rmtrEntry 81 }
+
+
+--
+-- outChann
+--
+
+outChannTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF OutChannEntryS
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "A list of output channels."
+    ::= { mssTp 105 }
+
+outChannEntry OBJECT-TYPE
+    SYNTAX      OutChannEntryS
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "output channel entry."
+    INDEX       { outChannIndex }
+    ::= { outChannTable 1 }
+
+OutChannEntryS ::=
+    SEQUENCE {
+        outChannIndex   INTEGER,
+        outChannState   StatusValueS,
+        outChannEnc1    OCTET STRING,
+        outChannEnc2    OCTET STRING,
+        outChannBps     INTEGER,
+        outChannBytes   INTEGER
+    }
+
+outChannIndex OBJECT-TYPE
+    SYNTAX      INTEGER (0..63)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A unique value for each OutChannEntry."
+    ::= { outChannEntry 1 }
+
+outChannState OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A state of output channel."
+    ::= { outChannEntry 2 }
+
+outChannEnc1 OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE (64))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "An used first encoder of output channel."
+    ::= { outChannEntry 3 }
+
+outChannEnc2 OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE (64))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "An used second encoder of output channel."
+    ::= { outChannEntry 4 }
+
+outChannBps OBJECT-TYPE
+    SYNTAX      INTEGER { na(-9999) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A data stream speed in bytes per second on the output channel."
+    ::= { outChannEntry 71 }
+
+outChannBytes OBJECT-TYPE
+    SYNTAX      INTEGER { na(-9999) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A number of bytes sent on channel since restart."
+    ::= { outChannEntry 72 }
+
+
+--
+-- status.rpu
+--
+
+rpuTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF RpuEntryS
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "A table of RPUs. Available only for DT systems."
+    ::= { mssTp 110 }
+
+rpuEntry OBJECT-TYPE
+    SYNTAX      RpuEntryS
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "RPU entry."
+    INDEX       { rpuIndex }
+    ::= { rpuTable 1 }
+
+RpuEntryS ::=
+    SEQUENCE {
+        rpuIndex        INTEGER,
+        rpuStatus       StatusValueS,
+        rpuTimeSync     StatusValueS,
+        rpuSwVer        StatusValueS,
+        rpuPower        StatusValueS,
+        rpuSiteName     OCTET STRING,
+        rpuRestartSw    INTEGER,
+        rpuRestartComp  INTEGER
+    }
+
+rpuIndex OBJECT-TYPE
+    SYNTAX      INTEGER (0..63)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A unique value for each rpuEntry."
+    ::= { rpuEntry 1 }
+
+rpuStatus OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Overall status of RPU."
+    ::= { rpuEntry 2 }
+
+rpuTimeSync OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of RPU time synchronization."
+    ::= { rpuEntry 3 }
+
+rpuSwVer OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of RPU Software versions."
+    ::= { rpuEntry 4 }
+				
+rpuPower OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of RPU Power."
+    ::= { rpuEntry 5 }				
+
+rpuSiteName OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE (64))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Site name of RPU."
+    ::= { rpuEntry 81 }
+
+rpuRestartSw OBJECT-TYPE
+    SYNTAX      INTEGER { na(-9999) }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Set-operation (1) enables to restart RPU (remote processing unit)."
+    ::= { rpuEntry 91 }
+
+rpuRestartComp OBJECT-TYPE
+    SYNTAX      INTEGER { na(-9999) }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Set-operation (1) enables to restart RPU (remote processing unit - hardware reboot)."
+    ::= { rpuEntry 92 }
+
+
+--
+-- bvim
+--
+
+bvimTp OBJECT IDENTIFIER ::= { mssTp 111 }
+
+bvimTp1 OBJECT-TYPE SYNTAX SEQUENCE OF BvimTp1EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "A table of BVIMs."                                       ::= { bvimTp 1 }
+bvimTp1Entry OBJECT-TYPE SYNTAX BvimTp1EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "BVIM entry." INDEX { tp1-bvimIndex }                            ::= { bvimTp1 1 }
+BvimTp1EntryS ::= SEQUENCE { tp1-bvimIndex INTEGER, tp1-bvimTemp StatusValueS, tp1-bvimPowerX StatusValueS, tp1-bvimPowerY StatusValueS, tp1-bvimDinStatus StatusValueS }
+tp1-bvimIndex OBJECT-TYPE SYNTAX INTEGER (0..63) MAX-ACCESS read-only STATUS current DESCRIPTION "A unique value for each bvimEntry."                               ::= { bvimTp1Entry 1 }
+tp1-bvimTemp OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM temperature. Available only for CT systems."         ::= { bvimTp1Entry 2 }
+tp1-bvimPowerX OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM power supply X. Available only for CT systems."    ::= { bvimTp1Entry 3 }
+tp1-bvimPowerY OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM power supply Y. Available only for CT systems."    ::= { bvimTp1Entry 4 }
+tp1-bvimDinStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM din. Available only for CT systems."            ::= { bvimTp1Entry 5 }
+
+bvimTp2 OBJECT-TYPE SYNTAX SEQUENCE OF BvimTp2EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "A table of BVIMs."                                       ::= { bvimTp 2 }
+bvimTp2Entry OBJECT-TYPE SYNTAX BvimTp2EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "BVIM entry." INDEX { tp2-bvimIndex }                            ::= { bvimTp2 1 }
+BvimTp2EntryS ::= SEQUENCE { tp2-bvimIndex INTEGER, tp2-bvimTemp StatusValueS, tp2-bvimPowerX StatusValueS, tp2-bvimPowerY StatusValueS, tp2-bvimDinStatus StatusValueS }
+tp2-bvimIndex OBJECT-TYPE SYNTAX INTEGER (0..63) MAX-ACCESS read-only STATUS current DESCRIPTION "A unique value for each bvimEntry."                               ::= { bvimTp2Entry 1 }
+tp2-bvimTemp OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM temperature. Available only for CT systems."         ::= { bvimTp2Entry 2 }
+tp2-bvimPowerX OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM power supply X. Available only for CT systems."    ::= { bvimTp2Entry 3 }
+tp2-bvimPowerY OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM power supply Y. Available only for CT systems."    ::= { bvimTp2Entry 4 }
+tp2-bvimDinStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM din. Available only for CT systems."            ::= { bvimTp2Entry 5 }
+
+bvimTp3 OBJECT-TYPE SYNTAX SEQUENCE OF BvimTp3EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "A table of BVIMs."                                       ::= { bvimTp 3 }
+bvimTp3Entry OBJECT-TYPE SYNTAX BvimTp3EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "BVIM entry." INDEX { tp3-bvimIndex }                            ::= { bvimTp3 1 }
+BvimTp3EntryS ::= SEQUENCE { tp3-bvimIndex INTEGER, tp3-bvimTemp StatusValueS, tp3-bvimPowerX StatusValueS, tp3-bvimPowerY StatusValueS, tp3-bvimDinStatus StatusValueS }
+tp3-bvimIndex OBJECT-TYPE SYNTAX INTEGER (0..63) MAX-ACCESS read-only STATUS current DESCRIPTION "A unique value for each bvimEntry."                               ::= { bvimTp3Entry 1 }
+tp3-bvimTemp OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM temperature. Available only for CT systems."         ::= { bvimTp3Entry 2 }
+tp3-bvimPowerX OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM power supply X. Available only for CT systems."    ::= { bvimTp3Entry 3 }
+tp3-bvimPowerY OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM power supply Y. Available only for CT systems."    ::= { bvimTp3Entry 4 }
+tp3-bvimDinStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM din. Available only for CT systems."            ::= { bvimTp3Entry 5 }
+
+bvimTp4 OBJECT-TYPE SYNTAX SEQUENCE OF BvimTp4EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "A table of BVIMs."                                       ::= { bvimTp 4 }
+bvimTp4Entry OBJECT-TYPE SYNTAX BvimTp4EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "BVIM entry." INDEX { tp4-bvimIndex }                            ::= { bvimTp4 1 }
+BvimTp4EntryS ::= SEQUENCE { tp4-bvimIndex INTEGER, tp4-bvimTemp StatusValueS, tp4-bvimPowerX StatusValueS, tp4-bvimPowerY StatusValueS, tp4-bvimDinStatus StatusValueS }
+tp4-bvimIndex OBJECT-TYPE SYNTAX INTEGER (0..63) MAX-ACCESS read-only STATUS current DESCRIPTION "A unique value for each bvimEntry."                               ::= { bvimTp4Entry 1 }
+tp4-bvimTemp OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM temperature. Available only for CT systems."         ::= { bvimTp4Entry 2 }
+tp4-bvimPowerX OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM power supply X. Available only for CT systems."    ::= { bvimTp4Entry 3 }
+tp4-bvimPowerY OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM power supply Y. Available only for CT systems."    ::= { bvimTp4Entry 4 }
+tp4-bvimDinStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM din. Available only for CT systems."            ::= { bvimTp4Entry 5 }
+
+bvimTp5 OBJECT-TYPE SYNTAX SEQUENCE OF BvimTp5EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "A table of BVIMs."                                       ::= { bvimTp 5 }
+bvimTp5Entry OBJECT-TYPE SYNTAX BvimTp5EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "BVIM entry." INDEX { tp5-bvimIndex }                            ::= { bvimTp5 1 }
+BvimTp5EntryS ::= SEQUENCE { tp5-bvimIndex INTEGER, tp5-bvimTemp StatusValueS, tp5-bvimPowerX StatusValueS, tp5-bvimPowerY StatusValueS, tp5-bvimDinStatus StatusValueS }
+tp5-bvimIndex OBJECT-TYPE SYNTAX INTEGER (0..63) MAX-ACCESS read-only STATUS current DESCRIPTION "A unique value for each bvimEntry."                               ::= { bvimTp5Entry 1 }
+tp5-bvimTemp OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM temperature. Available only for CT systems."         ::= { bvimTp5Entry 2 }
+tp5-bvimPowerX OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM power supply X. Available only for CT systems."    ::= { bvimTp5Entry 3 }
+tp5-bvimPowerY OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM power supply Y. Available only for CT systems."    ::= { bvimTp5Entry 4 }
+tp5-bvimDinStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM din. Available only for CT systems."            ::= { bvimTp5Entry 5 }
+
+bvimTp6 OBJECT-TYPE SYNTAX SEQUENCE OF BvimTp6EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "A table of BVIMs."                                       ::= { bvimTp 6 }
+bvimTp6Entry OBJECT-TYPE SYNTAX BvimTp6EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "BVIM entry." INDEX { tp6-bvimIndex }                            ::= { bvimTp6 1 }
+BvimTp6EntryS ::= SEQUENCE { tp6-bvimIndex INTEGER, tp6-bvimTemp StatusValueS, tp6-bvimPowerX StatusValueS, tp6-bvimPowerY StatusValueS, tp6-bvimDinStatus StatusValueS }
+tp6-bvimIndex OBJECT-TYPE SYNTAX INTEGER (0..63) MAX-ACCESS read-only STATUS current DESCRIPTION "A unique value for each bvimEntry."                               ::= { bvimTp6Entry 1 }
+tp6-bvimTemp OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM temperature. Available only for CT systems."         ::= { bvimTp6Entry 2 }
+tp6-bvimPowerX OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM power supply X. Available only for CT systems."    ::= { bvimTp6Entry 3 }
+tp6-bvimPowerY OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM power supply Y. Available only for CT systems."    ::= { bvimTp6Entry 4 }
+tp6-bvimDinStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM din. Available only for CT systems."            ::= { bvimTp6Entry 5 }
+
+bvimTp7 OBJECT-TYPE SYNTAX SEQUENCE OF BvimTp7EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "A table of BVIMs."                                       ::= { bvimTp 7 }
+bvimTp7Entry OBJECT-TYPE SYNTAX BvimTp7EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "BVIM entry." INDEX { tp7-bvimIndex }                            ::= { bvimTp7 1 }
+BvimTp7EntryS ::= SEQUENCE { tp7-bvimIndex INTEGER, tp7-bvimTemp StatusValueS, tp7-bvimPowerX StatusValueS, tp7-bvimPowerY StatusValueS, tp7-bvimDinStatus StatusValueS }
+tp7-bvimIndex OBJECT-TYPE SYNTAX INTEGER (0..63) MAX-ACCESS read-only STATUS current DESCRIPTION "A unique value for each bvimEntry."                               ::= { bvimTp7Entry 1 }
+tp7-bvimTemp OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM temperature. Available only for CT systems."         ::= { bvimTp7Entry 2 }
+tp7-bvimPowerX OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM power supply X. Available only for CT systems."    ::= { bvimTp7Entry 3 }
+tp7-bvimPowerY OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM power supply Y. Available only for CT systems."    ::= { bvimTp7Entry 4 }
+tp7-bvimDinStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM din. Available only for CT systems."            ::= { bvimTp7Entry 5 }
+
+bvimTp8 OBJECT-TYPE SYNTAX SEQUENCE OF BvimTp8EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "A table of BVIMs."                                     ::= { bvimTp 8 }
+bvimTp8Entry OBJECT-TYPE SYNTAX BvimTp8EntryS MAX-ACCESS not-accessible STATUS current DESCRIPTION "BVIM entry." INDEX { tp8-bvimIndex }                               ::= { bvimTp8 1 }
+BvimTp8EntryS ::= SEQUENCE { tp8-bvimIndex INTEGER, tp8-bvimTemp StatusValueS, tp8-bvimPowerX StatusValueS, tp8-bvimPowerY StatusValueS, tp8-bvimDinStatus StatusValueS }
+tp8-bvimIndex OBJECT-TYPE SYNTAX INTEGER (0..63) MAX-ACCESS read-only STATUS current DESCRIPTION "A unique value for each bvimEntry."                              ::= { bvimTp8Entry 1 }
+tp8-bvimTemp OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM temperature. Available only for CT systems."        ::= { bvimTp8Entry 2 }
+tp8-bvimPowerX OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM power supply X. Available only for CT systems."   ::= { bvimTp8Entry 3 }
+tp8-bvimPowerY OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM power supply Y. Available only for CT systems."   ::= { bvimTp8Entry 4 }
+tp8-bvimDinStatus OBJECT-TYPE SYNTAX StatusValueS MAX-ACCESS read-only STATUS current DESCRIPTION "A status of BVIM din. Available only for CT systems."           ::= { bvimTp8Entry 5 }
+
+
+--
+-- musrTable
+--
+
+musrTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF MusrEntryS
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "A table of MUSRs."
+    ::= { mssTp 112 }
+
+musrEntry OBJECT-TYPE
+    SYNTAX      MusrEntryS
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "MUSR entry."
+    INDEX       { musrIndex }
+    ::= { musrTable 1 }
+
+MusrEntryS ::=
+    SEQUENCE {
+        musrIndex           INTEGER,
+        musrCommunication   StatusValueS,
+        musrHw              StatusValueS,
+        musrTimeSync        StatusValueS,
+        musrTemp            StatusValueS
+    }
+
+musrIndex OBJECT-TYPE
+    SYNTAX      INTEGER (0..63)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A unique value for each musrEntry."
+    ::= { musrEntry 1 }
+
+musrCommunication OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of MUSR communication."
+    ::= { musrEntry 2 }
+
+musrHw OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of MUSR hardware."
+    ::= { musrEntry 3 }
+
+musrTimeSync OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of MUSR time synchronization."
+    ::= { musrEntry 4 }
+
+musrTemp OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of MUSR temperature."
+    ::= { musrEntry 5  }
+
+
+--
+-- network
+--
+
+network OBJECT IDENTIFIER ::= { mssTp 115 }
+
+--
+-- Server Management Table (iLo/IMM)
+--
+
+serverManagementTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF ServerManagementEntryS
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "A table of servers managements."
+    ::= { network 1 }
+
+serverManagementEntry OBJECT-TYPE
+    SYNTAX      ServerManagementEntryS
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "Server management entry."
+    INDEX       { serverManagementIndex }
+    ::= { serverManagementTable 1 }
+
+ServerManagementEntryS ::=
+    SEQUENCE {
+        serverManagementIndex   INTEGER,
+        serverManagementStatus  StatusValueS
+    }
+
+serverManagementIndex OBJECT-TYPE
+    SYNTAX      INTEGER (0..63)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A unique value for each serverManagementEntry."
+    ::= { serverManagementEntry 1 }
+
+serverManagementStatus OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of Server Management."
+    ::= { serverManagementEntry 2 }
+
+--
+-- Switch Table
+--
+
+switchTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF SwitchEntryS
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "A table of switch status."
+    ::= { network 2 }
+
+switchEntry OBJECT-TYPE
+    SYNTAX      SwitchEntryS
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "Switch entry."
+    INDEX       { switchIndex }
+    ::= { switchTable 1 }
+
+SwitchEntryS ::=
+    SEQUENCE {
+        switchIndex   INTEGER,
+        switchStatus  StatusValueS
+    }
+
+switchIndex OBJECT-TYPE
+    SYNTAX      INTEGER (0..63)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A unique value for each switchEntry."
+    ::= { switchEntry 1 }
+
+switchStatus OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of switch."
+    ::= { switchEntry 2 }
+	
+--
+-- Router Table
+--
+
+routerTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF RouterEntryS
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "A table of router status."
+    ::= { network 3 }
+
+routerEntry OBJECT-TYPE
+    SYNTAX      RouterEntryS
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "Router entry."
+    INDEX       { routerIndex }
+    ::= { routerTable 1 }
+
+RouterEntryS ::=
+    SEQUENCE {
+        routerIndex   INTEGER,
+        routerStatus  StatusValueS
+    }
+
+routerIndex OBJECT-TYPE
+    SYNTAX      INTEGER (0..63)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A unique value for each routerEntry."
+    ::= { routerEntry 1 }
+
+routerStatus OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of router."
+    ::= { routerEntry 2 }
+	
+--
+-- NTP Table
+--
+
+ntpTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF NtpEntryS
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "A table of NTP status."
+    ::= { network 4 }
+
+ntpEntry OBJECT-TYPE
+    SYNTAX      NtpEntryS
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "Ntp entry."
+    INDEX       { ntpIndex }
+    ::= { ntpTable 1 }
+
+NtpEntryS ::=
+    SEQUENCE {
+        ntpIndex   INTEGER,
+        ntpStatus  StatusValueS
+    }
+
+ntpIndex OBJECT-TYPE
+    SYNTAX      INTEGER (0..63)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A unique value for each ntpEntry."
+    ::= { ntpEntry 1 }
+
+ntpStatus OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of NTP server."
+    ::= { ntpEntry 2 }
+	
+--
+-- UPS Table
+--
+
+upsTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF UpsEntryS
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "A table of UPS status."
+    ::= { network 5 }
+
+upsEntry OBJECT-TYPE
+    SYNTAX      UpsEntryS
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "UPS entry."
+    INDEX       { upsIndex }
+    ::= { upsTable 1 }
+
+UpsEntryS ::=
+    SEQUENCE {
+        upsIndex   INTEGER,
+        upsStatus  StatusValueS
+    }
+
+upsIndex OBJECT-TYPE
+    SYNTAX      INTEGER (0..63)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A unique value for each upsEntry."
+    ::= { upsEntry 1 }
+
+upsStatus OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of UPS."
+    ::= { upsEntry 2 }
+
+--
+-- Quido Table
+--
+
+quidoTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF QuidoEntryS
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "A table of quidos."
+    ::= { network 6 }
+
+quidoEntry OBJECT-TYPE
+    SYNTAX      QuidoEntryS
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "Quido entry."
+    INDEX       { quidoIndex }
+    ::= { quidoTable 1 }
+
+QuidoEntryS ::=
+    SEQUENCE {
+        quidoIndex              INTEGER,
+        quidoStatus             StatusValueS,
+        quidoTemperatureStatus  StatusValueS,
+        quidoTemperatureValue   OCTET STRING,
+        quidoHumidityStatus  	StatusValueS,
+        quidoHumidityValue		OCTET STRING,
+        quidoDoorSwitchStatus   StatusValueS,
+        quidoShockSensorCounter INTEGER
+    }
+
+quidoIndex OBJECT-TYPE
+    SYNTAX      INTEGER (0..63)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A unique value for each QuidoEntry."
+    ::= { quidoEntry 1 }
+
+quidoStatus OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of quido Communication."
+    ::= { quidoEntry 2 }
+
+quidoTemperatureStatus OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of temperature."
+    ::= { quidoEntry 3 }
+
+quidoTemperatureValue OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE (64))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Temperature value (string)."
+    ::= { quidoEntry 4 }
+
+quidoHumidityStatus OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of humidity."
+    ::= { quidoEntry 5 }
+
+quidoHumidityValue OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE (64))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Humidity value (string)."
+    ::= { quidoEntry 6 }
+
+quidoDoorSwitchStatus OBJECT-TYPE
+    SYNTAX      StatusValueS
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A status of door switch."
+    ::= { quidoEntry 7 }
+
+quidoShockSensorCounter OBJECT-TYPE
+    SYNTAX      INTEGER (0..65535)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Shock sensor - quido counter value."
+    ::= { quidoEntry 71 }
+
+
+--
+-- MSS SNMP trap definitions
+--
+--
+-- era.systems.mssTp.mssTraps  definitions
+--
+
+-- MSS traps
+mssTraps OBJECT IDENTIFIER ::= { mssTp 120 }
+
+mssTrapTpError NOTIFICATION-TYPE
+    STATUS      current
+    DESCRIPTION "Trap to be sent when status of Target Processor has changed to error."
+    ::= { mssTraps 1 }
+
+mssTrapTpDegraded NOTIFICATION-TYPE
+    STATUS      current
+    DESCRIPTION "Trap to be sent when status of Target Processor has changed to degraded."
+    ::= { mssTraps 2 }
+
+mssTrapTpOK NOTIFICATION-TYPE
+    STATUS      current
+    DESCRIPTION "Trap to be sent when status of Target Processor has changed to OK."
+    ::= { mssTraps 4 }
+
+-- Quido traps
+mssTrapQuidos   OBJECT IDENTIFIER ::= { mssTraps 10 }
+mssTrapQuido00  OBJECT IDENTIFIER ::= { mssTrapQuidos 0 }
+mssTrapQuido01  OBJECT IDENTIFIER ::= { mssTrapQuidos 1 }
+mssTrapQuido02  OBJECT IDENTIFIER ::= { mssTrapQuidos 2 }
+mssTrapQuido03  OBJECT IDENTIFIER ::= { mssTrapQuidos 3 }
+mssTrapQuido04  OBJECT IDENTIFIER ::= { mssTrapQuidos 4 }
+mssTrapQuido05  OBJECT IDENTIFIER ::= { mssTrapQuidos 5 }
+mssTrapQuido06  OBJECT IDENTIFIER ::= { mssTrapQuidos 6 }
+mssTrapQuido07  OBJECT IDENTIFIER ::= { mssTrapQuidos 7 }
+mssTrapQuido08  OBJECT IDENTIFIER ::= { mssTrapQuidos 8 }
+mssTrapQuido09  OBJECT IDENTIFIER ::= { mssTrapQuidos 9 }
+mssTrapQuido10  OBJECT IDENTIFIER ::= { mssTrapQuidos 10 }
+mssTrapQuido11  OBJECT IDENTIFIER ::= { mssTrapQuidos 11 }
+mssTrapQuido12  OBJECT IDENTIFIER ::= { mssTrapQuidos 12 }
+mssTrapQuido13  OBJECT IDENTIFIER ::= { mssTrapQuidos 13 }
+mssTrapQuido14  OBJECT IDENTIFIER ::= { mssTrapQuidos 14 }
+mssTrapQuido15  OBJECT IDENTIFIER ::= { mssTrapQuidos 15 }
+mssTrapQuido16  OBJECT IDENTIFIER ::= { mssTrapQuidos 16 }
+mssTrapQuido17  OBJECT IDENTIFIER ::= { mssTrapQuidos 17 }
+mssTrapQuido18  OBJECT IDENTIFIER ::= { mssTrapQuidos 18 }
+mssTrapQuido19  OBJECT IDENTIFIER ::= { mssTrapQuidos 19 }
+mssTrapQuido20  OBJECT IDENTIFIER ::= { mssTrapQuidos 20 }
+mssTrapQuido21  OBJECT IDENTIFIER ::= { mssTrapQuidos 21 }
+mssTrapQuido22  OBJECT IDENTIFIER ::= { mssTrapQuidos 22 }
+mssTrapQuido23  OBJECT IDENTIFIER ::= { mssTrapQuidos 23 }
+mssTrapQuido24  OBJECT IDENTIFIER ::= { mssTrapQuidos 24 }
+mssTrapQuido25  OBJECT IDENTIFIER ::= { mssTrapQuidos 25 }
+mssTrapQuido26  OBJECT IDENTIFIER ::= { mssTrapQuidos 26 }
+mssTrapQuido27  OBJECT IDENTIFIER ::= { mssTrapQuidos 27 }
+mssTrapQuido28  OBJECT IDENTIFIER ::= { mssTrapQuidos 28 }
+mssTrapQuido29  OBJECT IDENTIFIER ::= { mssTrapQuidos 29 }
+mssTrapQuido30  OBJECT IDENTIFIER ::= { mssTrapQuidos 30 }
+mssTrapQuido31  OBJECT IDENTIFIER ::= { mssTrapQuidos 31 }
+mssTrapQuido32  OBJECT IDENTIFIER ::= { mssTrapQuidos 32 }
+mssTrapQuido33  OBJECT IDENTIFIER ::= { mssTrapQuidos 33 }
+mssTrapQuido34  OBJECT IDENTIFIER ::= { mssTrapQuidos 34 }
+mssTrapQuido35  OBJECT IDENTIFIER ::= { mssTrapQuidos 35 }
+mssTrapQuido36  OBJECT IDENTIFIER ::= { mssTrapQuidos 36 }
+mssTrapQuido37  OBJECT IDENTIFIER ::= { mssTrapQuidos 37 }
+mssTrapQuido38  OBJECT IDENTIFIER ::= { mssTrapQuidos 38 }
+mssTrapQuido39  OBJECT IDENTIFIER ::= { mssTrapQuidos 39 }
+mssTrapQuido40  OBJECT IDENTIFIER ::= { mssTrapQuidos 40 }
+mssTrapQuido41  OBJECT IDENTIFIER ::= { mssTrapQuidos 41 }
+mssTrapQuido42  OBJECT IDENTIFIER ::= { mssTrapQuidos 42 }
+mssTrapQuido43  OBJECT IDENTIFIER ::= { mssTrapQuidos 43 }
+mssTrapQuido44  OBJECT IDENTIFIER ::= { mssTrapQuidos 44 }
+mssTrapQuido45  OBJECT IDENTIFIER ::= { mssTrapQuidos 45 }
+mssTrapQuido46  OBJECT IDENTIFIER ::= { mssTrapQuidos 46 }
+mssTrapQuido47  OBJECT IDENTIFIER ::= { mssTrapQuidos 47 }
+mssTrapQuido48  OBJECT IDENTIFIER ::= { mssTrapQuidos 48 }
+mssTrapQuido49  OBJECT IDENTIFIER ::= { mssTrapQuidos 49 }
+mssTrapQuido50  OBJECT IDENTIFIER ::= { mssTrapQuidos 50 }
+mssTrapQuido51  OBJECT IDENTIFIER ::= { mssTrapQuidos 51 }
+mssTrapQuido52  OBJECT IDENTIFIER ::= { mssTrapQuidos 52 }
+mssTrapQuido53  OBJECT IDENTIFIER ::= { mssTrapQuidos 53 }
+mssTrapQuido54  OBJECT IDENTIFIER ::= { mssTrapQuidos 54 }
+mssTrapQuido55  OBJECT IDENTIFIER ::= { mssTrapQuidos 55 }
+mssTrapQuido56  OBJECT IDENTIFIER ::= { mssTrapQuidos 56 }
+mssTrapQuido57  OBJECT IDENTIFIER ::= { mssTrapQuidos 57 }
+mssTrapQuido58  OBJECT IDENTIFIER ::= { mssTrapQuidos 58 }
+mssTrapQuido59  OBJECT IDENTIFIER ::= { mssTrapQuidos 59 }
+mssTrapQuido60  OBJECT IDENTIFIER ::= { mssTrapQuidos 60 }
+mssTrapQuido61  OBJECT IDENTIFIER ::= { mssTrapQuidos 61 }
+mssTrapQuido62  OBJECT IDENTIFIER ::= { mssTrapQuidos 62 }
+mssTrapQuido63  OBJECT IDENTIFIER ::= { mssTrapQuidos 63 }
+
+-- Quido00
+mssTrapQuido00TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido00 1 }
+mssTrapQuido00TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido00 2 }
+mssTrapQuido00DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido00 3 }
+mssTrapQuido00DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido00 4 }
+mssTrapQuido00HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido00 5 }
+mssTrapQuido00HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido00 6 }
+-- Quido01
+mssTrapQuido01TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido01 1 }
+mssTrapQuido01TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido01 2 }
+mssTrapQuido01DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido01 3 }
+mssTrapQuido01DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido01 4 }
+mssTrapQuido01HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido01 5 }
+mssTrapQuido01HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido01 6 }
+-- Quido02
+mssTrapQuido02TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido02 1 }
+mssTrapQuido02TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido02 2 }
+mssTrapQuido02DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido02 3 }
+mssTrapQuido02DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido02 4 }
+mssTrapQuido02HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido02 5 }
+mssTrapQuido02HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido02 6 }
+-- Quido03
+mssTrapQuido03TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido03 1 }
+mssTrapQuido03TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido03 2 }
+mssTrapQuido03DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido03 3 }
+mssTrapQuido03DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido03 4 }
+mssTrapQuido03HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido03 5 }
+mssTrapQuido03HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido03 6 }
+-- Quido04
+mssTrapQuido04TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido04 1 }
+mssTrapQuido04TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido04 2 }
+mssTrapQuido04DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido04 3 }
+mssTrapQuido04DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido04 4 }
+mssTrapQuido04HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido04 5 }
+mssTrapQuido04HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido04 6 }
+-- Quido05
+mssTrapQuido05TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido05 1 }
+mssTrapQuido05TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido05 2 }
+mssTrapQuido05DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido05 3 }
+mssTrapQuido05DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido05 4 }
+mssTrapQuido05HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido05 5 }
+mssTrapQuido05HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido05 6 }
+-- Quido06
+mssTrapQuido06TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido06 1 }
+mssTrapQuido06TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido06 2 }
+mssTrapQuido06DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido06 3 }
+mssTrapQuido06DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido06 4 }
+mssTrapQuido06HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido06 5 }
+mssTrapQuido06HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido06 6 }
+-- Quido07
+mssTrapQuido07TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido07 1 }
+mssTrapQuido07TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido07 2 }
+mssTrapQuido07DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido07 3 }
+mssTrapQuido07DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido07 4 }
+mssTrapQuido07HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido07 5 }
+mssTrapQuido07HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido07 6 }
+-- Quido08
+mssTrapQuido08TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido08 1 }
+mssTrapQuido08TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido08 2 }
+mssTrapQuido08DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido08 3 }
+mssTrapQuido08DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido08 4 }
+mssTrapQuido08HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido08 5 }
+mssTrapQuido08HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido08 6 }
+-- Quido09
+mssTrapQuido09TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido09 1 }
+mssTrapQuido09TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido09 2 }
+mssTrapQuido09DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido09 3 }
+mssTrapQuido09DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido09 4 }
+mssTrapQuido09HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido09 5 }
+mssTrapQuido09HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido09 6 }
+-- Quido10
+mssTrapQuido10TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido10 1 }
+mssTrapQuido10TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido10 2 }
+mssTrapQuido10DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido10 3 }
+mssTrapQuido10DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido10 4 }
+mssTrapQuido10HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido10 5 }
+mssTrapQuido10HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido10 6 }
+-- Quido11
+mssTrapQuido11TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido11 1 }
+mssTrapQuido11TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido11 2 }
+mssTrapQuido11DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido11 3 }
+mssTrapQuido11DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido11 4 }
+mssTrapQuido11HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido11 5 }
+mssTrapQuido11HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido11 6 }
+-- Quido12
+mssTrapQuido12TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido12 1 }
+mssTrapQuido12TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido12 2 }
+mssTrapQuido12DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido12 3 }
+mssTrapQuido12DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido12 4 }
+mssTrapQuido12HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido12 5 }
+mssTrapQuido12HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido12 6 }
+-- Quido13
+mssTrapQuido13TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido13 1 }
+mssTrapQuido13TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido13 2 }
+mssTrapQuido13DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido13 3 }
+mssTrapQuido13DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido13 4 }
+mssTrapQuido13HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido13 5 }
+mssTrapQuido13HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido13 6 }
+-- Quido14
+mssTrapQuido14TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido14 1 }
+mssTrapQuido14TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido14 2 }
+mssTrapQuido14DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido14 3 }
+mssTrapQuido14DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido14 4 }
+mssTrapQuido14HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido14 5 }
+mssTrapQuido14HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido14 6 }
+-- Quido15
+mssTrapQuido15TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido15 1 }
+mssTrapQuido15TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido15 2 }
+mssTrapQuido15DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido15 3 }
+mssTrapQuido15DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido15 4 }
+mssTrapQuido15HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido15 5 }
+mssTrapQuido15HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido15 6 }
+-- Quido16
+mssTrapQuido16TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido16 1 }
+mssTrapQuido16TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido16 2 }
+mssTrapQuido16DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido16 3 }
+mssTrapQuido16DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido16 4 }
+mssTrapQuido16HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido16 5 }
+mssTrapQuido16HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido16 6 }
+-- Quido17
+mssTrapQuido17TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido17 1 }
+mssTrapQuido17TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido17 2 }
+mssTrapQuido17DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido17 3 }
+mssTrapQuido17DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido17 4 }
+mssTrapQuido17HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido17 5 }
+mssTrapQuido17HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido17 6 }
+-- Quido18
+mssTrapQuido18TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido18 1 }
+mssTrapQuido18TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido18 2 }
+mssTrapQuido18DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido18 3 }
+mssTrapQuido18DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido18 4 }
+mssTrapQuido18HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido18 5 }
+mssTrapQuido18HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido18 6 }
+-- Quido19
+mssTrapQuido19TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido19 1 }
+mssTrapQuido19TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido19 2 }
+mssTrapQuido19DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido19 3 }
+mssTrapQuido19DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido19 4 }
+mssTrapQuido19HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido19 5 }
+mssTrapQuido19HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido19 6 }
+-- Quido20
+mssTrapQuido20TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido20 1 }
+mssTrapQuido20TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido20 2 }
+mssTrapQuido20DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido20 3 }
+mssTrapQuido20DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido20 4 }
+mssTrapQuido20HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido20 5 }
+mssTrapQuido20HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido20 6 }
+-- Quido21
+mssTrapQuido21TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido21 1 }
+mssTrapQuido21TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido21 2 }
+mssTrapQuido21DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido21 3 }
+mssTrapQuido21DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido21 4 }
+mssTrapQuido21HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido21 5 }
+mssTrapQuido21HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido21 6 }
+-- Quido22
+mssTrapQuido22TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido22 1 }
+mssTrapQuido22TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido22 2 }
+mssTrapQuido22DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido22 3 }
+mssTrapQuido22DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido22 4 }
+mssTrapQuido22HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido22 5 }
+mssTrapQuido22HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido22 6 }
+-- Quido23
+mssTrapQuido23TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido23 1 }
+mssTrapQuido23TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido23 2 }
+mssTrapQuido23DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido23 3 }
+mssTrapQuido23DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido23 4 }
+mssTrapQuido23HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido23 5 }
+mssTrapQuido23HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido23 6 }
+-- Quido24
+mssTrapQuido24TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido24 1 }
+mssTrapQuido24TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido24 2 }
+mssTrapQuido24DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido24 3 }
+mssTrapQuido24DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido24 4 }
+mssTrapQuido24HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido24 5 }
+mssTrapQuido24HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido24 6 }
+-- Quido25
+mssTrapQuido25TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido25 1 }
+mssTrapQuido25TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido25 2 }
+mssTrapQuido25DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido25 3 }
+mssTrapQuido25DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido25 4 }
+mssTrapQuido25HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido25 5 }
+mssTrapQuido25HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido25 6 }
+-- Quido26
+mssTrapQuido26TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido26 1 }
+mssTrapQuido26TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido26 2 }
+mssTrapQuido26DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido26 3 }
+mssTrapQuido26DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido26 4 }
+mssTrapQuido26HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido26 5 }
+mssTrapQuido26HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido26 6 }
+-- Quido27
+mssTrapQuido27TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido27 1 }
+mssTrapQuido27TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido27 2 }
+mssTrapQuido27DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido27 3 }
+mssTrapQuido27DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido27 4 }
+mssTrapQuido27HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido27 5 }
+mssTrapQuido27HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido27 6 }
+-- Quido28
+mssTrapQuido28TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido28 1 }
+mssTrapQuido28TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido28 2 }
+mssTrapQuido28DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido28 3 }
+mssTrapQuido28DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido28 4 }
+mssTrapQuido28HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido28 5 }
+mssTrapQuido28HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido28 6 }
+-- Quido29
+mssTrapQuido29TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido29 1 }
+mssTrapQuido29TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido29 2 }
+mssTrapQuido29DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido29 3 }
+mssTrapQuido29DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido29 4 }
+mssTrapQuido29HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido29 5 }
+mssTrapQuido29HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido29 6 }
+-- Quido30
+mssTrapQuido30TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido30 1 }
+mssTrapQuido30TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido30 2 }
+mssTrapQuido30DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido30 3 }
+mssTrapQuido30DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido30 4 }
+mssTrapQuido30HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido30 5 }
+mssTrapQuido30HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido30 6 }
+-- Quido31
+mssTrapQuido31TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido31 1 }
+mssTrapQuido31TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido31 2 }
+mssTrapQuido31DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido31 3 }
+mssTrapQuido31DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido31 4 }
+mssTrapQuido31HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido31 5 }
+mssTrapQuido31HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido31 6 }
+-- Quido32
+mssTrapQuido32TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido32 1 }
+mssTrapQuido32TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido32 2 }
+mssTrapQuido32DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido32 3 }
+mssTrapQuido32DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido32 4 }
+mssTrapQuido32HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido32 5 }
+mssTrapQuido32HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido32 6 }
+-- Quido33
+mssTrapQuido33TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido33 1 }
+mssTrapQuido33TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido33 2 }
+mssTrapQuido33DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido33 3 }
+mssTrapQuido33DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido33 4 }
+mssTrapQuido33HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido33 5 }
+mssTrapQuido33HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido33 6 }
+-- Quido34
+mssTrapQuido34TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido34 1 }
+mssTrapQuido34TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido34 2 }
+mssTrapQuido34DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido34 3 }
+mssTrapQuido34DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido34 4 }
+mssTrapQuido34HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido34 5 }
+mssTrapQuido34HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido34 6 }
+-- Quido35
+mssTrapQuido35TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido35 1 }
+mssTrapQuido35TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido35 2 }
+mssTrapQuido35DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido35 3 }
+mssTrapQuido35DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido35 4 }
+mssTrapQuido35HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido35 5 }
+mssTrapQuido35HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido35 6 }
+-- Quido36
+mssTrapQuido36TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido36 1 }
+mssTrapQuido36TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido36 2 }
+mssTrapQuido36DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido36 3 }
+mssTrapQuido36DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido36 4 }
+mssTrapQuido36HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido36 5 }
+mssTrapQuido36HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido36 6 }
+-- Quido37
+mssTrapQuido37TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido37 1 }
+mssTrapQuido37TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido37 2 }
+mssTrapQuido37DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido37 3 }
+mssTrapQuido37DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido37 4 }
+mssTrapQuido37HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido37 5 }
+mssTrapQuido37HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido37 6 }
+-- Quido38
+mssTrapQuido38TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido38 1 }
+mssTrapQuido38TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido38 2 }
+mssTrapQuido38DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido38 3 }
+mssTrapQuido38DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido38 4 }
+mssTrapQuido38HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido38 5 }
+mssTrapQuido38HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido38 6 }
+-- Quido39
+mssTrapQuido39TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido39 1 }
+mssTrapQuido39TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido39 2 }
+mssTrapQuido39DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido39 3 }
+mssTrapQuido39DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido39 4 }
+mssTrapQuido39HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido39 5 }
+mssTrapQuido39HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido39 6 }
+-- Quido40
+mssTrapQuido40TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido40 1 }
+mssTrapQuido40TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido40 2 }
+mssTrapQuido40DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido40 3 }
+mssTrapQuido40DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido40 4 }
+mssTrapQuido40HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido40 5 }
+mssTrapQuido40HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido40 6 }
+-- Quido41
+mssTrapQuido41TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido41 1 }
+mssTrapQuido41TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido41 2 }
+mssTrapQuido41DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido41 3 }
+mssTrapQuido41DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido41 4 }
+mssTrapQuido41HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido41 5 }
+mssTrapQuido41HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido41 6 }
+-- Quido42
+mssTrapQuido42TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido42 1 }
+mssTrapQuido42TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido42 2 }
+mssTrapQuido42DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido42 3 }
+mssTrapQuido42DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido42 4 }
+mssTrapQuido42HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido42 5 }
+mssTrapQuido42HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido42 6 }
+-- Quido43
+mssTrapQuido43TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido43 1 }
+mssTrapQuido43TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido43 2 }
+mssTrapQuido43DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido43 3 }
+mssTrapQuido43DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido43 4 }
+mssTrapQuido43HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido43 5 }
+mssTrapQuido43HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido43 6 }
+-- Quido44
+mssTrapQuido44TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido44 1 }
+mssTrapQuido44TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido44 2 }
+mssTrapQuido44DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido44 3 }
+mssTrapQuido44DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido44 4 }
+mssTrapQuido44HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido44 5 }
+mssTrapQuido44HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido44 6 }
+-- Quido45
+mssTrapQuido45TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido45 1 }
+mssTrapQuido45TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido45 2 }
+mssTrapQuido45DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido45 3 }
+mssTrapQuido45DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido45 4 }
+mssTrapQuido45HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido45 5 }
+mssTrapQuido45HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido45 6 }
+-- Quido46
+mssTrapQuido46TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido46 1 }
+mssTrapQuido46TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido46 2 }
+mssTrapQuido46DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido46 3 }
+mssTrapQuido46DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido46 4 }
+mssTrapQuido46HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido46 5 }
+mssTrapQuido46HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido46 6 }
+-- Quido47
+mssTrapQuido47TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido47 1 }
+mssTrapQuido47TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido47 2 }
+mssTrapQuido47DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido47 3 }
+mssTrapQuido47DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido47 4 }
+mssTrapQuido47HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido47 5 }
+mssTrapQuido47HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido47 6 }
+-- Quido48
+mssTrapQuido48TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido48 1 }
+mssTrapQuido48TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido48 2 }
+mssTrapQuido48DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido48 3 }
+mssTrapQuido48DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido48 4 }
+mssTrapQuido48HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido48 5 }
+mssTrapQuido48HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido48 6 }
+-- Quido49
+mssTrapQuido49TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido49 1 }
+mssTrapQuido49TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido49 2 }
+mssTrapQuido49DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido49 3 }
+mssTrapQuido49DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido49 4 }
+mssTrapQuido49HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido49 5 }
+mssTrapQuido49HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido49 6 }
+-- Quido50
+mssTrapQuido50TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido50 1 }
+mssTrapQuido50TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido50 2 }
+mssTrapQuido50DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido50 3 }
+mssTrapQuido50DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido50 4 }
+mssTrapQuido50HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido50 5 }
+mssTrapQuido50HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido50 6 }
+-- Quido51
+mssTrapQuido51TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido51 1 }
+mssTrapQuido51TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido51 2 }
+mssTrapQuido51DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido51 3 }
+mssTrapQuido51DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido51 4 }
+mssTrapQuido51HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido51 5 }
+mssTrapQuido51HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido51 6 }
+-- Quido52
+mssTrapQuido52TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido52 1 }
+mssTrapQuido52TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido52 2 }
+mssTrapQuido52DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido52 3 }
+mssTrapQuido52DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido52 4 }
+mssTrapQuido52HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido52 5 }
+mssTrapQuido52HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido52 6 }
+-- Quido53
+mssTrapQuido53TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido53 1 }
+mssTrapQuido53TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido53 2 }
+mssTrapQuido53DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido53 3 }
+mssTrapQuido53DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido53 4 }
+mssTrapQuido53HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido53 5 }
+mssTrapQuido53HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido53 6 }
+-- Quido54
+mssTrapQuido54TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido54 1 }
+mssTrapQuido54TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido54 2 }
+mssTrapQuido54DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido54 3 }
+mssTrapQuido54DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido54 4 }
+mssTrapQuido54HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido54 5 }
+mssTrapQuido54HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido54 6 }
+-- Quido55
+mssTrapQuido55TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido55 1 }
+mssTrapQuido55TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido55 2 }
+mssTrapQuido55DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido55 3 }
+mssTrapQuido55DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido55 4 }
+mssTrapQuido55HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido55 5 }
+mssTrapQuido55HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido55 6 }
+-- Quido56
+mssTrapQuido56TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido56 1 }
+mssTrapQuido56TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido56 2 }
+mssTrapQuido56DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido56 3 }
+mssTrapQuido56DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido56 4 }
+mssTrapQuido56HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido56 5 }
+mssTrapQuido56HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido56 6 }
+-- Quido57
+mssTrapQuido57TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido57 1 }
+mssTrapQuido57TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido57 2 }
+mssTrapQuido57DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido57 3 }
+mssTrapQuido57DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido57 4 }
+mssTrapQuido57HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido57 5 }
+mssTrapQuido57HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido57 6 }
+-- Quido58
+mssTrapQuido58TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido58 1 }
+mssTrapQuido58TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido58 2 }
+mssTrapQuido58DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido58 3 }
+mssTrapQuido58DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido58 4 }
+mssTrapQuido58HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido58 5 }
+mssTrapQuido58HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido58 6 }
+-- Quido59
+mssTrapQuido59TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido59 1 }
+mssTrapQuido59TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido59 2 }
+mssTrapQuido59DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido59 3 }
+mssTrapQuido59DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido59 4 }
+mssTrapQuido59HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido59 5 }
+mssTrapQuido59HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido59 6 }
+-- Quido60
+mssTrapQuido60TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido60 1 }
+mssTrapQuido60TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido60 2 }
+mssTrapQuido60DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido60 3 }
+mssTrapQuido60DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido60 4 }
+mssTrapQuido60HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido60 5 }
+mssTrapQuido60HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido60 6 }
+-- Quido61
+mssTrapQuido61TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido61 1 }
+mssTrapQuido61TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido61 2 }
+mssTrapQuido61DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido61 3 }
+mssTrapQuido61DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido61 4 }
+mssTrapQuido61HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido61 5 }
+mssTrapQuido61HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido61 6 }
+-- Quido62
+mssTrapQuido62TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido62 1 }
+mssTrapQuido62TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido62 2 }
+mssTrapQuido62DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido62 3 }
+mssTrapQuido62DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido62 4 }
+mssTrapQuido62HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido62 5 }
+mssTrapQuido62HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido62 6 }
+-- Quido63
+mssTrapQuido63TempOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido63 1 }
+mssTrapQuido63TempWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido temperature status." ::= { mssTrapQuido63 2 }
+mssTrapQuido63DoorOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido63 3 }
+mssTrapQuido63DoorWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido door status."        ::= { mssTrapQuido63 4 }
+mssTrapQuido63HumiOK  NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido63 5 }
+mssTrapQuido63HumiWAR NOTIFICATION-TYPE STATUS current DESCRIPTION "Trap for Quido humidity status."    ::= { mssTrapQuido63 6 }
+
+
+--
+-- MSS SNMP SET command definitions (controls)
+--
+
+mssControl OBJECT IDENTIFIER ::= { mssTp 190 }
+
+--
+-- era.systems.mssTp.mssControl.mssMaster  definitions
+--
+
+mssMaster OBJECT IDENTIFIER ::= { mssControl 99 }
+
+terminal OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "A unique character string that identifies 'who is'  master or 'who was' the last master."
+    ::= { mssMaster 1 }
+
+timeOfGrant OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Provides value that indicates the point of time when the (last) master got the permission."
+    ::= { mssMaster 2 }
+
+timeLimit OBJECT-TYPE
+    SYNTAX      INTEGER { na(-9999) }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Provides value that indicates the total time limit in [s] what current master got or what the next master will get after the master request."
+    ::= { mssMaster 3 }
+
+request OBJECT-TYPE
+    SYNTAX      INTEGER { release(0), grant(1) }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Enables a user to put the request for 'Grant Master Permission' or to perform 'Release Master Permission' action. SNMP-GET on this entry returns value 1 - a master permission is granted at the moment or value 0 - master permission is not granted at the moment."
+    ::= { mssMaster 11 }
+
+
+-- ***********************Conformance information*****************************
+--
+-- Compliance and group definitions
+--
+
+mssTpMIBConformance OBJECT IDENTIFIER ::= { mssTp 200 }
+mssTpMIBGroups OBJECT IDENTIFIER ::= { mssTpMIBConformance 2 }
+
+mssTpStatusGroup OBJECT-GROUP
+    OBJECTS {
+        tpIndex, tpAsterixStatus, tpServerStatus, rxs, inputData,
+        rpu, txs, rmtr, rack, networkDevices,
+        tpServerIndex, tpSwVer, tpSwProcesses, tpTimeSync, tpIrrMode, tpCpu, tpCpuLoad, tpMemory, tpMemoryUsage, tpDriveC, tpDriveCUsage, tpDriveD, tpDriveDUsage,
+		tpLan1, tpLan1Usage, tpLan2, tpLan2Usage, tpMlatCnt, tpAdsbCnt, tpRestartSw, tpRestartComp,
+        tp1-rxIndex, tp1-rxStatus, tp1-rxPower, tp1-rxFOAStatus, tp1-rxFOBStatus, tp1-rxActiveFO, tp1-rxAcAll, tp1-rxModesAll, tp1-rxModesGarbled, tp1-rxSiteName,
+        tp2-rxIndex, tp2-rxStatus, tp2-rxPower, tp2-rxFOAStatus, tp2-rxFOBStatus, tp2-rxActiveFO, tp2-rxAcAll, tp2-rxModesAll, tp2-rxModesGarbled, tp2-rxSiteName,
+        tp3-rxIndex, tp3-rxStatus, tp3-rxPower, tp3-rxFOAStatus, tp3-rxFOBStatus, tp3-rxActiveFO, tp3-rxAcAll, tp3-rxModesAll, tp3-rxModesGarbled, tp3-rxSiteName,
+        tp4-rxIndex, tp4-rxStatus, tp4-rxPower, tp4-rxFOAStatus, tp4-rxFOBStatus, tp4-rxActiveFO, tp4-rxAcAll, tp4-rxModesAll, tp4-rxModesGarbled, tp4-rxSiteName,
+        tp5-rxIndex, tp5-rxStatus, tp5-rxPower, tp5-rxFOAStatus, tp5-rxFOBStatus, tp5-rxActiveFO, tp5-rxAcAll, tp5-rxModesAll, tp5-rxModesGarbled, tp5-rxSiteName,
+        tp6-rxIndex, tp6-rxStatus, tp6-rxPower, tp6-rxFOAStatus, tp6-rxFOBStatus, tp6-rxActiveFO, tp6-rxAcAll, tp6-rxModesAll, tp6-rxModesGarbled, tp6-rxSiteName,
+        tp7-rxIndex, tp7-rxStatus, tp7-rxPower, tp7-rxFOAStatus, tp7-rxFOBStatus, tp7-rxActiveFO, tp7-rxAcAll, tp7-rxModesAll, tp7-rxModesGarbled, tp7-rxSiteName,
+        tp8-rxIndex, tp8-rxStatus, tp8-rxPower, tp8-rxFOAStatus, tp8-rxFOBStatus, tp8-rxActiveFO, tp8-rxAcAll, tp8-rxModesAll, tp8-rxModesGarbled, tp8-rxSiteName,
+        txsIndex, txStatus, txLan1, txLan2, txOutPower, txVSWR, txOutPul,
+        txNtpComm, txDutyCycle, txInputData, txOverheating, txPower,
+        txModesAddr, txLan1Addr, txLan2Addr, txSiteName,
+        rmtrIndex, rmtrStatus, rmtrSiteName,
+        outChannIndex, outChannState, outChannEnc1, outChannEnc2, outChannBps, outChannBytes,
+        rpuIndex, rpuStatus, rpuTimeSync, rpuSwVer, rpuPower, rpuSiteName, rpuRestartSw, rpuRestartComp,
+		tp1-bvimIndex, tp1-bvimTemp, tp1-bvimPowerX, tp1-bvimPowerY, tp1-bvimDinStatus,
+		tp2-bvimIndex, tp2-bvimTemp, tp2-bvimPowerX, tp2-bvimPowerY, tp2-bvimDinStatus,
+		tp3-bvimIndex, tp3-bvimTemp, tp3-bvimPowerX, tp3-bvimPowerY, tp3-bvimDinStatus,
+		tp4-bvimIndex, tp4-bvimTemp, tp4-bvimPowerX, tp4-bvimPowerY, tp4-bvimDinStatus,
+		tp5-bvimIndex, tp5-bvimTemp, tp5-bvimPowerX, tp5-bvimPowerY, tp5-bvimDinStatus,
+		tp6-bvimIndex, tp6-bvimTemp, tp6-bvimPowerX, tp6-bvimPowerY, tp6-bvimDinStatus,
+		tp7-bvimIndex, tp7-bvimTemp, tp7-bvimPowerX, tp7-bvimPowerY, tp7-bvimDinStatus,
+		tp8-bvimIndex, tp8-bvimTemp, tp8-bvimPowerX, tp8-bvimPowerY, tp8-bvimDinStatus,
+        musrIndex, musrCommunication, musrHw, musrTimeSync, musrTemp,
+        serverManagementIndex, serverManagementStatus,
+		switchIndex, switchStatus,
+		routerIndex, routerStatus,
+		ntpIndex, ntpStatus,
+		upsIndex, upsStatus,
+        quidoIndex, quidoStatus, quidoTemperatureStatus, quidoTemperatureValue, quidoHumidityStatus, quidoHumidityValue,
+		quidoDoorSwitchStatus, quidoShockSensorCounter
+    }
+    STATUS current
+    DESCRIPTION "A collection of objects which are part of the mssTpStatus."
+    ::= { mssTpMIBGroups 1 }
+
+mssTrapsGroup NOTIFICATION-GROUP
+    NOTIFICATIONS {
+        mssTrapTpError, mssTrapTpDegraded, mssTrapTpOK,
+        mssTrapQuido00TempOK, mssTrapQuido00TempWAR, mssTrapQuido00DoorOK, mssTrapQuido00DoorWAR, mssTrapQuido00HumiOK, mssTrapQuido00HumiWAR,
+        mssTrapQuido01TempOK, mssTrapQuido01TempWAR, mssTrapQuido01DoorOK, mssTrapQuido01DoorWAR, mssTrapQuido01HumiOK, mssTrapQuido01HumiWAR,
+        mssTrapQuido02TempOK, mssTrapQuido02TempWAR, mssTrapQuido02DoorOK, mssTrapQuido02DoorWAR, mssTrapQuido02HumiOK, mssTrapQuido02HumiWAR,
+        mssTrapQuido03TempOK, mssTrapQuido03TempWAR, mssTrapQuido03DoorOK, mssTrapQuido03DoorWAR, mssTrapQuido03HumiOK, mssTrapQuido03HumiWAR,
+        mssTrapQuido04TempOK, mssTrapQuido04TempWAR, mssTrapQuido04DoorOK, mssTrapQuido04DoorWAR, mssTrapQuido04HumiOK, mssTrapQuido04HumiWAR,
+        mssTrapQuido05TempOK, mssTrapQuido05TempWAR, mssTrapQuido05DoorOK, mssTrapQuido05DoorWAR, mssTrapQuido05HumiOK, mssTrapQuido05HumiWAR,
+        mssTrapQuido06TempOK, mssTrapQuido06TempWAR, mssTrapQuido06DoorOK, mssTrapQuido06DoorWAR, mssTrapQuido06HumiOK, mssTrapQuido06HumiWAR,
+        mssTrapQuido07TempOK, mssTrapQuido07TempWAR, mssTrapQuido07DoorOK, mssTrapQuido07DoorWAR, mssTrapQuido07HumiOK, mssTrapQuido07HumiWAR,
+        mssTrapQuido08TempOK, mssTrapQuido08TempWAR, mssTrapQuido08DoorOK, mssTrapQuido08DoorWAR, mssTrapQuido08HumiOK, mssTrapQuido08HumiWAR,
+        mssTrapQuido09TempOK, mssTrapQuido09TempWAR, mssTrapQuido09DoorOK, mssTrapQuido09DoorWAR, mssTrapQuido09HumiOK, mssTrapQuido09HumiWAR,
+        mssTrapQuido10TempOK, mssTrapQuido10TempWAR, mssTrapQuido10DoorOK, mssTrapQuido10DoorWAR, mssTrapQuido10HumiOK, mssTrapQuido10HumiWAR,
+        mssTrapQuido11TempOK, mssTrapQuido11TempWAR, mssTrapQuido11DoorOK, mssTrapQuido11DoorWAR, mssTrapQuido11HumiOK, mssTrapQuido11HumiWAR,
+        mssTrapQuido12TempOK, mssTrapQuido12TempWAR, mssTrapQuido12DoorOK, mssTrapQuido12DoorWAR, mssTrapQuido12HumiOK, mssTrapQuido12HumiWAR,
+        mssTrapQuido13TempOK, mssTrapQuido13TempWAR, mssTrapQuido13DoorOK, mssTrapQuido13DoorWAR, mssTrapQuido13HumiOK, mssTrapQuido13HumiWAR,
+        mssTrapQuido14TempOK, mssTrapQuido14TempWAR, mssTrapQuido14DoorOK, mssTrapQuido14DoorWAR, mssTrapQuido14HumiOK, mssTrapQuido14HumiWAR,
+        mssTrapQuido15TempOK, mssTrapQuido15TempWAR, mssTrapQuido15DoorOK, mssTrapQuido15DoorWAR, mssTrapQuido15HumiOK, mssTrapQuido15HumiWAR,
+        mssTrapQuido16TempOK, mssTrapQuido16TempWAR, mssTrapQuido16DoorOK, mssTrapQuido16DoorWAR, mssTrapQuido16HumiOK, mssTrapQuido16HumiWAR,
+        mssTrapQuido17TempOK, mssTrapQuido17TempWAR, mssTrapQuido17DoorOK, mssTrapQuido17DoorWAR, mssTrapQuido17HumiOK, mssTrapQuido17HumiWAR,
+        mssTrapQuido18TempOK, mssTrapQuido18TempWAR, mssTrapQuido18DoorOK, mssTrapQuido18DoorWAR, mssTrapQuido18HumiOK, mssTrapQuido18HumiWAR,
+        mssTrapQuido19TempOK, mssTrapQuido19TempWAR, mssTrapQuido19DoorOK, mssTrapQuido19DoorWAR, mssTrapQuido19HumiOK, mssTrapQuido19HumiWAR,
+        mssTrapQuido20TempOK, mssTrapQuido20TempWAR, mssTrapQuido20DoorOK, mssTrapQuido20DoorWAR, mssTrapQuido20HumiOK, mssTrapQuido20HumiWAR,
+        mssTrapQuido21TempOK, mssTrapQuido21TempWAR, mssTrapQuido21DoorOK, mssTrapQuido21DoorWAR, mssTrapQuido21HumiOK, mssTrapQuido21HumiWAR,
+        mssTrapQuido22TempOK, mssTrapQuido22TempWAR, mssTrapQuido22DoorOK, mssTrapQuido22DoorWAR, mssTrapQuido22HumiOK, mssTrapQuido22HumiWAR,
+        mssTrapQuido23TempOK, mssTrapQuido23TempWAR, mssTrapQuido23DoorOK, mssTrapQuido23DoorWAR, mssTrapQuido23HumiOK, mssTrapQuido23HumiWAR,
+        mssTrapQuido24TempOK, mssTrapQuido24TempWAR, mssTrapQuido24DoorOK, mssTrapQuido24DoorWAR, mssTrapQuido24HumiOK, mssTrapQuido24HumiWAR,
+        mssTrapQuido25TempOK, mssTrapQuido25TempWAR, mssTrapQuido25DoorOK, mssTrapQuido25DoorWAR, mssTrapQuido25HumiOK, mssTrapQuido25HumiWAR,
+        mssTrapQuido26TempOK, mssTrapQuido26TempWAR, mssTrapQuido26DoorOK, mssTrapQuido26DoorWAR, mssTrapQuido26HumiOK, mssTrapQuido26HumiWAR,
+        mssTrapQuido27TempOK, mssTrapQuido27TempWAR, mssTrapQuido27DoorOK, mssTrapQuido27DoorWAR, mssTrapQuido27HumiOK, mssTrapQuido27HumiWAR,
+        mssTrapQuido28TempOK, mssTrapQuido28TempWAR, mssTrapQuido28DoorOK, mssTrapQuido28DoorWAR, mssTrapQuido28HumiOK, mssTrapQuido28HumiWAR,
+        mssTrapQuido29TempOK, mssTrapQuido29TempWAR, mssTrapQuido29DoorOK, mssTrapQuido29DoorWAR, mssTrapQuido29HumiOK, mssTrapQuido29HumiWAR,
+        mssTrapQuido30TempOK, mssTrapQuido30TempWAR, mssTrapQuido30DoorOK, mssTrapQuido30DoorWAR, mssTrapQuido30HumiOK, mssTrapQuido30HumiWAR,
+        mssTrapQuido31TempOK, mssTrapQuido31TempWAR, mssTrapQuido31DoorOK, mssTrapQuido31DoorWAR, mssTrapQuido31HumiOK, mssTrapQuido31HumiWAR,
+        mssTrapQuido32TempOK, mssTrapQuido32TempWAR, mssTrapQuido32DoorOK, mssTrapQuido32DoorWAR, mssTrapQuido32HumiOK, mssTrapQuido32HumiWAR,
+        mssTrapQuido33TempOK, mssTrapQuido33TempWAR, mssTrapQuido33DoorOK, mssTrapQuido33DoorWAR, mssTrapQuido33HumiOK, mssTrapQuido33HumiWAR,
+        mssTrapQuido34TempOK, mssTrapQuido34TempWAR, mssTrapQuido34DoorOK, mssTrapQuido34DoorWAR, mssTrapQuido34HumiOK, mssTrapQuido34HumiWAR,
+        mssTrapQuido35TempOK, mssTrapQuido35TempWAR, mssTrapQuido35DoorOK, mssTrapQuido35DoorWAR, mssTrapQuido35HumiOK, mssTrapQuido35HumiWAR,
+        mssTrapQuido36TempOK, mssTrapQuido36TempWAR, mssTrapQuido36DoorOK, mssTrapQuido36DoorWAR, mssTrapQuido36HumiOK, mssTrapQuido36HumiWAR,
+        mssTrapQuido37TempOK, mssTrapQuido37TempWAR, mssTrapQuido37DoorOK, mssTrapQuido37DoorWAR, mssTrapQuido37HumiOK, mssTrapQuido37HumiWAR,
+        mssTrapQuido38TempOK, mssTrapQuido38TempWAR, mssTrapQuido38DoorOK, mssTrapQuido38DoorWAR, mssTrapQuido38HumiOK, mssTrapQuido38HumiWAR,
+        mssTrapQuido39TempOK, mssTrapQuido39TempWAR, mssTrapQuido39DoorOK, mssTrapQuido39DoorWAR, mssTrapQuido39HumiOK, mssTrapQuido39HumiWAR,
+        mssTrapQuido40TempOK, mssTrapQuido40TempWAR, mssTrapQuido40DoorOK, mssTrapQuido40DoorWAR, mssTrapQuido40HumiOK, mssTrapQuido40HumiWAR,
+        mssTrapQuido41TempOK, mssTrapQuido41TempWAR, mssTrapQuido41DoorOK, mssTrapQuido41DoorWAR, mssTrapQuido41HumiOK, mssTrapQuido41HumiWAR,
+        mssTrapQuido42TempOK, mssTrapQuido42TempWAR, mssTrapQuido42DoorOK, mssTrapQuido42DoorWAR, mssTrapQuido42HumiOK, mssTrapQuido42HumiWAR,
+        mssTrapQuido43TempOK, mssTrapQuido43TempWAR, mssTrapQuido43DoorOK, mssTrapQuido43DoorWAR, mssTrapQuido43HumiOK, mssTrapQuido43HumiWAR,
+        mssTrapQuido44TempOK, mssTrapQuido44TempWAR, mssTrapQuido44DoorOK, mssTrapQuido44DoorWAR, mssTrapQuido44HumiOK, mssTrapQuido44HumiWAR,
+        mssTrapQuido45TempOK, mssTrapQuido45TempWAR, mssTrapQuido45DoorOK, mssTrapQuido45DoorWAR, mssTrapQuido45HumiOK, mssTrapQuido45HumiWAR,
+        mssTrapQuido46TempOK, mssTrapQuido46TempWAR, mssTrapQuido46DoorOK, mssTrapQuido46DoorWAR, mssTrapQuido46HumiOK, mssTrapQuido46HumiWAR,
+        mssTrapQuido47TempOK, mssTrapQuido47TempWAR, mssTrapQuido47DoorOK, mssTrapQuido47DoorWAR, mssTrapQuido47HumiOK, mssTrapQuido47HumiWAR,
+        mssTrapQuido48TempOK, mssTrapQuido48TempWAR, mssTrapQuido48DoorOK, mssTrapQuido48DoorWAR, mssTrapQuido48HumiOK, mssTrapQuido48HumiWAR,
+        mssTrapQuido49TempOK, mssTrapQuido49TempWAR, mssTrapQuido49DoorOK, mssTrapQuido49DoorWAR, mssTrapQuido49HumiOK, mssTrapQuido49HumiWAR,
+        mssTrapQuido50TempOK, mssTrapQuido50TempWAR, mssTrapQuido50DoorOK, mssTrapQuido50DoorWAR, mssTrapQuido50HumiOK, mssTrapQuido50HumiWAR,
+        mssTrapQuido51TempOK, mssTrapQuido51TempWAR, mssTrapQuido51DoorOK, mssTrapQuido51DoorWAR, mssTrapQuido51HumiOK, mssTrapQuido51HumiWAR,
+        mssTrapQuido52TempOK, mssTrapQuido52TempWAR, mssTrapQuido52DoorOK, mssTrapQuido52DoorWAR, mssTrapQuido52HumiOK, mssTrapQuido52HumiWAR,
+        mssTrapQuido53TempOK, mssTrapQuido53TempWAR, mssTrapQuido53DoorOK, mssTrapQuido53DoorWAR, mssTrapQuido53HumiOK, mssTrapQuido53HumiWAR,
+        mssTrapQuido54TempOK, mssTrapQuido54TempWAR, mssTrapQuido54DoorOK, mssTrapQuido54DoorWAR, mssTrapQuido54HumiOK, mssTrapQuido54HumiWAR,
+        mssTrapQuido55TempOK, mssTrapQuido55TempWAR, mssTrapQuido55DoorOK, mssTrapQuido55DoorWAR, mssTrapQuido55HumiOK, mssTrapQuido55HumiWAR,
+        mssTrapQuido56TempOK, mssTrapQuido56TempWAR, mssTrapQuido56DoorOK, mssTrapQuido56DoorWAR, mssTrapQuido56HumiOK, mssTrapQuido56HumiWAR,
+        mssTrapQuido57TempOK, mssTrapQuido57TempWAR, mssTrapQuido57DoorOK, mssTrapQuido57DoorWAR, mssTrapQuido57HumiOK, mssTrapQuido57HumiWAR,
+        mssTrapQuido58TempOK, mssTrapQuido58TempWAR, mssTrapQuido58DoorOK, mssTrapQuido58DoorWAR, mssTrapQuido58HumiOK, mssTrapQuido58HumiWAR,
+        mssTrapQuido59TempOK, mssTrapQuido59TempWAR, mssTrapQuido59DoorOK, mssTrapQuido59DoorWAR, mssTrapQuido59HumiOK, mssTrapQuido59HumiWAR,
+        mssTrapQuido60TempOK, mssTrapQuido60TempWAR, mssTrapQuido60DoorOK, mssTrapQuido60DoorWAR, mssTrapQuido60HumiOK, mssTrapQuido60HumiWAR,
+        mssTrapQuido61TempOK, mssTrapQuido61TempWAR, mssTrapQuido61DoorOK, mssTrapQuido61DoorWAR, mssTrapQuido61HumiOK, mssTrapQuido61HumiWAR,
+        mssTrapQuido62TempOK, mssTrapQuido62TempWAR, mssTrapQuido62DoorOK, mssTrapQuido62DoorWAR, mssTrapQuido62HumiOK, mssTrapQuido62HumiWAR,
+        mssTrapQuido63TempOK, mssTrapQuido63TempWAR, mssTrapQuido63DoorOK, mssTrapQuido63DoorWAR, mssTrapQuido63HumiOK, mssTrapQuido63HumiWAR
+    }
+    STATUS current
+    DESCRIPTION "A collection of objects which are part of the mssTpStatus."
+    ::= { mssTpMIBGroups 2 }
+
+mssControlGroup OBJECT-GROUP
+    OBJECTS {
+        terminal, timeOfGrant, timeLimit, request
+    }
+    STATUS current
+    DESCRIPTION "A collection of objects which are part of the mssTpStatus."
+    ::= { mssTpMIBGroups 3 }
+
+END
