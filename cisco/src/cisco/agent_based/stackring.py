@@ -12,7 +12,6 @@ https://kuhn-ruess.de
 
 from cmk.agent_based.v2 import (
     CheckPlugin,
-    OIDEnd,
     Result,
     Service,
     SNMPSection,
@@ -37,13 +36,12 @@ snmp_section_cisco_stackring = SNMPSection(
     parse_function=parse_cisco_stackring,
     detect=all_of(
         contains(".1.3.6.1.2.1.1.1.0", "cisco"),
-        exists(".1.3.6.1.4.1.9.9.500.1.2.1.1.1"),
-        exists(".1.3.6.1.4.1.9.9.500.1.1.3"),
+        exists(".1.3.6.1.4.1.9.9.500.1.1.2.0"),
     ),
     fetch=[
         SNMPTree(
-            base=".1.3.6.1.4.1.9.9.500.1.2.1.1.1",
-            oids=[OIDEnd()],
+            base=".1.3.6.1.4.1.9.9.500.1.2.1.1",
+            oids=["1"],
         ),
         SNMPTree(
             base=".1.3.6.1.4.1.9.9.500.1.1",

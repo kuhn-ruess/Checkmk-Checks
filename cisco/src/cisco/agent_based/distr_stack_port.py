@@ -18,7 +18,9 @@ from cmk.agent_based.v2 import (
     SimpleSNMPSection,
     SNMPTree,
     State,
-    startswith,
+    all_of,
+    contains,
+    exists,
 )
 
 
@@ -33,7 +35,10 @@ snmp_section_cisco_distr_stack_port = SimpleSNMPSection(
         base=".1.3.6.1.4.1.9.9.500.1.2.4.1",
         oids=["1", "2", "3"],
     ),
-    detect=startswith(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.9.1.2871"),
+    detect=all_of(
+        contains(".1.3.6.1.2.1.1.1.0", "cisco"),
+        exists(".1.3.6.1.4.1.9.9.500.1.1.2.0"),
+    ),
 )
 
 
