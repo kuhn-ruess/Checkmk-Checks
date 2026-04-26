@@ -265,7 +265,44 @@ metric_mysql_status_open_files = Metric(
     color = Color.RED,
 )
 
+from cmk.graphing.v1.graphs import Graph
 from cmk.graphing.v1.perfometers import FocusRange, Open, Perfometer
+
+metric_mysql_status_connection_errors_max_connections = Metric(
+    name="mysql_status_connection_errors_max_connections",
+    title=Title("Connection errors: max_connections exceeded"),
+    unit=UNIT_NUMBER,
+    color=Color.RED,
+)
+metric_mysql_status_connection_errors_internal = Metric(
+    name="mysql_status_connection_errors_internal",
+    title=Title("Connection errors: internal"),
+    unit=UNIT_NUMBER,
+    color=Color.YELLOW,
+)
+metric_mysql_status_connection_errors_accept = Metric(
+    name="mysql_status_connection_errors_accept",
+    title=Title("Connection errors: accept()"),
+    unit=UNIT_NUMBER,
+    color=Color.ORANGE,
+)
+metric_mysql_status_connection_errors_peer_address = Metric(
+    name="mysql_status_connection_errors_peer_address",
+    title=Title("Connection errors: peer address lookup"),
+    unit=UNIT_NUMBER,
+    color=Color.PURPLE,
+)
+
+graph_mysql_connection_errors = Graph(
+    name="mysql_connection_errors",
+    title=Title("MySQL Connection Errors"),
+    compound_lines=[
+        "mysql_status_connection_errors_max_connections",
+        "mysql_status_connection_errors_internal",
+        "mysql_status_connection_errors_accept",
+        "mysql_status_connection_errors_peer_address",
+    ],
+)
 
 perfometer_mysql_status_aborted_clients = Perfometer(
     name = "mysql_status_aborted_clients",
