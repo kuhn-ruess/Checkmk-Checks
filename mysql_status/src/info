@@ -46,6 +46,9 @@
                 '- Threads_cached\n'
                 '- Open_tables\n'
                 '- Open_files\n'
+                '\n'
+                'Additional combined service "MySQL Status <instance> Query '
+                'Types" with rates per second and a combined graph for:\n'
                 '- Com_select\n'
                 '- Com_insert\n'
                 '- Com_update\n'
@@ -54,11 +57,12 @@
  'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
  'files': {'cmk_addons_plugins': ['mysql_status/agent_based/mysql_status.py',
                                   'mysql_status/checkman/mysql_status',
+                                  'mysql_status/checkman/mysql_status_query_types',
                                   'mysql_status/graphing/mysql_status.py',
                                   'mysql_status/rulesets/mysql_status.py']},
  'name': 'mysql_status',
  'title': 'Check for MySQL status variables',
- 'version': '6.2.0',
+ 'version': '6.2.1',
  'version.min_required': '2.3.0b1',
  'version.packaged': '2.4.0p8',
  'version.usable_until': None}

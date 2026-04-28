@@ -1,0 +1,26 @@
+title: MySQL: Query types per second (combined graph)
+agents: linux
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Reports the rate per second of the most common SQL command types
+ reported by {SHOW GLOBAL STATUS} as {Com_select}, {Com_insert},
+ {Com_update}, {Com_delete} and {Com_replace}.
+
+ All five rates are emitted as metrics on a single combined service
+ so Checkmk can render them together in the {MySQL Query Types}
+ graph instead of one isolated graph per service.
+
+ The check works as a subcheck of the standard Checkmk MySQL
+ monitoring; the MySQL agent plugin must be configured on the
+ monitored host.
+
+item:
+ The MySQL instance name as reported by the MySQL agent section
+ (e.g. {mysql}).
+
+inventory:
+ One service per MySQL instance is created automatically when at
+ least one of the supported {Com_*} counters is present in the
+ instance section.
