@@ -10,7 +10,7 @@
  'files': {'agents': ['custom/windows_ping/check_ping.ps1']},
  'name': 'windows_ping',
  'title': 'Windows Ping (MRPE/Nagios compatible PowerShell check)',
- 'version': '1.0.0',
+ 'version': '1.0.1',
  'version.min_required': '2.3.0b1',
  'version.packaged': '2.4.0p13',
  'version.usable_until': None}

@@ -79,5 +79,5 @@ if ($pl -ge $CriticalPl -or $rta_avg -ge $CriticalRta) {
 }
 
 $perf = "rta=${rta_avg}ms;${WarningRta};${CriticalRta};0; pl=${pl}%;${WarningPl};${CriticalPl};0;100 rtmin=${rta_min}ms rtmax=${rta_max}ms"
-Write-Host "PING $stateText - $HostName: rta ${rta_avg}ms, lost ${pl}% ($received/$sent) | $perf"
+Write-Host "PING $stateText - ${HostName}: rta ${rta_avg}ms, lost ${pl}% ($received/$sent) | $perf"
 exit $state
