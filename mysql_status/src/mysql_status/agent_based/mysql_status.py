@@ -65,6 +65,8 @@ mysql_status_inventory = { #pylint: disable=invalid-name
     "Threads_cached"                    : ("Gauge",   True),
 }
 
+MYSQL_QUERY_TYPES = ("Com_select", "Com_insert", "Com_update", "Com_delete", "Com_replace")
+
 
 def discover_mysql_status(section):
     for key, items in section.items():
@@ -147,4 +149,53 @@ check_plugin_mysql_status = CheckPlugin(
     check_function = check_mysql_status,
     check_default_parameters = {},
     check_ruleset_name = "mysql_status",
+)
+
+
+def discover_mysql_status_query_types(section):
+    for instance, items in section.items():
+        if any(qt in items for qt in MYSQL_QUERY_TYPES):
+            yield Service(item=instance)
+
+
+def check_mysql_status_query_types(item, section):
+    if item not in section:
+        yield Result(state=State.UNKNOWN, summary="Instance data not found in output")
+        return
+
+    data = section[item]
+    now = time()
+    value_store = get_value_store()
+    rates = {}
+
+    for query_type in MYSQL_QUERY_TYPES:
+        if query_type not in data:
+            continue
+        try:
+            per_sec = get_rate(
+                value_store=value_store,
+                key=f"mysql_status_query_types.{query_type}",
+                time=now,
+                value=data[query_type],
+                raise_overflow=True,
+            )
+        except GetRateError:
+            per_sec = 0.0
+        rates[query_type] = per_sec
+        yield Metric(name=f"mysql_status_{query_type.lower()}", value=per_sec)
+
+    summary = ", ".join(
+        f"{query_type[4:].upper()}: {rates[query_type]:.2f}/s"
+        for query_type in MYSQL_QUERY_TYPES
+        if query_type in rates
+    )
+    yield Result(state=State.OK, summary=summary or "No query type counters found")
+
+
+check_plugin_mysql_status_query_types = CheckPlugin(
+    name = "mysql_status_query_types",
+    sections = ["mysql"],
+    service_name = "MySQL Status %s Query Types",
+    discovery_function = discover_mysql_status_query_types,
+    check_function = check_mysql_status_query_types,
 )
