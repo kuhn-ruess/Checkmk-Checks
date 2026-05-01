@@ -63,6 +63,10 @@ mysql_status_inventory = { #pylint: disable=invalid-name
     "Sort_merge_passes"                 : ("Counter", False),
     "Table_locks_waited"                : ("Counter", False),
     "Threads_cached"                    : ("Gauge",   True),
+    "Connection_errors_max_connections" : ("Counter", False),
+    "Connection_errors_internal"        : ("Counter", False),
+    "Connection_errors_accept"          : ("Counter", False),
+    "Connection_errors_peer_address"    : ("Counter", False),
 }
 
 
