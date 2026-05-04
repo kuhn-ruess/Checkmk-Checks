@@ -49,7 +49,7 @@ def build_payload(context):
         'checkmk_id': checkmk_id,
         'checkmk_alarm': service_level,
         'checkmk_tag1': alarm_contact,
-        'checkmk_tag2': context.get('HOSTLABEL_basisdienst'),
+        'checkmk_tag2': context.get('HOSTLABEL_anwendung'),
     }]
 
 
