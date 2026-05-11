@@ -1,7 +1,7 @@
 # Mysql Performance Checks
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.0.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.2.0-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.0.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.4-informational) ![packaged](https://img.shields.io/badge/packaged-2.2.0-blue)
 <!-- compatibility-badges:end -->
 
 Adds a MySQL Thread Cache hit-rate subcheck on top of the built-in

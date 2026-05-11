@@ -1,7 +1,7 @@
 # Cisco Catalyst 9K Redundancy check
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.0.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.0.0p20-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.0.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.4-informational) ![packaged](https://img.shields.io/badge/packaged-2.0.0p20-blue)
 <!-- compatibility-badges:end -->
 
 SNMP check that verifies whether a Cisco Catalyst 9000 StackWise stack forms a redundant ring. A single service `Stack Ring Redundancy` is created on matching devices.

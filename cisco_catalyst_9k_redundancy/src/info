@@ -20,4 +20,4 @@
  'version': '1.0.2',
  'version.min_required': '2.0.0',
  'version.packaged': '2.0.0p20',
- 'version.usable_until': None}
+ 'version.usable_until': '2.4'}

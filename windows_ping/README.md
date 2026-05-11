@@ -1,7 +1,7 @@
 # windows_ping
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p13-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.4-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p13-blue)
 <!-- compatibility-badges:end -->
 
 PowerShell-based Nagios/MRPE compatible ping check for the Checkmk Windows

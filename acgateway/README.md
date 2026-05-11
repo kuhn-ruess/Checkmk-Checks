@@ -1,7 +1,7 @@
 # AudioCode Gateway
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p5-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p5-blue)
 <!-- compatibility-badges:end -->
 
 SNMP checks for AudioCodes SIP gateways and SBCs. Adds services for active alarms, SBC call and user statistics, SIP interface and IP group configuration, and Tel2IP / IP2Tel performance counters. Based on earlier work by Robert Sander.

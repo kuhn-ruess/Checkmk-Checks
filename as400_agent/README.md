@@ -1,7 +1,7 @@
 # AS 400 Agent
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0p1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p8-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0p1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p8-blue)
 <!-- compatibility-badges:end -->
 
 Special agent for IBM AS/400 (IBM i) monitoring. Connects to the system via ODBC (pyodbc) and produces Checkmk services for:

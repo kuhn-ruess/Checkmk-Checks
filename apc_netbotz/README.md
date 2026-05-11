@@ -1,7 +1,7 @@
 # APC Netbotz sensors
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p24-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p24-blue)
 <!-- compatibility-badges:end -->
 
 Additional SNMP checks for APC Netbotz environmental appliances, covering sensor types that are not monitored by the built-in Netbotz checks. Tested on APC Netbotz 750. Adds services for beacon, leak and vibration sensors.

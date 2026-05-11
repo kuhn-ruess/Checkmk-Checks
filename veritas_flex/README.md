@@ -1,7 +1,7 @@
 # Veritas Flex Appliance
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.3.0p25-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.3.0p25-blue)
 <!-- compatibility-badges:end -->
 
 Special agent for Veritas Flex storage appliances. Logs in against the Flex REST API, reads node hardware and services health, and enumerates instances; the results are emitted as a `<<<local>>>` section, so each check is a Checkmk local check.

@@ -1,7 +1,7 @@
 # Cisco Catalyst 9k VSS switch redundancy state
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.0.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.0.0p20-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.0.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.4-informational) ![packaged](https://img.shields.io/badge/packaged-2.0.0p20-blue)
 <!-- compatibility-badges:end -->
 
 Monitors the StackWise Virtual (VSS) redundancy state on Cisco Catalyst 9000 series switches. One service per member switch reports the current switch role (master / member / standby / not member) and the switch state (ready, waiting, mismatches, etc.).

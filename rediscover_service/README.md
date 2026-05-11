@@ -1,7 +1,7 @@
 # Rediscover service
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p5-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p5-blue)
 <!-- compatibility-badges:end -->
 
 Notification plugin that triggers a service rediscovery via the Checkmk REST API whenever a matching service notification fires. Useful for items that legitimately change at runtime (mount options, interface speed, SMART attributes, ...) so that the stored discovery parameters are refreshed automatically instead of requiring a manual rediscovery.

@@ -1,7 +1,7 @@
 # GUDE ATS Input Monitoring
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p5-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p5-blue)
 <!-- compatibility-badges:end -->
 
 SNMP monitoring for GUDE Automatic Transfer Switch devices. One `Input Status` service per device reports which input feed (Primary or Secondary) is currently active and alerts when either feed goes missing or when the active feed has switched away from the one seen at discovery time.

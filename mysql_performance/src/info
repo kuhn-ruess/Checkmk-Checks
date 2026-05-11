@@ -7,4 +7,5 @@
  'title': u'Mysql Performance Checks',
  'version': '2.0.0',
  'version.min_required': '2.0.0',
- 'version.packaged': '2.2.0'}
+ 'version.packaged': '2.2.0',
+ 'version.usable_until': '2.4'}

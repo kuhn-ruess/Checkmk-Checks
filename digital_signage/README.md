@@ -1,7 +1,7 @@
 # Digital Signage Monitoring
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p8-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p8-blue)
 <!-- compatibility-badges:end -->
 
 Monitors GPU engine load on Windows hosts used as digital signage players (shop displays, airport screens, etc.). A PowerShell agent plugin samples the `GPUPerformanceCounters` WMI class and reports utilisation of the 3D, Copy, VideoProcessing and VideoDecode engines as a single Checkmk service.

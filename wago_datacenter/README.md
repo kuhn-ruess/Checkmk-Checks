@@ -1,7 +1,7 @@
 # WAGO Datacenter Signals
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p24-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p24-blue)
 <!-- compatibility-badges:end -->
 
 SNMP check for WAGO PFC200 controllers used as datacenter signal gateways. Reads a table of free-form signal strings from the WAGO PLC data write area and produces one Checkmk service per signal, with OK/CRIT driven by the first word of the payload.

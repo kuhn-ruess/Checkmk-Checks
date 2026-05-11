@@ -1,7 +1,7 @@
 # CSMON SAP Monitoring Connector
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.3.0p18-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.3.0p18-blue)
 <!-- compatibility-badges:end -->
 
 Special agent that imports hosts and services from a CSMON SAP monitoring instance into Checkmk using the CSMON REST API. Each CSMON host is re-published as a piggyback block, and each CSMON service is emitted as a `local` check so it shows up natively under the corresponding Checkmk host.

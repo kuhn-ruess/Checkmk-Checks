@@ -1,7 +1,7 @@
 # CIFS Filesystem Monitoring
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p7-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p7-blue)
 <!-- compatibility-badges:end -->
 
 Agent side plugin that makes CIFS / SMB mounts visible to the standard Checkmk `df` filesystem check. The default Linux agent skips CIFS because `df` on a stuck CIFS mount can hang; this plugin wraps `df` in `waitmax` and re-emits the output so existing Filesystem services pick it up.

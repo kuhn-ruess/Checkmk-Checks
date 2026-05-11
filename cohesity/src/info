@@ -18,4 +18,4 @@
  'version': '1.5.1',
  'version.min_required': '2.4.0',
  'version.packaged': '2.4.0p4',
- 'version.usable_until': None}
+ 'version.usable_until': '2.5'}

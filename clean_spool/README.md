@@ -1,7 +1,7 @@
 # Clean spool files of Checkmk Notification Spooler
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.3.0p9-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.4-informational) ![packaged](https://img.shields.io/badge/packaged-2.3.0p9-blue)
 <!-- compatibility-badges:end -->
 
 Helper script that cleans out stale notifications from the Checkmk notification spooler. When a notification outburst hits the spooler, recovery or downtime-end notifications can queue up behind problem or downtime-start notifications that will never be useful any more. This script scans the spool directory and deletes matching problem/recovery and downtime-start/downtime-end pairs so the spooler drains faster.

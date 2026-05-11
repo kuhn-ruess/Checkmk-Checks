@@ -1,7 +1,7 @@
 # Exasol appliance monitoring
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.3.0p30-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.3.0p30-blue)
 <!-- compatibility-badges:end -->
 
 Special agent for monitoring an Exasol appliance via its XML-RPC management API. Replaces the legacy Nagios plugins and collects node states, service health, per-database storage usage and backup expirations in a single pass, with all parameters configurable from WATO.

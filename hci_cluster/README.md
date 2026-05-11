@@ -1,7 +1,7 @@
 # HCI Cluster Monitoring
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.3.0p25-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.3.0p25-blue)
 <!-- compatibility-badges:end -->
 
 Monitoring for Microsoft Storage Spaces Direct / Failover Cluster (HCI) environments. A PowerShell agent plugin on a Windows host queries cluster state via the FailoverClusters cmdlets and produces sections that are evaluated by several check plugins: nodes, cluster resources, S2D storage pools, virtual disks, storage jobs, and volume performance.

@@ -1,7 +1,7 @@
 # Sina Inventory
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0p1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0p1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0-blue)
 <!-- compatibility-badges:end -->
 
 HW/SW inventory plugin for secunet SINA Workstations. Parses a JSON blob delivered by a SINA-side agent and writes system, hardware, BIOS, user/token and arbitrary `hwinfo` data into the Checkmk HW/SW inventory tree so that support staff can see background information on a host directly from its inventory view.

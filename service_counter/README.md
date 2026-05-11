@@ -1,7 +1,7 @@
 # Count pattern in services for metrics
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p14-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p14-blue)
 <!-- compatibility-badges:end -->
 
 Special agent that queries the local Checkmk REST API, counts how many existing services match one or more configurable filters (by service description, plugin output, host name / labels, site) and exposes each count as a local check with a `count` metric. Useful for building dashboards that show how many hosts or services are currently in a given state.

@@ -13,4 +13,5 @@
  'title': 'Rittal LCP Monitoring',
  'version': '1.0.1',
  'version.min_required': '1.1.10',
- 'version.packaged': '1.1.10'}
+ 'version.packaged': '1.1.10',
+ 'version.usable_until': '2.4'}

@@ -1,7 +1,7 @@
 # Raid controller monitoring via StorCLI2 tool
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p9-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p9-blue)
 <!-- compatibility-badges:end -->
 
 Monitors LSI / Broadcom RAID controllers on Windows hosts via the `StorCLI2.exe` utility. A PowerShell agent plugin runs `StorCLI2 /call show all`, splits the report into several sub-sections, and the check plugins evaluate tool status, firmware versions, enclosures, physical and virtual drives, chip/board temperature, and a generic key/value status check with a discovery filter.

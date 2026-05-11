@@ -1,7 +1,7 @@
 # Cisco Portsecurity Status
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p18-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p18-blue)
 <!-- compatibility-badges:end -->
 
 Reports on Cisco switches whether any administratively up port has Port Security disabled. A single service `Port Security Status` is created per device; it goes WARN when at least one non-excluded port has port security turned off.

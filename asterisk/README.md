@@ -1,7 +1,7 @@
 # Asterisk notification script
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.3.0p20-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.3.0p20-blue)
 <!-- compatibility-badges:end -->
 
 Notification script that places a phone call via an Asterisk PBX when Checkmk raises a notification. Uses the Asterisk Manager Interface (AMI) `Originate` action to dial a configured channel / extension.

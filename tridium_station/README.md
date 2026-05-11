@@ -1,7 +1,7 @@
 # Tridium Station Monitoring
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-1.2.8-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-1.5.0p9-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-1.2.8-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.4-informational) ![packaged](https://img.shields.io/badge/packaged-1.5.0p9-blue)
 <!-- compatibility-badges:end -->
 
 SNMP monitoring for Tridium Niagara stations (enterprise OID `.1.3.6.1.4.1.4131.1`). Probes are exposed as a flat name/value table where the value can be either a numeric reading or a textual state, and this plugin supports both, plus a rule-based cross-probe state check and a fuel tank check.

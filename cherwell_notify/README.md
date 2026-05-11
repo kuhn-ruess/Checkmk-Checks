@@ -1,7 +1,7 @@
 # Cherwell notification script
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p7-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p7-blue)
 <!-- compatibility-badges:end -->
 
 Notification script that creates incidents in Ivanti Service Management (formerly Cherwell). It posts the notification context to the Cherwell REST API, then performs a follow-up update and, for Event Console notifications, acknowledges the original event with the returned incident ID.

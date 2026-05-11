@@ -1,7 +1,7 @@
 # Unisphere PowerMax
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0p2-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p7-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0p2-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p7-blue)
 <!-- compatibility-badges:end -->
 
 Special agent for Dell EMC Unisphere for PowerMax. Queries the Unisphere REST API at `https://<host>:<port>/univmax/restapi` and emits multiple Checkmk sections covering Storage Resource Pools, directors, port groups, masking views, volumes/ports, array performance, alert summaries, health scores and health checks.

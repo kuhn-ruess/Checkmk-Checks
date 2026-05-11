@@ -1,7 +1,7 @@
 # EC Cleanup Script
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p13-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.4-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p13-blue)
 <!-- compatibility-badges:end -->
 
 Command-line helper for the Checkmk Event Console. When the EC is flooded with Checkmk-sourced events and the Notification Spooler cannot keep up delivering the OK follow-ups, this script finds all open EC events whose corresponding Checkmk host or service is already back to OK and archives them on demand.

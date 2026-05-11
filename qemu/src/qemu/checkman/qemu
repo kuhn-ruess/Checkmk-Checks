@@ -1,0 +1,15 @@
+title: Qemu / KVM virtual machines
+agents: linux
+catalog: app/virtualization
+license: GPL
+distribution: kuhn-ruess
+description:
+ Monitors QEMU and libvirt-managed KVM virtual machines via the agent plugin
+ 'qemu', which uses virsh to enumerate running guests and reports CPU and
+ memory usage per VM. The check produces one service per running VM.
+
+ Optional upper levels on CPU and memory usage are configurable via the rule
+ 'Qemu / KVM'. If a discovered VM is not running, the service goes CRIT.
+
+inventory:
+ One service per running VM is created.

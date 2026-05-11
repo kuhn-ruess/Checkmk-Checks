@@ -1,7 +1,7 @@
 # Rittal LCP Monitoring
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-1.1.10-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-1.1.10-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-1.1.10-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.4-informational) ![packaged](https://img.shields.io/badge/packaged-1.1.10-blue)
 <!-- compatibility-badges:end -->
 
 SNMP-based monitoring of Rittal LCP (Liquid Cooling Package) rack cooling units via the Rittal CMC-TC enterprise MIB. One Checkmk service is created per supported sensor (blowers, server in/out temperatures, water in/out temperatures, water flow, blower grade, regulator).

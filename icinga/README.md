@@ -1,7 +1,7 @@
 # Icinga Connector
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0p1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p18-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0p1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p18-blue)
 <!-- compatibility-badges:end -->
 
 Special agent that connects to an Icinga 2 instance over the REST API and mirrors every service check as a Checkmk `local` check via piggyback. States, outputs, and performance data are preserved. When a service's plain-text output contains an HTML `<table>`, the connector splits the table rows into multiple Checkmk sub-services.

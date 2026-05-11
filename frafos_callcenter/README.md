@@ -1,7 +1,7 @@
 # Frafos Callcenter Metric
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.0.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.0.0p20-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.0.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.4-informational) ![packaged](https://img.shields.io/badge/packaged-2.0.0p20-blue)
 <!-- compatibility-badges:end -->
 
 SNMP monitoring for Frafos SBC (Session Border Controller) callcenter systems. Provides a global `Call Statistics` service with total and per-minute call counts and one `Call Agent <name>` service per configured call agent with current, per-minute and traffic metrics in both directions.

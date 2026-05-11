@@ -1,7 +1,7 @@
 # ERA MSS Target Processor Monitoring
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0p15-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p15-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0p15-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p15-blue)
 <!-- compatibility-badges:end -->
 
 SNMP monitoring for the ERA MSS (Multi-Sensor Surveillance) target processor system from [era.aero](https://www.era.aero/). One check plugin per subsystem produces services for the receiver, transmitter, target processor virtual server, remoter, BVIM, MUSR and NTP status, mapping the vendor status values (`OKA`, `WAR`, `n/a`) to Checkmk OK / WARN / UNKNOWN.

@@ -1,7 +1,7 @@
 # SAP Alm Cloud Monitoring
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0p8-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p13-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0p8-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p13-blue)
 <!-- compatibility-badges:end -->
 
 Special agent that pulls metrics from the SAP Cloud ALM (Application Lifecycle Management) Analytics OData API and turns each returned metric into a Checkmk service. Users configure an OData `$filter` expression to select which metrics the host should monitor.

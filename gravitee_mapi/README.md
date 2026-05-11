@@ -1,7 +1,7 @@
 # Gravitee API Management Monitoring
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p18-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p18-blue)
 <!-- compatibility-badges:end -->
 
 Special agent for Gravitee API Management (MAPI). Discovers every API in the configured Gravitee environment and produces three services per API: average response time, error rate distribution, and availability / health.

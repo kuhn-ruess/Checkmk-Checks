@@ -10,4 +10,4 @@
  'version': '1.0.2',
  'version.min_required': '1.6.0',
  'version.packaged': '1.6.0',
- 'version.usable_until': None}
+ 'version.usable_until': '2.4'}

@@ -1,7 +1,7 @@
 # Alarms
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p24-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p24-blue)
 <!-- compatibility-badges:end -->
 
 Notification plugin that plays an audible alarm through an HTTP API backend, for example to signal incidents on a TV, workstation or dedicated alarm box. Tested against a simple PHP backend shipped with XAMPP on Windows 11.

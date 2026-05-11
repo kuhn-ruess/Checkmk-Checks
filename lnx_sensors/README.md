@@ -1,7 +1,7 @@
 # Monitoring Linux sensors
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p5-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p5-blue)
 <!-- compatibility-badges:end -->
 
 Agent-side plugin that collects CPU temperatures via `lm-sensors` on Linux hosts and evaluates them through the built-in `temperature` check. One `Temperature CPU <core>` service is created per CPU core. The section supersedes `lnx_thermal`, so enabling this plugin disables the built-in thermal check.

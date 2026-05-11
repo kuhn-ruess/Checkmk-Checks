@@ -1,7 +1,7 @@
 # Bachmann EMA Monitoring
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0p1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.3.0p25-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0p1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.3.0p25-blue)
 <!-- compatibility-badges:end -->
 
 SNMP check for Bachmann BlueNet EMA (Environmental Monitoring Adapter) GPIO ports. Discovers one service per enabled GPIO sensor and reports its mode, switch state and entity status.

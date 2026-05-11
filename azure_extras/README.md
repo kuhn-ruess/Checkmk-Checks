@@ -1,7 +1,7 @@
 # Additional Azure Monitoring
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0p18-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p18-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0p18-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p18-blue)
 <!-- compatibility-badges:end -->
 
 Complementary special agent for Azure networking resources. Runs standalone or alongside the built-in Checkmk Azure integration and emits piggyback sections so extra services appear on the same hosts.

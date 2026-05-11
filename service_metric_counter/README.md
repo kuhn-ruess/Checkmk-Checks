@@ -1,7 +1,7 @@
 # Count the Value of Service Perfdata Metrics
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0p1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.3.0p25-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0p1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.3.0p25-blue)
 <!-- compatibility-badges:end -->
 
 Special agent that sums a named performance-data metric across all Checkmk services matched by a Livestatus-style filter and exposes the total as its own Checkmk service. Example use case: add up the `users` metric of every matching `Users` service in a distributed setup and alert on a global upper level.

@@ -1,7 +1,7 @@
 # Service Now Notification
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p7-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p7-blue)
 <!-- compatibility-badges:end -->
 
 Notification plugin that creates and closes ServiceNow incidents for Checkmk host and service events, using Checkmk contact groups to derive the ServiceNow assignment group. A contact group prefix of `SNOW_<number>_...` determines the assignment: the group with the highest number wins, and host or service custom attributes can override it explicitly.

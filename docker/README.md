@@ -1,7 +1,7 @@
 # Agent Based Docker Monitoring
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0p1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.3.0p25-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0p1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.3.0p25-blue)
 <!-- compatibility-badges:end -->
 
 Monitors Docker via an agent plugin that talks directly to the local Docker socket and reports one service per container, one per image, plus a daemon info service. Useful when a host runs a fixed set of containers and you want per-container state, CPU, memory and size metrics without relying on Checkmk's built-in Docker integration.

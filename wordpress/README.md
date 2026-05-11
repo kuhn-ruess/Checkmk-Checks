@@ -1,7 +1,7 @@
 # Wordpress Instance Monitoring
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0p1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p8-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0p1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p8-blue)
 <!-- compatibility-badges:end -->
 
 Monitors the WordPress core version of every WordPress installation found on a Linux host. A PHP agent plugin discovers WordPress instances, loads each one via `wp-load.php`, asks the WordPress update API whether a newer core is available, and publishes the result as a JSON document in the `<<<wordpress_instances>>>` agent section.

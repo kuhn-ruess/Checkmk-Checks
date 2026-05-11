@@ -1,7 +1,7 @@
 # Sidecooler checks
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-current-informational) ![packaged](https://img.shields.io/badge/packaged-2.3.0p30-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.3.0p30-blue)
 <!-- compatibility-badges:end -->
 
 SNMP-based monitoring for Sidecooler rack cooling units via the vendor MIB under `.1.3.6.1.4.1.46984.17`. The package ships seven check plugins covering device status, active alerts, fans, power supplies, warm/cold temperature bands, cold-water supply/return, and the cooling valve.
