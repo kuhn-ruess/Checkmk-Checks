@@ -1,0 +1,27 @@
+{'author': 'Kuhn & Rueß GmbH',
+ 'description': 'SNMP checks for Vertiv Avocent ACS 8000 Series console servers:\n'
+                '- Device info (model, firmware, serial)\n'
+                '- Power supply status\n'
+                '- Active sessions count\n'
+                '- CPU temperature\n'
+                '- Per serial port: connection state and RX/TX rate\n',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
+ 'files': {'cmk_addons_plugins': ['vertiv_acs8000/agent_based/info.py',
+                                  'vertiv_acs8000/agent_based/psu.py',
+                                  'vertiv_acs8000/agent_based/sessions.py',
+                                  'vertiv_acs8000/agent_based/cpu_temperature.py',
+                                  'vertiv_acs8000/agent_based/serial_port.py',
+                                  'vertiv_acs8000/rulesets/sessions.py',
+                                  'vertiv_acs8000/rulesets/cpu_temperature.py',
+                                  'vertiv_acs8000/rulesets/serial_port.py',
+                                  'vertiv_acs8000/rulesets/psu.py',
+                                  'vertiv_acs8000/checkman/vertiv_acs8000_info',
+                                  'vertiv_acs8000/checkman/vertiv_acs8000_psu',
+                                  'vertiv_acs8000/checkman/vertiv_acs8000_sessions',
+                                  'vertiv_acs8000/checkman/vertiv_acs8000_cpu_temperature',
+                                  'vertiv_acs8000/checkman/vertiv_acs8000_serial_port']},
+ 'name': 'vertiv_acs8000',
+ 'title': 'Vertiv Avocent ACS 8000 console server',
+ 'version': '1.0.0',
+ 'version.min_required': '2.4.0',
+ 'version.packaged': '2.4.0p4'}

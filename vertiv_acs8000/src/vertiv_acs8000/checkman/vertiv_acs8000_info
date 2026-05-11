@@ -1,0 +1,17 @@
+title: Vertiv Avocent ACS 8000: Device information
+agents: snmp
+catalog: hw/network/vertiv
+license: GPL
+distribution: kuhn-ruess
+description:
+ Reports basic identification of a Vertiv Avocent ACS 8000 console server:
+ host name, product model, part number, serial number, bootcode version
+ and firmware version. The check always reports OK and is intended as a
+ static information service.
+
+ The section also sets two host labels:
+ {cmk/vendor:vertiv} and {cmk/device_type:console_server},
+ plus {vertiv/model:<model>} so other rules can target ACS hosts.
+
+inventory:
+ One service per host is created.

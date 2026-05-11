@@ -2,7 +2,7 @@ title: AudioCodes Gateway Media Realm
 agents: snmp
 catalog: hw/network/audiocodes
 license: GPL
-distribution: heinlein
+distribution: kuhn-ruess
 description:
  Monitor the media realms on AudioCodes gateways.
  When a status changes the check will become critical.
