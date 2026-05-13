@@ -9,7 +9,6 @@ https://kuhn-ruess.de
 import json
 import argparse
 import requests
-#from requests.auth import HTTPBasicAuth
 
 
 class CMDBSYncer():
@@ -24,26 +23,56 @@ class CMDBSYncer():
         Init
         """
         self.api_host = api_host
-        #self.auth = HTTPBasicAuth(user, password)
         self.username = username
         self.password = password
         self.timeout = float(timeout)
 
     def request(self, what):
         """
-        Request Data
+        Request Data. Returns the API ``result`` payload on success, or a
+        compact error dict the check side can render as a CRIT — including
+        the HTTP status so rate limiting (429), auth (401) and server
+        errors are distinguishable from "really no data".
         """
         headers = {
             'x-login-user': f"{self.username}:{self.password}",
         }
         url = f'{self.api_host}/api/v1/{what}'
-        response = requests.get(url, headers=headers, timeout=self.timeout)
         try:
-            return response.json()['result']
-        except (KeyError, TypeError):
-            if response.status_code == 401:
-                return {'name': "invalid_login", "message": "Please check login", "has_error": True}
-            return {'name': 'not_found', "message": "Object not Found", "has_error": True}
+            response = requests.get(url, headers=headers, timeout=self.timeout)
+        except requests.RequestException as exc:
+            return {
+                'has_error': True,
+                'status_code': 0,
+                'message': f"Connection error: {exc}",
+            }
+
+        try:
+            payload = response.json()
+        except ValueError:
+            payload = {}
+
+        if response.ok and 'result' in payload:
+            return payload['result']
+
+        # Build a human-readable reason. Flask-Limiter answers 429 with
+        # ``{"message": "10 per 1 hour"}`` — surface that verbatim so the
+        # operator immediately recognises a rate-limit hit.
+        reason = payload.get('message') or payload.get('error') or response.text.strip()
+        if response.status_code == 429:
+            label = f"HTTP 429 rate limit ({reason})"
+        elif response.status_code == 401:
+            label = f"HTTP 401 unauthorized ({reason or 'check user / api_roles'})"
+        elif response.status_code:
+            label = f"HTTP {response.status_code}: {reason or 'no body'}"
+        else:
+            label = reason or "Unknown API error"
+
+        return {
+            'has_error': True,
+            'status_code': response.status_code,
+            'message': label,
+        }
 
     def get_service(self, service_name):
         """
@@ -55,9 +84,22 @@ class CMDBSYncer():
 
     def get_cron(self):
         """
-        Get Latest Service Log Entry
+        Get cron group status. On API failure emit a single synthetic
+        ``API`` item so the check side raises a clearly labelled CRIT
+        service instead of silently discovering nothing.
         """
-        print(json.dumps(self.request('syncer/cron/')))
+        response = self.request('syncer/cron/')
+        if isinstance(response, dict) and response.get('has_error'):
+            response = [{
+                'name': 'API',
+                'last_message': response['message'],
+                'is_running': False,
+                'next_run': None,
+                'last_start': None,
+                'has_error': True,
+                'error': response['message'],
+            }]
+        print(json.dumps(response))
 
 
 if __name__ == "__main__":

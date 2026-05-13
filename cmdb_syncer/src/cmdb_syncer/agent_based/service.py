@@ -45,16 +45,17 @@ def check_cmdb_syncer_service(item, params, section):
     """
     Check single Service
     """
-    state = State.OK
     data = section[item]
-    yield Result(state=state, summary=data['message'])
-    if data['has_error']:
-        yield Result(state=State.CRIT, summary="Has Error")
+    # The agent now passes the real API failure reason (HTTP status,
+    # rate-limit message, …) in ``message`` when ``has_error`` is set.
+    if data.get('has_error'):
+        yield Result(state=State.CRIT,
+                     summary=data.get('message', 'API error'))
+        return
 
+    yield Result(state=State.OK, summary=data['message'])
     for detail in data.get('details', []):
         yield Result(state=State.OK, summary=f"{detail['name']}: {detail['message'][:40]}")
-
-    state = State.OK
 
 
 agent_section_cmdb_syncer_service = AgentSection(
