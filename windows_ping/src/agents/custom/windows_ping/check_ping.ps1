@@ -5,8 +5,15 @@ https://kuhn-ruess.de
 
 check_ping.ps1 - MRPE (Nagios) compatible ping check for Checkmk on Windows.
 
-Usage (MRPE):
-    check Ping_MyHost = powershell.exe -ExecutionPolicy Bypass -File C:\ProgramData\checkmk\agent\local\check_ping.ps1 myhost.example.com
+Usage (MRPE): invoke through the bundled check_ping.cmd wrapper, e.g.
+
+    check Ping_MyHost = C:\ProgramData\checkmk\agent\local\custom\windows_ping\check_ping.cmd myhost.example.com
+
+The wrapper resolves powershell.exe, points -File at this script and
+forwards all arguments. Do not call powershell.exe directly from MRPE: the
+Checkmk Windows agent's argument splitter can mangle the quotes around the
+.ps1 path, which leaves PowerShell in interactive mode (banner output,
+status "Invalid plug-in status '4294770688'").
 
 Arguments:
     -HostName     Target hostname or IP (required, positional)
