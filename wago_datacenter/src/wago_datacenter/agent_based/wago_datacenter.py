@@ -21,11 +21,21 @@ from cmk.agent_based.v2 import (
 # Indices 1-3 are device info (ASP Name, Gerätename, Firmenname).
 # Indices 5+ are configurable alarm/status signals.
 _DEVICE_INFO_INDICES = {"1", "2", "3"}
+_INDEX_TO_INFO_KEY = {"1": "asp_name", "2": "device_name", "3": "company"}
+
+# Sub-OIDs inside a signal row:
+#   .X.1 = description string (the controller may prefix it with one byte
+#          that snmpwalk renders as a control character — we strip it)
+#   .X.2 = numeric status code (1 = OK, anything else = fault)
+_FIELD_DESCRIPTION = "1"
+_FIELD_STATUS_CODE = "2"
+_OK_STATUS_CODE = "1"
 
 
 def _decode_value(raw: str) -> str:
-    """Normalize value string - strip whitespace and collapse internal whitespace."""
-    return " ".join(raw.split())
+    """Strip control bytes and collapse whitespace."""
+    cleaned = "".join(c for c in raw if c.isprintable() or c == " ")
+    return " ".join(cleaned.split())
 
 
 def parse_wago_datacenter(string_table):
@@ -33,7 +43,7 @@ def parse_wago_datacenter(string_table):
     Returns:
         {
           "info": {"asp_name": str, "device_name": str, "company": str},
-          "signals": {index: full_value},
+          "signals": {index: {"description": str, "status_code": str}},
         }
 
     Signals are keyed by the SNMP table index (not by description), because
@@ -47,18 +57,25 @@ def parse_wago_datacenter(string_table):
         "signals": {},
     }
 
-    index_to_info_key = {"1": "asp_name", "2": "device_name", "3": "company"}
-
-    for index, raw_value in string_table:
+    for oid_end, raw_value in string_table:
+        parts = oid_end.split(".")
         value = _decode_value(raw_value)
-        if not value:
+
+        if len(parts) == 1:
+            index = parts[0]
+            if index in _DEVICE_INFO_INDICES and value:
+                parsed["info"][_INDEX_TO_INFO_KEY[index]] = value
             continue
 
-        if index in _DEVICE_INFO_INDICES:
-            parsed["info"][index_to_info_key[index]] = value
-            continue
-
-        parsed["signals"][index] = value
+        if len(parts) == 2:
+            index, field = parts
+            entry = parsed["signals"].setdefault(
+                index, {"description": "", "status_code": ""}
+            )
+            if field == _FIELD_DESCRIPTION:
+                entry["description"] = value
+            elif field == _FIELD_STATUS_CODE:
+                entry["status_code"] = value
 
     return parsed
 
@@ -69,50 +86,48 @@ snmp_section_wago_datacenter = SimpleSNMPSection(
     fetch=SNMPTree(
         base=".1.3.6.1.4.1.13576.10.1.100.1.1",
         oids=[
-            OIDEnd(),  # table instance (1, 2, 3, 5, 6, ... 19)
-            "3",       # wioPlcDataWriteArea (message string)
+            OIDEnd(),  # row index, e.g. "1", "2", "3" or "5.1", "5.2", ...
+            "3",       # wioPlcDataWriteArea (description and status code)
         ],
     ),
     detect=startswith(".1.3.6.1.2.1.1.2.0", ".1.3.6.1.4.1.13576"),
 )
 
 
-def _signal_description(value: str) -> str:
-    """Extract description from "<status_word> <description>" payload."""
-    parts = value.split(" ", 1)
-    if len(parts) == 2:
-        return parts[1].strip()
-    return value.strip()
-
-
 def discover_wago_datacenter(section):
-    for index, value in section["signals"].items():
-        description = _signal_description(value) or f"Signal {index}"
+    for index, entry in section["signals"].items():
+        description = entry["description"] or f"Signal {index}"
         yield Service(item=f"{index} {description}")
 
 
 def check_wago_datacenter(item, section):
     index = item.split(" ", 1)[0]
-    if index not in section["signals"]:
+    entry = section["signals"].get(index)
+    if entry is None:
         yield Result(state=State.UNKNOWN, summary="Signal not found in SNMP data")
         return
 
-    value = section["signals"][index]
-    status_word = value.split()[0] if value.split() else ""
+    description = entry["description"] or f"Signal {index}"
+    status_code = entry["status_code"]
 
-    if status_word == "OK":
+    if status_code == _OK_STATUS_CODE:
         state = State.OK
+        summary = f"OK: {description}"
+    elif not status_code:
+        state = State.UNKNOWN
+        summary = f"No status code reported for {description}"
     else:
         state = State.CRIT
+        summary = f"Status {status_code}: {description}"
 
     info = section.get("info", {})
     device_info = info.get("asp_name") or info.get("device_name", "")
-    details = f"Device: {device_info}" if device_info else ""
+    details = f"Device: {device_info}" if device_info else None
 
     yield Result(
         state=state,
-        summary=value,
-        details=details if details else None,
+        summary=summary,
+        details=details,
     )
 
 
