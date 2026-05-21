@@ -1,0 +1,26 @@
+title: HTTP endpoint freshness
+agents: endpoint_age
+catalog: app/http
+license: GPLv3
+distribution: check_mk
+description:
+ This check verifies that an HTTP endpoint is still being kept up to
+ date by an upstream producer (a cronjob, a CDN cache, a periodic
+ export, etc.). The accompanying special agent fetches each configured
+ URL and derives an "age in seconds" from one of three sources:
+ the response header {Age}, an HTTP date header such as {Last-Modified},
+ or a dotted-path lookup into the JSON response body. The check then
+ applies upper level thresholds to that age value and emits an
+ {endpoint_age} metric so the freshness can be graphed.
+
+ The service goes {CRIT} when the endpoint is unreachable, returns an
+ HTTP error, or the configured age source cannot be parsed from the
+ response. Otherwise the state is determined by the configured WARN
+ and CRIT thresholds for the age value.
+
+item:
+ The configured endpoint name.
+
+discovery:
+ One service is discovered for every endpoint returned by the
+ special agent.

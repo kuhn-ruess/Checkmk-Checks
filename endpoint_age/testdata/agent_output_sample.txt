@@ -1,0 +1,2 @@
+<<<endpoint_age:sep(0)>>>
+{"age_seconds": 2617, "detail": "page.updated_at = 2026-05-21T10:33:44.823Z", "error": null, "http_status": 200, "name": "github_status_age", "ok": true, "source": "json_path:page.updated_at", "url": "https://www.githubstatus.com/api/v2/summary.json"}

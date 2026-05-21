@@ -1,0 +1,227 @@
+#!/usr/bin/env python3
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+
+Special agent: probe one or more HTTP endpoints for freshness.
+
+For every configured endpoint the agent performs a GET and derives the
+"age" of the response according to one of three sources:
+
+  - ``age_header``         -> response header ``Age`` (e.g. CloudFront edge)
+  - ``date_header:NAME``   -> response header NAME parsed as an HTTP date
+                              (defaults to ``Last-Modified`` when NAME is
+                              empty).
+  - ``json_path:PATH``     -> dotted-path lookup inside the JSON body,
+                              value parsed as ISO 8601 / RFC 2822 date
+                              or as a number of seconds.
+
+The result is emitted as one JSON object per endpoint, suitable for the
+``endpoint_age`` check plugin.
+"""
+import argparse
+import json
+import re
+import sys
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
+
+
+ENDPOINT_FIELDS = ("name", "url", "source", "timeout", "header")
+
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(description="Endpoint freshness monitoring")
+    parser.add_argument(
+        "--endpoint",
+        action="append",
+        default=[],
+        metavar="JSON",
+        help=(
+            "Endpoint definition as a JSON object with keys "
+            "name, url, source ('age_header' | 'date_header:HEADER' | "
+            "'json_path:DOTTED.PATH'), optional 'timeout' (seconds) "
+            "and optional 'header' (list of 'Name: Value' strings)."
+        ),
+    )
+    args = parser.parse_args()
+    if not args.endpoint:
+        parser.error("At least one --endpoint is required")
+    return args
+
+
+def parse_date(value):
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    try:
+        dt = parsedate_to_datetime(text)
+    except (TypeError, ValueError):
+        dt = None
+    if dt is None:
+        try:
+            dt = datetime.fromisoformat(text.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt
+
+
+def lookup_json_path(data, path):
+    """
+    Resolve a dotted path against decoded JSON. Numeric segments index
+    into lists, everything else is treated as a dict key. Returns
+    ``None`` when the path cannot be resolved.
+    """
+    current = data
+    for raw_seg in re.split(r"\.(?![^\[]*\])", path):
+        if current is None:
+            return None
+        m = re.match(r"^([^\[]+)(?:\[(\d+)\])?$", raw_seg)
+        if not m:
+            return None
+        key, idx = m.group(1), m.group(2)
+        if isinstance(current, dict):
+            current = current.get(key)
+        else:
+            return None
+        if idx is not None:
+            try:
+                current = current[int(idx)]
+            except (TypeError, IndexError, KeyError):
+                return None
+    return current
+
+
+def compute_age(source, headers, body_bytes):
+    """
+    Return ``(age_seconds, detail, error)`` for a given source spec.
+
+    ``detail`` is a short human readable string of the raw value that
+    was used to derive the age (e.g. "Age: 42" or "Last-Modified: ...").
+    """
+    now = datetime.now(timezone.utc)
+
+    if source == "age_header":
+        raw = headers.get("Age")
+        if raw is None:
+            return None, None, "response has no 'Age' header"
+        try:
+            return int(float(raw)), f"Age: {raw}", None
+        except (TypeError, ValueError):
+            return None, None, f"non-numeric Age header: {raw!r}"
+
+    if source.startswith("date_header"):
+        _, _, name = source.partition(":")
+        name = name.strip() or "Last-Modified"
+        raw = headers.get(name)
+        if raw is None:
+            return None, None, f"response has no '{name}' header"
+        dt = parse_date(raw)
+        if dt is None:
+            return None, None, f"cannot parse {name!r} value: {raw!r}"
+        return max(0, int((now - dt).total_seconds())), f"{name}: {raw}", None
+
+    if source.startswith("json_path"):
+        _, _, path = source.partition(":")
+        path = path.strip()
+        if not path:
+            return None, None, "json_path source requires a dotted path"
+        try:
+            decoded = json.loads(body_bytes.decode("utf-8", errors="replace"))
+        except json.JSONDecodeError as exc:
+            return None, None, f"response is not valid JSON: {exc}"
+        value = lookup_json_path(decoded, path)
+        if value is None:
+            return None, None, f"path {path!r} not found in JSON body"
+        if isinstance(value, (int, float)):
+            return max(0, int(value)), f"{path} = {value}", None
+        dt = parse_date(value)
+        if dt is None:
+            return None, None, f"value at {path!r} is not a date: {value!r}"
+        return max(0, int((now - dt).total_seconds())), f"{path} = {value}", None
+
+    return None, None, f"unknown source spec: {source!r}"
+
+
+def probe_endpoint(spec):
+    name = spec.get("name") or spec.get("url") or "endpoint"
+    url = spec.get("url")
+    source = spec.get("source") or "age_header"
+    timeout = float(spec.get("timeout") or 15.0)
+    extra_headers = spec.get("header") or []
+
+    result = {
+        "name": name,
+        "url": url,
+        "source": source,
+        "ok": False,
+        "error": None,
+        "http_status": None,
+        "age_seconds": None,
+        "detail": None,
+    }
+
+    if not url:
+        result["error"] = "missing url"
+        return result
+
+    req = Request(url, headers={"User-Agent": "checkmk-endpoint-age/1.0"})
+    for header in extra_headers:
+        if ":" not in header:
+            continue
+        k, _, v = header.partition(":")
+        req.add_header(k.strip(), v.strip())
+
+    try:
+        with urlopen(req, timeout=timeout) as resp:
+            result["http_status"] = resp.status
+            headers = {k: v for k, v in resp.getheaders()}
+            body = resp.read()
+    except HTTPError as exc:
+        result["http_status"] = exc.code
+        result["error"] = f"HTTP {exc.code}: {exc.reason}"
+        return result
+    except (URLError, TimeoutError) as exc:
+        result["error"] = f"connection error: {exc}"
+        return result
+    except Exception as exc:
+        result["error"] = f"unexpected error: {exc}"
+        return result
+
+    age, detail, error = compute_age(source, headers, body)
+    if error:
+        result["error"] = error
+        return result
+    result["ok"] = True
+    result["age_seconds"] = age
+    result["detail"] = detail
+    return result
+
+
+def main():
+    args = parse_arguments()
+    print("<<<endpoint_age:sep(0)>>>")
+    for raw in args.endpoint:
+        try:
+            spec = json.loads(raw)
+        except json.JSONDecodeError as exc:
+            print(json.dumps({
+                "name": raw[:80],
+                "ok": False,
+                "error": f"invalid endpoint spec (must be JSON): {exc}",
+            }))
+            continue
+        info = probe_endpoint(spec)
+        print(json.dumps(info, sort_keys=True))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

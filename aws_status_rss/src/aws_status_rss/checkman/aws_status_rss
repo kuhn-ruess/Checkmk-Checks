@@ -1,0 +1,23 @@
+title: AWS service status RSS feed
+agents: aws_status_rss
+catalog: cloud/aws
+license: GPLv3
+distribution: check_mk
+description:
+ This check monitors the per-service status RSS/Atom feeds published by
+ AWS at https://status.aws.amazon.com/. For every feed configured in the
+ special agent rule the check verifies that the feed is reachable and
+ contains valid XML data, and inspects the most recent published entry.
+
+ The service goes {CRIT} when the feed cannot be fetched or parsed (HTTP
+ error, timeout, non-XML response). If the feed is healthy and contains
+ no entries at all, AWS is currently not reporting any incident for that
+ service and the state is {OK}. When the newest entry is younger than
+ the configured thresholds, the service goes {WARN} or {CRIT}.
+
+item:
+ The configured service name, e.g. {Amazon CloudFront}.
+
+discovery:
+ One service is discovered for every feed entry returned by the
+ special agent.

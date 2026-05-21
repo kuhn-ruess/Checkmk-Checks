@@ -1,0 +1,177 @@
+#!/usr/bin/env python3
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+
+Special agent: fetch AWS service status RSS feeds and emit one section line
+per configured feed. Each line is a JSON object describing reachability,
+latest item, and item count.
+"""
+import argparse
+import json
+import sys
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
+from xml.etree import ElementTree as ET
+
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(description="AWS Status RSS monitoring")
+    parser.add_argument(
+        "--feed",
+        action="append",
+        default=[],
+        metavar="NAME=URL",
+        help="Service feed in the form 'Service Name=https://...rss'. May be given multiple times.",
+    )
+    parser.add_argument(
+        "--timeout",
+        type=float,
+        default=15.0,
+        help="HTTP timeout in seconds (default: 15)",
+    )
+    args = parser.parse_args()
+    if not args.feed:
+        parser.error("At least one --feed NAME=URL is required")
+    return args
+
+
+def split_feed(spec):
+    if "=" not in spec:
+        raise ValueError(f"feed spec must be NAME=URL, got: {spec!r}")
+    name, url = spec.split("=", 1)
+    name = name.strip()
+    url = url.strip()
+    if not name or not url:
+        raise ValueError(f"empty name or url in feed spec: {spec!r}")
+    return name, url
+
+
+def parse_date(value):
+    if not value:
+        return None
+    value = value.strip()
+    try:
+        dt = parsedate_to_datetime(value)
+    except (TypeError, ValueError):
+        dt = None
+    if dt is None:
+        try:
+            dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt
+
+
+def extract_items(xml_text):
+    """
+    Return list of dicts {title, published, summary} sorted newest first.
+    Supports RSS 2.0 (<item>) and Atom (<entry>).
+    """
+    root = ET.fromstring(xml_text)
+    ns = {"atom": "http://www.w3.org/2005/Atom"}
+    items = []
+
+    for item in root.iter("item"):
+        items.append({
+            "title": (item.findtext("title") or "").strip(),
+            "published": (item.findtext("pubDate") or "").strip(),
+            "summary": (item.findtext("description") or "").strip(),
+        })
+
+    for entry in root.iter("{http://www.w3.org/2005/Atom}entry"):
+        title_el = entry.find("atom:title", ns)
+        published = (
+            entry.findtext("atom:updated", default="", namespaces=ns)
+            or entry.findtext("atom:published", default="", namespaces=ns)
+        )
+        summary_el = entry.find("atom:summary", ns)
+        items.append({
+            "title": (title_el.text or "").strip() if title_el is not None else "",
+            "published": published.strip(),
+            "summary": (summary_el.text or "").strip() if summary_el is not None else "",
+        })
+
+    def sort_key(it):
+        dt = parse_date(it["published"])
+        return dt or datetime.min.replace(tzinfo=timezone.utc)
+
+    items.sort(key=sort_key, reverse=True)
+    return items
+
+
+def probe_feed(name, url, timeout):
+    result = {
+        "name": name,
+        "url": url,
+        "ok": False,
+        "error": None,
+        "items": 0,
+        "latest_title": None,
+        "latest_published": None,
+        "latest_age_seconds": None,
+        "latest_summary": None,
+        "http_status": None,
+    }
+    try:
+        req = Request(url, headers={"User-Agent": "checkmk-aws-status-rss/1.0"})
+        with urlopen(req, timeout=timeout) as resp:
+            result["http_status"] = resp.status
+            body = resp.read()
+    except HTTPError as exc:
+        result["http_status"] = exc.code
+        result["error"] = f"HTTP {exc.code}: {exc.reason}"
+        return result
+    except (URLError, TimeoutError) as exc:
+        result["error"] = f"connection error: {exc}"
+        return result
+    except Exception as exc:
+        result["error"] = f"unexpected error: {exc}"
+        return result
+
+    try:
+        items = extract_items(body.decode("utf-8", errors="replace"))
+    except ET.ParseError as exc:
+        result["error"] = f"feed is not valid XML: {exc}"
+        return result
+
+    result["ok"] = True
+    result["items"] = len(items)
+    if items:
+        latest = items[0]
+        result["latest_title"] = latest["title"] or None
+        result["latest_published"] = latest["published"] or None
+        result["latest_summary"] = (latest["summary"] or "")[:500] or None
+        dt = parse_date(latest["published"])
+        if dt is not None:
+            now = datetime.now(timezone.utc)
+            result["latest_age_seconds"] = max(0, int((now - dt).total_seconds()))
+    return result
+
+
+def main():
+    args = parse_arguments()
+    print("<<<aws_status_rss:sep(0)>>>")
+    for spec in args.feed:
+        try:
+            name, url = split_feed(spec)
+        except ValueError as exc:
+            print(json.dumps({
+                "name": spec,
+                "url": "",
+                "ok": False,
+                "error": str(exc),
+            }))
+            continue
+        info = probe_feed(name, url, args.timeout)
+        print(json.dumps(info, sort_keys=True))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
