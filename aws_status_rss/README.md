@@ -10,6 +10,9 @@ Special agent that probes the per-service status RSS/Atom feeds published by AWS
 
 The agent script `agent_aws_status_rss` takes one or more `--feed "Name=URL"` arguments plus an optional `--timeout` (seconds, default 15) and, for each feed:
 
+<img width="2358" height="1868" alt="grafik" src="https://github.com/user-attachments/assets/d9abc0ad-335e-40db-9946-142f5637e881" />
+
+
 1. Performs a GET against the feed URL with `User-Agent: checkmk-aws-status-rss/1.0`.
 2. Parses the response as RSS 2.0 (`<item>`) or Atom (`<entry>`), extracts every item's title, published date and summary.
 3. Sorts items newest-first and reports reachability, item count, latest title/date/summary and the age of the latest entry in seconds.
@@ -17,6 +20,9 @@ The agent script `agent_aws_status_rss` takes one or more `--feed "Name=URL"` ar
 The output is emitted as one JSON object per feed under section header `<<<aws_status_rss:sep(0)>>>`.
 
 The check plugin `aws_status_rss` discovers one service per feed (`AWS Status <name>`) and reports:
+
+<img width="2262" height="1096" alt="grafik" src="https://github.com/user-attachments/assets/68f08e9b-3ad9-4334-87e0-e28ed52ea1a6" />
+
 
 - `CRIT` when the feed cannot be fetched or parsed (HTTP error, timeout, non-XML response — this catches the "RSS Antwort liefert keine Daten" case).
 - `OK` when the feed is healthy and contains no items (= AWS reports no incident for the service).
