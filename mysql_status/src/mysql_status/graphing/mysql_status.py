@@ -9,6 +9,7 @@ https://kuhn-ruess.de
 from cmk.graphing.v1.metrics import Metric, Title, Color, Unit, DecimalNotation, StrictPrecision
 
 UNIT_NUMBER = Unit(DecimalNotation(""), StrictPrecision(3))
+UNIT_PERCENTAGE = Unit(DecimalNotation("%"), StrictPrecision(1))
 
 metric_mysql_status_aborted_clients = Metric(
     name = "mysql_status_aborted_clients",
@@ -524,4 +525,17 @@ perfometer_mysql_status_open_files = Perfometer(
     name = "mysql_status_open_files",
     focus_range = FocusRange(Open(0), Open(40)),
     segments = ["mysql_status_open_files"],
+)
+
+metric_mysql_status_innodb_buffer_pool_utilization = Metric(
+    name = "mysql_status_innodb_buffer_pool_utilization",
+    title = Title("InnoDB buffer pool utilization"),
+    unit = UNIT_PERCENTAGE,
+    color = Color.BLUE,
+)
+
+perfometer_mysql_status_innodb_buffer_pool_utilization = Perfometer(
+    name = "mysql_status_innodb_buffer_pool_utilization",
+    focus_range = FocusRange(Open(0), Open(100)),
+    segments = ["mysql_status_innodb_buffer_pool_utilization"],
 )
