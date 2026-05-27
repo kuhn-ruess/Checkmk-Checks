@@ -1,0 +1,31 @@
+title: MySQL: InnoDB buffer pool utilization
+agents: linux
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Reports the InnoDB buffer pool utilization in percent, calculated as
+ {(Innodb_buffer_pool_pages_total - Innodb_buffer_pool_pages_free) /
+ Innodb_buffer_pool_pages_total * 100}.
+
+ Both values are collected by the standard Checkmk MySQL agent plugin
+ via {SHOW GLOBAL STATUS}, so no additional agent-side configuration
+ is required.
+
+ High utilization (>90%) is normal and desirable for production
+ databases because a full buffer pool means MySQL caches data
+ effectively. Upper thresholds should therefore only be configured
+ if persistent saturation at 100% is to be flagged, e.g. as an
+ indicator that the buffer pool size needs to be increased.
+
+ The check defaults to always-OK; the ruleset prefills warn/crit at
+ 95% / 99% as a suggested starting point.
+
+item:
+ The MySQL instance name as reported by the MySQL agent section
+ (e.g. {mysql}).
+
+inventory:
+ One service per MySQL instance is created automatically when both
+ {Innodb_buffer_pool_pages_total} and {Innodb_buffer_pool_pages_free}
+ are present in the instance section.
