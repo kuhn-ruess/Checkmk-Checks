@@ -66,6 +66,16 @@ def _valuespec_special_agent_gravitee_mapi():
                 ),
                 required=False,
             ),
+            "proxy_url": DictElement(
+                parameter_form=String(
+                    title=Title("Proxy URL"),
+                    help_text=Help(
+                        "Proxy server URL to use for HTTP(S) requests "
+                        "(e.g., http://proxy.example.com:8080)"
+                    ),
+                ),
+                required=False,
+            ),
         },
     )
 

@@ -22,15 +22,21 @@ class AgentGraviteeMapi:
     environment = "DEFAULT"
     interval = 60
     verify_ssl = True
+    proxy_url = None
 
     def _get(self, url, params=None):
         headers = {"Authorization": f"Bearer {self.token}"}
+        proxies = (
+            {"http": self.proxy_url, "https": self.proxy_url}
+            if self.proxy_url else None
+        )
         resp = requests.get(
             url,
             headers=headers,
             params=params,
             timeout=30,
             verify=self.verify_ssl,
+            proxies=proxies,
         )
         resp.raise_for_status()
         return resp.json()
@@ -137,6 +143,12 @@ if __name__ == "__main__":
         action="store_true",
         help="Disable SSL certificate verification"
     )
+    parser.add_argument(
+        "--proxy-url",
+        required=False,
+        default=None,
+        help="Proxy URL (e.g., http://proxy.example.com:8080)"
+    )
 
     args = parser.parse_args()
 
@@ -146,4 +158,5 @@ if __name__ == "__main__":
     agent.environment = args.environment
     agent.interval = args.interval
     agent.verify_ssl = not args.no_verify_ssl
+    agent.proxy_url = args.proxy_url
     agent.run()

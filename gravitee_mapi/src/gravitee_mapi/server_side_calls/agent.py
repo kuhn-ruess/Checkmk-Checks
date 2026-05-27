@@ -18,6 +18,7 @@ class ConfigParser(BaseModel):
     environment: str = "DEFAULT"
     interval: int = 60
     no_verify_ssl: bool = False
+    proxy_url: str | None = None
 
 
 def agent_arguments(params: ConfigParser, host_config: HostConfig):
@@ -33,6 +34,9 @@ def agent_arguments(params: ConfigParser, host_config: HostConfig):
 
     if params.no_verify_ssl:
         args.append("--no-verify-ssl")
+
+    if params.proxy_url:
+        args.extend(["--proxy-url", params.proxy_url])
 
     yield SpecialAgentCommand(command_arguments=args)
 
