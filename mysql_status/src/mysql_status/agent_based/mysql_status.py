@@ -199,3 +199,62 @@ check_plugin_mysql_status_query_types = CheckPlugin(
     discovery_function = discover_mysql_status_query_types,
     check_function = check_mysql_status_query_types,
 )
+
+
+def discover_mysql_innodb_buffer_pool_utilization(section):
+    for instance, data in section.items():
+        if "Innodb_buffer_pool_pages_total" in data and "Innodb_buffer_pool_pages_free" in data:
+            yield Service(item=instance)
+
+
+def check_mysql_innodb_buffer_pool_utilization(item, params, section):
+    if item not in section:
+        yield Result(state=State.UNKNOWN, summary="Instance data not found in output")
+        return
+
+    data = section[item]
+    total = data.get("Innodb_buffer_pool_pages_total")
+    free = data.get("Innodb_buffer_pool_pages_free")
+
+    if total is None or free is None:
+        yield Result(state=State.UNKNOWN, summary="Buffer pool page data not available")
+        return
+
+    if total == 0:
+        yield Result(state=State.UNKNOWN, summary="Buffer pool total pages is 0")
+        return
+
+    used = total - free
+    utilization = used / total * 100
+
+    state = State.OK
+    levels_info = ""
+    if "levels" in params:
+        warn, crit = params["levels"][1]
+        if utilization >= crit:
+            state = State.CRIT
+            levels_info = f" (warn/crit at {warn:.0f}/{crit:.0f}%)"
+        elif utilization >= warn:
+            state = State.WARN
+            levels_info = f" (warn/crit at {warn:.0f}/{crit:.0f}%)"
+
+    yield Metric(
+        name="mysql_status_innodb_buffer_pool_utilization",
+        value=utilization,
+        boundaries=(0.0, 100.0),
+    )
+    yield Result(
+        state=state,
+        summary=f"Utilization: {utilization:.1f}%{levels_info} ({used}/{total} pages, {free} free)",
+    )
+
+
+check_plugin_mysql_innodb_buffer_pool_utilization = CheckPlugin(
+    name="mysql_innodb_buffer_pool_utilization",
+    sections=["mysql"],
+    service_name="MySQL InnoDB Buffer Pool Utilization %s",
+    discovery_function=discover_mysql_innodb_buffer_pool_utilization,
+    check_function=check_mysql_innodb_buffer_pool_utilization,
+    check_default_parameters={},
+    check_ruleset_name="mysql_innodb_buffer_pool_utilization",
+)
