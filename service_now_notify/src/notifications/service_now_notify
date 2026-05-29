@@ -4,7 +4,7 @@ import os
 import sys
 import requests
 from requests.auth import HTTPBasicAuth
-from cmk.notification_plugins import utils
+from cmk.notification_plugins.utils import collect_context, get_password_from_env_or_context
 import logging
 logfile = os.path.expanduser('~/var/log/snow_notify.log')
 
@@ -20,15 +20,16 @@ def main():
     """
     Main part to sendout notification
     """
-    context = utils.collect_context()
+    context = collect_context()
 
     api_url = context['PARAMETER_API_URL']
     auth_user = context['PARAMETER_API_USER']
-    auth_password = context['PARAMETER_API_PASSWORD']
-    proxy = context['PARAMETER_PROXY']
+    auth_password = get_password_from_env_or_context(key="PARAMETER_API_PASSWORD", context=context)
+    proxy = context.get('PARAMETER_PROXY')
 
     proxies = {}
-    proxies['https'] = proxy
+    if proxy:
+        proxies['https'] = proxy
 
     auth = HTTPBasicAuth(auth_user, auth_password)
 
@@ -47,6 +48,9 @@ def main():
         # in case of the host has the key, we overwrite
         if context.get("HOST_SNOW_RESP_GRP"):
         	assign_overwrite = context.get("HOST_SNOW_RESP_GRP")
+
+        if not api_url.startswith('http'):
+            api_url = 'https://'+api_url
 
         api_url += "checkmk/incident/create"
         if context['WHAT'] == "HOST":
@@ -91,6 +95,33 @@ def main():
 
         if service_level == '':
             service_level = context['HOST_SL']
+
+
+        # ── Service Labels & State aus dem Checkmk-Context auslesen ──────────────────
+        service_level_snow_oncallduty_all  = context.get('SERVICELABEL_SNOW_onCALLDUTY_ALL',  '')
+        service_level_snow_oncallduty_crit = context.get('SERVICELABEL_SNOW_onCALLDUTY_CRIT', '')
+        service_level_snow_oncallduty_warn = context.get('SERVICELABEL_SNOW_onCALLDUTY_WARN', '')
+
+        try:
+            service_state_id = int(context.get('SERVICESTATEID', -1))
+        except ValueError:
+            service_state_id = -1
+
+        # ── Bedingungen je Label + passende Severity ──────────────────────────────────
+
+        # ALL-Label: gilt für WARN (1) und CRIT (2)
+        oncallduty_all_off  = (service_level_snow_oncallduty_all  == 'OFF') and (1 <= service_state_id <= 2)
+
+        # CRIT-Label: gilt NUR für CRIT (2)
+        oncallduty_crit_off = (service_level_snow_oncallduty_crit == 'OFF') and (service_state_id == 2)
+
+        # WARN-Label: gilt NUR für WARN (1)
+        oncallduty_warn_off = (service_level_snow_oncallduty_warn == 'OFF') and (service_state_id == 1)
+
+        # ── Service Level anpassen ────────────────────────────────────────────────────
+        if oncallduty_all_off or oncallduty_crit_off or oncallduty_warn_off:
+            service_level = '0'   # OnCallDuty OFF → service_level runtersetzen
+        # else: service_level bleibt unverändert
 
 
         service_level_names = {

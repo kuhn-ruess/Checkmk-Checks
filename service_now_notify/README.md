@@ -20,6 +20,18 @@ Key payload fields:
 - `ASSIGNMENT_GROUP`: overridden by the host custom attribute `HOST_SNOW_RESP_GRP` or the service custom attribute `SERVICE_SVC_SNOW_RESP_GRP_2` when present.
 - `DISPOSITION`: derived from the service level (`0 -> Keine_Bereitschaft`, `10 -> Bereitschaft`).
 
+### On-call duty suppression via service labels
+
+Service labels can force the service level (and therefore `DISPOSITION`) down to `0` (`Keine_Bereitschaft`) for selected states, so an incident is still created but on-call duty is not raised:
+
+| Label (set to value `OFF`) | Effect |
+| --- | --- |
+| `SNOW_onCALLDUTY_WARN` | Drops the service level to `0` when the service is `WARN` (state 1). |
+| `SNOW_onCALLDUTY_CRIT` | Drops the service level to `0` when the service is `CRIT` (state 2). |
+| `SNOW_onCALLDUTY_ALL` | Drops the service level to `0` for both `WARN` and `CRIT`. |
+
+Labels are read from the notification context as `SERVICELABEL_<key>` and matched case-sensitively. Host notifications are unaffected.
+
 Debug and error information is written to `~/var/log/snow_notify.log`.
 
 ## Package contents
