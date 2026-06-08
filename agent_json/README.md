@@ -13,13 +13,19 @@ The agent script (`libexec/agent_json`) performs an HTTP `POST` to the configure
 ```text
 {
   "checks": [
-    {"name": "My Check", "status": "UP", "data": {"info1": "value", "info2": "more info"}},
+    {"name": "My Check", "status": "OK", "data": {"info1": "value", "info2": "more info"}},
+    {"name": "Disks", "status": "WARN", "summary": "2 disks degraded",
+     "data": {"sda": "ok", "sdb": "degraded"}},
     ...
   ]
 }
 ```
 
-Each entry is emitted as one line under the `<<<local>>>` section. `status: "UP"` becomes state `0`, anything else becomes state `2`. The `data` dictionary is flattened into the summary text as `key: value` pairs.
+Each entry is emitted as one line under the `<<<local>>>` section.
+
+- **Status mapping:** the `status` string is mapped (case-insensitively) to a Checkmk state — `OK`/`UP` → `0`, `WARN`/`WARNING` → `1`, `CRIT`/`CRITICAL`/`DOWN` → `2`, `UNKN`/`UNKNOWN` → `3`. An unrecognised status becomes `3` (UNKNOWN).
+- **Summary & details:** without a `summary` key the `data` dictionary is flattened into the summary line as comma-separated `key: value` pairs (legacy behaviour). If a `summary` key is present, its value is shown as the service summary and the `data` fields are rendered below it as multi-line details (one `key: value` per line).
+- **Duplicate names:** when the same `name` appears more than once, repeated services are automatically numbered (`My Check`, `My Check 2`, …) so none get lost.
 
 ## Package contents
 

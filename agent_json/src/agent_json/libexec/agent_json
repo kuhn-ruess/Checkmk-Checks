@@ -17,6 +17,18 @@ class AgentJson():
     Agent Json
     """
 
+    map_states = {
+        'OK': 0,
+        'UP': 0,
+        'WARN': 1,
+        'WARNING': 1,
+        'CRIT': 2,
+        'CRITICAL': 2,
+        'DOWN': 2,
+        'UNKN': 3,
+        'UNKNOWN': 3,
+    }
+
     def __init__(self, api_host, user, password):
         """
         Init
@@ -30,18 +42,33 @@ class AgentJson():
         """
         Get JSON Stream
         """
-
-        map_states = {
-                'UP' : 0,
-        }
-
         response = post(self.api_host, auth=self.auth, timeout=30)
         checks = response.json()['checks']
 
         print("<<<local>>>")
+        seen_names = {}
         for check in checks:
-            summary = ", ".join([f"{x}: {y}" for x, y in check['data'].items()])
-            print(f"{map_states.get(check['status'], 2)} {check['name']} - {summary}")
+            # Map the status string to a Checkmk state; everything we do not
+            # know maps to UNKNOWN(3) instead of silently claiming CRIT.
+            state = self.map_states.get(str(check['status']).upper(), 3)
+
+            # Number repeated service names so duplicate keys stay discoverable
+            # (first stays as is, the next ones become "<name> 2", "<name> 3").
+            name = check['name']
+            seen_names[name] = seen_names.get(name, 0) + 1
+            service_name = name if seen_names[name] == 1 else f"{name} {seen_names[name]}"
+
+            data = check.get('data', {})
+            detail_lines = [f"{key}: {value}" for key, value in data.items()]
+
+            if check.get('summary'):
+                # Show the given summary on the first line and put the data
+                # fields below it as multi-line details (\n separated).
+                output = "\\n".join([str(check['summary'])] + detail_lines)
+            else:
+                output = ", ".join(detail_lines)
+
+            print(f'{state} "{service_name}" - {output}')
 
 
 if __name__ == "__main__":
