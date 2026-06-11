@@ -50,23 +50,29 @@ class AgentJson():
         for check in checks:
             # Map the status string to a Checkmk state; everything we do not
             # know maps to UNKNOWN(3) instead of silently claiming CRIT.
-            state = self.map_states.get(str(check['status']).upper(), 3)
+            state = self.map_states.get(str(check.get('status', '')).upper(), 3)
 
             # Number repeated service names so duplicate keys stay discoverable
             # (first stays as is, the next ones become "<name> 2", "<name> 3").
-            name = check['name']
+            name = check.get('name', 'Unnamed check')
             seen_names[name] = seen_names.get(name, 0) + 1
             service_name = name if seen_names[name] == 1 else f"{name} {seen_names[name]}"
 
-            data = check.get('data', {})
+            # summary is expected on the top level of the check, next to data.
+            summary = check.get('summary')
+            data = check.get('data') or {}
             detail_lines = [f"{key}: {value}" for key, value in data.items()]
 
-            if check.get('summary'):
-                # Show the given summary on the first line and put the data
-                # fields below it as multi-line details (\n separated).
-                output = "\\n".join([str(check['summary'])] + detail_lines)
-            else:
+            if summary:
+                # Show the summary on the first line and put the data fields
+                # below it as multi-line details (\n separated).
+                output = "\\n".join([str(summary)] + detail_lines)
+            elif detail_lines:
                 output = ", ".join(detail_lines)
+            else:
+                # Never emit an empty plugin output: Checkmk reports a local
+                # check without any text as crashed.
+                output = "No further data"
 
             print(f'{state} "{service_name}" - {output}')
 
