@@ -4,11 +4,11 @@
 ![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.3.0p9-blue)
 <!-- compatibility-badges:end -->
 
-Special agent that POSTs to an HTTP(S) endpoint and converts the returned JSON into Checkmk local checks. Useful for exposing arbitrary application health checks through a single REST endpoint without writing a dedicated plugin.
+Special agent that queries an HTTP(S) endpoint and converts the returned JSON into Checkmk local checks. Useful for exposing arbitrary application health checks through a single REST endpoint without writing a dedicated plugin. The HTTP method is selectable (POST by default, GET for endpoints that serve the JSON on GET).
 
 ## How it works
 
-The agent script (`libexec/agent_json`) performs an HTTP `POST` to the configured URL, optionally using HTTP Basic Auth, and expects a JSON document of the form:
+The agent script (`libexec/agent_json`) performs an HTTP request (`POST` by default, `GET` selectable in the rule) to the configured URL, optionally using HTTP Basic Auth, and expects a JSON document of the form:
 
 ```text
 {
@@ -47,6 +47,7 @@ Rule: **Setup → Agents → Other integrations → Agent JSON**
 
 | Parameter | Type | Meaning |
 | --- | --- | --- |
-| `api_url` | String (required) | Full URL the agent POSTs to. |
+| `api_url` | String (required) | Full URL the agent queries. |
+| `method` | Choice (optional) | HTTP method: `POST` (default) or `GET`. |
 | `username` | String (optional) | HTTP Basic Auth user. |
 | `password` | Password (optional) | HTTP Basic Auth password. |

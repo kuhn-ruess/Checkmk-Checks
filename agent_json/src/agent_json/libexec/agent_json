@@ -7,7 +7,7 @@ https://kuhn-ruess.de
 """
 
 from sys import argv
-from requests import post
+from requests import get, post
 from requests.auth import HTTPBasicAuth
 from json import JSONDecodeError
 
@@ -29,11 +29,17 @@ class AgentJson():
         'UNKNOWN': 3,
     }
 
-    def __init__(self, api_host, user, password):
+    methods = {
+        'GET': get,
+        'POST': post,
+    }
+
+    def __init__(self, api_host, user, password, method='POST'):
         """
         Init
         """
         self.api_host = api_host
+        self.method = (method or 'POST').upper()
         self.auth = None
         if user:
             self.auth = HTTPBasicAuth(user, password)
@@ -42,8 +48,18 @@ class AgentJson():
         """
         Get JSON Stream
         """
-        response = post(self.api_host, auth=self.auth, timeout=30)
-        checks = response.json()['checks']
+        requester = self.methods.get(self.method, post)
+        response = requester(self.api_host, auth=self.auth, timeout=30)
+        try:
+            checks = response.json()['checks']
+        except JSONDecodeError as error:
+            # Surface what actually came back so a wrong method/auth/path is
+            # obvious instead of a bare "cannot parse".
+            snippet = response.text[:200].replace('\n', ' ').strip()
+            print(f"Cannot parse API response from {self.api_host} "
+                  f"({self.method}, HTTP {response.status_code}): {error}; "
+                  f"body: {snippet!r}")
+            return
 
         print("<<<local>>>")
         seen_names = {}
@@ -78,8 +94,6 @@ class AgentJson():
 
 
 if __name__ == "__main__":
-    try:
-        aj = AgentJson(argv[1], argv[2], argv[3])
-        aj.get_json()
-    except JSONDecodeError as error:
-        print(f"Cannot parse API response: {error}")
+    http_method = argv[4] if len(argv) > 4 else 'POST'
+    aj = AgentJson(argv[1], argv[2], argv[3], http_method)
+    aj.get_json()

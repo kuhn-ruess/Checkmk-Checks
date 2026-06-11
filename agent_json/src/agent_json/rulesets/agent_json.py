@@ -12,6 +12,9 @@ from cmk.rulesets.v1.form_specs import (
     DictElement,
     String,
     Password,
+    SingleChoice,
+    SingleChoiceElement,
+    DefaultValue,
 )
 from cmk.rulesets.v1.form_specs.validators import LengthInRange
 from cmk.rulesets.v1.rule_specs import SpecialAgent, Topic
@@ -28,6 +31,22 @@ def _parameter_form_special_agent_json():
                     custom_validate=(LengthInRange(min_value=1),),
                 ),
                 required = True,
+            ),
+            "method": DictElement(
+                parameter_form = SingleChoice(
+                    title = Title("HTTP method"),
+                    help_text = Help(
+                        "HTTP method used to query the API endpoint. "
+                        "Defaults to POST to stay compatible with existing rules; "
+                        "select GET for endpoints that serve the JSON on GET."
+                    ),
+                    elements = [
+                        SingleChoiceElement(name = "post", title = Title("POST")),
+                        SingleChoiceElement(name = "get", title = Title("GET")),
+                    ],
+                    prefill = DefaultValue("post"),
+                ),
+                required = False,
             ),
             "username": DictElement(
                 parameter_form = String(

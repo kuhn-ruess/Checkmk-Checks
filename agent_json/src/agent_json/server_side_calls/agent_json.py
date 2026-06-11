@@ -21,6 +21,8 @@ class AgentJSONParams(BaseModel):
     api_url: str
     username: Optional[str] = None
     password: Optional[Secret] = False
+    # Default POST keeps existing rules (saved without a method) working.
+    method: Optional[str] = "post"
 
 
 def generate_agent_json_command(params: AgentJSONParams, host_config: HostConfig):
@@ -36,6 +38,7 @@ def generate_agent_json_command(params: AgentJSONParams, host_config: HostConfig
             params.api_url,
             user,
             password,
+            params.method or "post",
         )
     )
 
