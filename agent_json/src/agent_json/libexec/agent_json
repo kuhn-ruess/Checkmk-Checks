@@ -34,66 +34,92 @@ class AgentJson():
         'POST': post,
     }
 
-    def __init__(self, api_host, user, password, method='POST'):
+    def __init__(self, endpoints):
         """
         Init
-        """
-        self.api_host = api_host
-        self.method = (method or 'POST').upper()
-        self.auth = None
-        if user:
-            self.auth = HTTPBasicAuth(user, password)
 
-    def get_json(self):
+        endpoints: list of (api_host, user, password, method) tuples. Every
+        endpoint is queried with its own credentials and HTTP method.
         """
-        Get JSON Stream
+        self.endpoints = endpoints
+
+    def fetch_checks(self, api_host, user, password, method):
         """
-        requester = self.methods.get(self.method, post)
-        response = requester(self.api_host, auth=self.auth, timeout=30)
+        Query one endpoint and return its list of checks.
+
+        On a parse error a single UNKNOWN local check is returned so the
+        failing endpoint stays visible in the monitoring instead of silently
+        dropping out.
+        """
+        method = (method or 'POST').upper()
+        auth = HTTPBasicAuth(user, password) if user else None
+        requester = self.methods.get(method, post)
+        response = requester(api_host, auth=auth, timeout=30)
         try:
-            checks = response.json()['checks']
+            return response.json()['checks']
         except JSONDecodeError as error:
             # Surface what actually came back so a wrong method/auth/path is
             # obvious instead of a bare "cannot parse".
             snippet = response.text[:200].replace('\n', ' ').strip()
-            print(f"Cannot parse API response from {self.api_host} "
-                  f"({self.method}, HTTP {response.status_code}): {error}; "
-                  f"body: {snippet!r}")
-            return
+            return [{
+                'name': f"JSON agent {api_host}",
+                'status': 'UNKNOWN',
+                'summary': (f"Cannot parse API response ({method}, "
+                            f"HTTP {response.status_code}): {error}; "
+                            f"body: {snippet!r}"),
+            }]
 
+    def get_json(self):
+        """
+        Query all endpoints and emit the local check section.
+        """
         print("<<<local>>>")
         seen_names = {}
-        for check in checks:
-            # Map the status string to a Checkmk state; everything we do not
-            # know maps to UNKNOWN(3) instead of silently claiming CRIT.
-            state = self.map_states.get(str(check.get('status', '')).upper(), 3)
+        for api_host, user, password, method in self.endpoints:
+            for check in self.fetch_checks(api_host, user, password, method):
+                # Map the status string to a Checkmk state; everything we do not
+                # know maps to UNKNOWN(3) instead of silently claiming CRIT.
+                state = self.map_states.get(str(check.get('status', '')).upper(), 3)
 
-            # Number repeated service names so duplicate keys stay discoverable
-            # (first stays as is, the next ones become "<name> 2", "<name> 3").
-            name = check.get('name', 'Unnamed check')
-            seen_names[name] = seen_names.get(name, 0) + 1
-            service_name = name if seen_names[name] == 1 else f"{name} {seen_names[name]}"
+                # Number repeated service names so duplicate keys stay
+                # discoverable (first stays as is, the next ones become
+                # "<name> 2", "<name> 3"). Dedupe spans all endpoints.
+                name = check.get('name', 'Unnamed check')
+                seen_names[name] = seen_names.get(name, 0) + 1
+                service_name = name if seen_names[name] == 1 else f"{name} {seen_names[name]}"
 
-            # summary is expected on the top level of the check, next to data.
-            summary = check.get('summary')
-            data = check.get('data') or {}
-            detail_lines = [f"{key}: {value}" for key, value in data.items()]
+                # summary is expected on the top level of the check, next to data.
+                summary = check.get('summary')
+                data = check.get('data') or {}
+                detail_lines = [f"{key}: {value}" for key, value in data.items()]
 
-            if summary:
-                # Show the summary on the first line and put the data fields
-                # below it as multi-line details (\n separated).
-                output = "\\n".join([str(summary)] + detail_lines)
-            elif detail_lines:
-                output = ", ".join(detail_lines)
-            else:
-                # Never emit an empty plugin output: Checkmk reports a local
-                # check without any text as crashed.
-                output = "No further data"
+                if summary:
+                    # Show the summary on the first line and put the data fields
+                    # below it as multi-line details (\n separated).
+                    output = "\\n".join([str(summary)] + detail_lines)
+                elif detail_lines:
+                    output = ", ".join(detail_lines)
+                else:
+                    # Never emit an empty plugin output: Checkmk reports a local
+                    # check without any text as crashed.
+                    output = "No further data"
 
-            print(f'{state} "{service_name}" - {output}')
+                print(f'{state} "{service_name}" - {output}')
+
+
+def parse_endpoints(args):
+    """
+    Read the flat argument list in chunks of four
+    (api_host, user, password, method) into a list of endpoints.
+    """
+    endpoints = []
+    for index in range(0, len(args), 4):
+        chunk = list(args[index:index + 4])
+        chunk += [''] * (4 - len(chunk))
+        endpoints.append(tuple(chunk))
+    return endpoints
 
 
 if __name__ == "__main__":
-    http_method = argv[4] if len(argv) > 4 else 'POST'
-    aj = AgentJson(argv[1], argv[2], argv[3], http_method)
+    aj = AgentJson(parse_endpoints(argv[1:]))
     aj.get_json()
