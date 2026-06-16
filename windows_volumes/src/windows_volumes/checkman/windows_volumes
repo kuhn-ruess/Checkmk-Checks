@@ -1,0 +1,24 @@
+title: Windows Volumes (folder mount points)
+agents: windows
+catalog: os/storage
+license: GPLv2
+distribution: Kuhn & Rueß GmbH
+description:
+ This check monitors Windows volumes that are mounted into a folder instead of
+ a drive letter. The accompanying agent plug-in (deployable via the agent
+ bakery) runs {Get-Partition} / {Get-Volume} and reports every folder mounted
+ volume. Plain drive letters, raw volume GUID paths and volumes without a
+ usable filesystem or size (Recovery, EFI, ...) are filtered out.
+
+ For each volume the check reports the {HealthStatus} and {OperationalStatus}:
+ anything that is not {Healthy} / {OK} results in {CRIT}. In addition the
+ filesystem usage is checked against upper levels (in percent), configurable via
+ the rule "Windows Volumes (folder mount points)" (default WARN/CRIT at
+ 80%/90%). The usage is exported as metrics and rendered as a graph.
+
+item:
+ The volume label (FriendlyName). When a label appears more than once it is
+ numbered ("<label>", "<label> 2", ...).
+
+discovery:
+ One service is created for each folder mounted volume reported by the agent.
