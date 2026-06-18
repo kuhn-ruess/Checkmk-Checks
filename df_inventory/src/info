@@ -11,7 +11,7 @@
            'notifications': ['df_mail']},
  'name': 'df_inventory',
  'title': 'Filesystem Inventory',
- 'version': '2.0.2',
- 'version.min_required': '2.3.0',
- 'version.packaged': '2.4.0p13',
+ 'version': '2.1.0',
+ 'version.min_required': '2.4.0b1',
+ 'version.packaged': '2.5.0',
  'version.usable_until': '2.5'}
