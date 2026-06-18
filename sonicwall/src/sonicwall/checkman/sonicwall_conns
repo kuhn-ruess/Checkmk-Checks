@@ -1,0 +1,20 @@
+title: SonicWall: Connection Table Usage
+agents: snmp
+catalog: hw/network/sonicwall
+license: GPLv2
+distribution: check_mk
+description:
+ This check monitors the connection table usage of SonicWall firewalls.
+ It compares the current number of connections against the maximum and
+ reports the usage in percent.
+
+ The levels for the usage in percent can be configured via the rule
+ "SonicWall Connections". Default levels are 80%/95%.
+
+ The check uses the SONICWALL-FIREWALL-IP-STATISTICS-MIB.
+
+item:
+ The index of the connection table entry.
+
+discovery:
+ One service is created for each connection table entry.

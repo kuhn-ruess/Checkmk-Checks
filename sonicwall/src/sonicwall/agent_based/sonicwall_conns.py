@@ -60,6 +60,6 @@ check_plugin_sonicwall_conns = CheckPlugin(
     service_name="Connections %s",
     discovery_function=discover_sonicwall_conns,
     check_function=check_sonicwall_conns,
-    check_default_parameters={"levels": ('fixed', (80, 95))},
+    check_default_parameters={"levels": ('fixed', (80.0, 95.0))},
     check_ruleset_name="sonicwall_conns",
 )

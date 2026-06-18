@@ -1,0 +1,19 @@
+title: SonicWall: VPN Security Associations
+agents: snmp
+catalog: hw/network/sonicwall
+license: GPLv2
+distribution: check_mk
+description:
+ This check monitors the active VPN security associations (SAs) of
+ SonicWall firewalls. For each SA the encrypted and decrypted throughput
+ is reported as a rate.
+
+ The check is always OK as long as the SA is present in the device data.
+
+ The check uses the SONICWALL-FIREWALL-IP-STATISTICS-MIB.
+
+item:
+ The name of the VPN security association.
+
+discovery:
+ One service is created for each VPN security association.
