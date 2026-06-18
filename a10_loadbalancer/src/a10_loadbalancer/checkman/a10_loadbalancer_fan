@@ -1,0 +1,19 @@
+title: A10 Loadbalancer: Fans
+agents: snmp
+catalog: hw/network/a10
+license: GPLv2
+distribution: check_mk
+description:
+ This check monitors the fans of A10 Networks ADC loadbalancers via SNMP
+ (A10-AX-MIB, axFan table). It reports the fan status and the current
+ speed in RPM.
+
+ The service is always {OK}; the textual status and speed are shown in the
+ service summary.
+
+discovery:
+ One service is created for each fan reported by the device.
+
+item:
+ The fan name as reported by the device, with a leading "Fan " prefix
+ stripped.

@@ -1,0 +1,17 @@
+title: A10 Loadbalancer: System Temperature
+agents: snmp
+catalog: hw/network/a10
+license: GPLv2
+distribution: check_mk
+description:
+ This check monitors the system temperature of A10 Networks ADC
+ loadbalancers via SNMP (A10-AX-MIB, axSyshwPhySystemTemp).
+
+ Upper warning and critical levels can be configured via the rule
+ "Temperature". Without configuration the check reports {OK}.
+
+discovery:
+ One service with the item "System" is created.
+
+item:
+ The fixed string "System".
