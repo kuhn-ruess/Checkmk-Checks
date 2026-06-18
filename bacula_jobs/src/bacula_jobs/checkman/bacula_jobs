@@ -1,8 +1,8 @@
 title: Check Job Status Of Bacula / Bareos Backup System
-agents: Agent Plugins
-author: Bastian Kuhn
-license: GPL
-distribution: none
+agents: linux
+catalog: app/backup
+license: GPLv3
+distribution: kuhn-ruess
 description:
  This check monitors the status of Bacula / Bareos Backup Systems.
 
@@ -17,7 +17,8 @@ description:
  By default, the plugin uses MySQL. Create a bacula.cfg on the agent host
  in the MK_CONFDIR (typically /etc/check_mk) to configure the plugin.
  If you use the Agent Bakery, the config file is generated automatically.
- If you do not use the Agent bakery, copy the plugins/bacula_jobs file to the agents check_mk_agent/plugins dir
+ If you do not use the Agent bakery, copy the plugins/bacula_jobs file to the
+ agents check_mk_agent/plugins dir.
 
  bacula.cfg options:
 
@@ -31,10 +32,11 @@ description:
 
   - dbhost=localhost   # DB host to connect to
 
-
+ The states which result in OK or CRIT, as well as the maximum age of the
+ last backup, can be configured via the rule "Bacula Jobs".
 
 item:
- Job <Name of the job>
+ The name of the Bacula / Bareos job.
 
-inventory:
- One check for each job is created by the inventory.
+discovery:
+ One service is created for each job found in the agent output.
