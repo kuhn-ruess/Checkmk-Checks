@@ -1,59 +1,51 @@
-from typing import cast
 from cmk.rulesets.v1 import Help, Title
-from cmk.gui.valuespec import Dictionary as ValueSpecDictionary
 from cmk.rulesets.v1.form_specs import (
     DictElement,
     Dictionary,
     String,
     Password,
 )
-from cmk.gui.form_specs.vue.visitors.recomposers.unknown_form_spec import recompose
-from cmk.gui.watolib.notification_parameter import notification_parameter_registry, NotificationParameter
+from cmk.rulesets.v1.rule_specs import NotificationParameters, Topic
 
 
-class NotificationParameterBHome(NotificationParameter):
-    @property
-    def ident(self) -> str:
-        return "bhome_notify"
-
-    @property
-    def spec(self) -> ValueSpecDictionary:
-        return cast(ValueSpecDictionary, recompose(self._form_spec()).valuespec)
-
-    def _form_spec(self):
-        return Dictionary(
-            title=Title("BHome Events API"),
-            elements={
-                "portal_domain": DictElement(
-                    parameter_form=String(
-                        title=Title("Portal Domain"),
-                        help_text=Help("Domain of the BHome events portal (without https://)"),
-                    ),
-                    required=True,
+def _form_spec_bhome() -> Dictionary:
+    return Dictionary(
+        elements={
+            "portal_domain": DictElement(
+                parameter_form=String(
+                    title=Title("Portal Domain"),
+                    help_text=Help("Domain of the BHome events portal (without https://)"),
                 ),
-                "id": DictElement(
-                    parameter_form=String(
-                        title=Title("Client ID"),
-                        help_text=Help("Client ID for authentication"),
-                    ),
-                    required=True,
+                required=True,
+            ),
+            "id": DictElement(
+                parameter_form=String(
+                    title=Title("Client ID"),
+                    help_text=Help("Client ID for authentication"),
                 ),
-                "access": DictElement(
-                    parameter_form=Password(
-                        title=Title("Access Key"),
-                        help_text=Help("Access key for authentication"),
-                    ),
-                    required=True,
+                required=True,
+            ),
+            "access": DictElement(
+                parameter_form=Password(
+                    title=Title("Access Key"),
+                    help_text=Help("Access key for authentication"),
                 ),
-                "secret": DictElement(
-                    parameter_form=Password(
-                        title=Title("Secret"),
-                        help_text=Help("Secret for authentication"),
-                    ),
-                    required=True,
+                required=True,
+            ),
+            "secret": DictElement(
+                parameter_form=Password(
+                    title=Title("Secret"),
+                    help_text=Help("Secret for authentication"),
                 ),
-            }
-        )
+                required=True,
+            ),
+        }
+    )
 
 
-notification_parameter_registry.register(NotificationParameterBHome)
+rule_spec_bhome_notify = NotificationParameters(
+    name="bhome_notify",
+    title=Title("BHome Events API"),
+    topic=Topic.NOTIFICATIONS,
+    parameter_form=_form_spec_bhome,
+)
