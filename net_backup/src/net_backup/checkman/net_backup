@@ -1,0 +1,21 @@
+title: Veritas NetBackup: Drive Status
+agents: linux
+catalog: app/backup
+license: GPLv3
+distribution: kuhn-ruess
+description:
+ This check monitors the drive status of a Veritas NetBackup device
+ as reported by {vmoprcmd}.
+
+ The agent plugin {net_backup.sh} runs {/usr/openv/volmgr/bin/vmoprcmd}
+ on the NetBackup host and reports the host, drive path and status of
+ each drive.
+
+ The service goes {CRIT} if any drive of the device reports a status
+ other than {SCAN-TLD}, {TLD} or {ACTIVE}. Otherwise it is {OK}.
+
+item:
+ The name of the NetBackup device.
+
+discovery:
+ One service is created for each device found in the agent output.
