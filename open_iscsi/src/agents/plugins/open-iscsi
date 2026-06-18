@@ -31,7 +31,7 @@ SED=$(which sed)
 TR=$(which tr)
 
 if [[ -x ${ISCSIADM} && -x ${GREP} && -x ${SED} && -x ${TR} ]]; then
-    echo "<<<open-iscsi_sessions>>>"
+    echo "<<<open_iscsi_sessions>>>"
 
     # Gather information on all currently active iSCSI sessions
     #echo "[sessions]"
@@ -139,7 +139,7 @@ if [[ -x ${ISCSIADM} && -x ${GREP} && -x ${SED} && -x ${TR} ]]; then
     unset TARGET
     if [[ -n "${SESSIONS}" ]]; then
         echo ""
-        echo "<<<open-iscsi_session_stats>>>"
+        echo "<<<open_iscsi_session_stats>>>"
         while read SID IFMAC TARGET; do
             if [[ -n "${SID}" ]]; then
                 echo "[session stats ${IFMAC} ${TARGET}]"
@@ -154,7 +154,7 @@ if [[ -x ${ISCSIADM} && -x ${GREP} && -x ${SED} && -x ${TR} ]]; then
     ${ISCSIADM} -m host | ${GREP} "^qla4xxx: " | while read PREFIX HST TRANSPORT IQN; do
         if [[ ${HEADER_WRITTEN} -eq 0 ]]; then
             echo ""
-            echo "<<<open-iscsi_host_stats>>>"
+            echo "<<<open_iscsi_host_stats>>>"
             HEADER_WRITTEN=1
         fi
         HST="${HST#[}"
