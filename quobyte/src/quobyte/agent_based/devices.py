@@ -66,6 +66,12 @@ def check_quobyte_devices(item, params, section):
         yield Result(state=State.CRIT, summary=f"Health Status: {device['health_status']}")
 
     # Check Usage
+    # The ruleset stores levels as ("fixed", (warn, crit)); df expects a
+    # plain (warn, crit) percentage tuple.
+    usage_levels = params['usage_levels']
+    if isinstance(usage_levels, tuple) and len(usage_levels) == 2 \
+            and isinstance(usage_levels[0], str):
+        usage_levels = usage_levels[1]
     yield from df_check_filesystem_single(
         get_value_store(),
         item,
@@ -74,7 +80,7 @@ def check_quobyte_devices(item, params, section):
         0,
         None,
         None,
-        {'levels' : params['usage_levels'],
+        {'levels' : usage_levels,
          'trend_range': 1,
         },
     )
@@ -93,7 +99,7 @@ check_plugin_quobyte_devices = CheckPlugin(
     discovery_function = discover_quobyte_devices,
     check_function = check_quobyte_devices,
     check_default_parameters = {
-        'usage_levels': (90.0, 95.0),
+        'usage_levels': ('fixed', (90.0, 95.0)),
         'modes' : {
             'warning' : ['DECOMMISSIONED', 'DRAIN', 'REGENERATE'],
             'critical' : ['OFFLINE'],
