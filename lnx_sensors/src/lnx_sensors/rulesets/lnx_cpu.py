@@ -34,7 +34,7 @@ def _valuespec_discovery_rule_lnx_sensors():
                         ),
                     ],
                 ),
-                required = True,
+                required = False,
             ),
         },
     )
