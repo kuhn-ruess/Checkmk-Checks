@@ -3,89 +3,90 @@
 """
 Kuhn & Rueß GmbH
 Consulting and Development
-https://kuhn-ruess.d
+https://kuhn-ruess.de
 """
 
-from cmk.gui.plugins.wato import (
-    HostRulespec,
-    rulespec_registry,
-)
-from cmk.gui.cee.plugins.wato.agent_bakery.rulespecs.utils import (
-        RulespecGroupMonitoringAgentsAgentPlugins
-)
-
-from cmk.gui.valuespec import (
-    Age,
+from cmk.rulesets.v1 import Help, Title
+from cmk.rulesets.v1.form_specs import (
+    BooleanChoice,
+    DefaultValue,
+    DictElement,
     Dictionary,
-    TextAscii,
-    ListOf,
-    DropdownChoice,
-    Tuple,
+    List,
+    String,
+    TimeMagnitude,
+    TimeSpan,
 )
+from cmk.rulesets.v1.rule_specs import AgentConfig, Topic
 
 
-def _valuespec_check_docker_bakery():
+def _agent_config_check_docker() -> Dictionary:
     return Dictionary(
-        title = "Docker Agent Based (Linux)",
-        help = "Hosts configured via this rule get the <tt>docker.py</tt> plugin",
-        elements = [
-            ( "activated",
-                DropdownChoice(
-                    title = "Activation",
-                    choices = [
-                        ( True, "Deploy docker plugin" ),
-                        ( None, "Do not deploy docker plugin" ),
-                    ]
-                )
+        help_text=Help("Hosts configured via this rule get the <tt>docker.py</tt> plugin"),
+        elements={
+            "activated": DictElement(
+                parameter_form=BooleanChoice(
+                    title=Title("Deploy docker plugin"),
+                    prefill=DefaultValue(True),
+                ),
             ),
-            ( "interval",
-                Age(
-                    title = "Interval for docker check",
-                    display = ["days", "hours", "minutes"],
-                    default_value = 120,
-                )
-            ),
-            ( "timeout",
-                Age(
-                    title = "Connection timeout",
-                    display = ["minutes", "seconds"],
-                    default_value = 30,
-                )
-            ),
-            ( "label_whitelist",
-                ListOf(
-                    TextAscii(title="Label"),
-                    title="Label Whitelist",
-                )
-            ),
-            ( "label_replacements",
-                ListOf(
-                    Tuple(
-                        elements = [
-                            TextAscii(title="Original Label"),
-                            TextAscii(title="Rewritten Label"),
-                        ],
+            "interval": DictElement(
+                parameter_form=TimeSpan(
+                    title=Title("Interval for docker check"),
+                    displayed_magnitudes=(
+                        TimeMagnitude.DAY,
+                        TimeMagnitude.HOUR,
+                        TimeMagnitude.MINUTE,
                     ),
-                    title = "Label rewriting",
-                )
+                    prefill=DefaultValue(120.0),
+                ),
             ),
-            ( "piggyback",
-                DropdownChoice(
-                    title = "Use service swarm name as piggyback hostname",
-                    choices = [
-                        ( True, "Use service swarm name as piggyback hostname" ),
-                        ( None, "Do not use service swarm name as piggyback hostname" ),
-                    ]
-                )
+            "timeout": DictElement(
+                parameter_form=TimeSpan(
+                    title=Title("Connection timeout"),
+                    displayed_magnitudes=(
+                        TimeMagnitude.MINUTE,
+                        TimeMagnitude.SECOND,
+                    ),
+                    prefill=DefaultValue(30.0),
+                ),
             ),
-        ],
+            "label_whitelist": DictElement(
+                parameter_form=List(
+                    title=Title("Label Whitelist"),
+                    element_template=String(title=Title("Label")),
+                ),
+            ),
+            "label_replacements": DictElement(
+                parameter_form=List(
+                    title=Title("Label rewriting"),
+                    element_template=Dictionary(
+                        elements={
+                            "original": DictElement(
+                                required=True,
+                                parameter_form=String(title=Title("Original Label")),
+                            ),
+                            "rewritten": DictElement(
+                                required=True,
+                                parameter_form=String(title=Title("Rewritten Label")),
+                            ),
+                        },
+                    ),
+                ),
+            ),
+            "piggyback": DictElement(
+                parameter_form=BooleanChoice(
+                    title=Title("Use service swarm name as piggyback hostname"),
+                    prefill=DefaultValue(False),
+                ),
+            ),
+        },
     )
 
 
-rulespec_registry.register(
-    HostRulespec(
-        name="agent_config:check_docker",
-        group=RulespecGroupMonitoringAgentsAgentPlugins,
-        valuespec=_valuespec_check_docker_bakery,
-    )
+rule_spec_check_docker = AgentConfig(
+    name="check_docker",
+    title=Title("Docker Agent Based (Linux)"),
+    topic=Topic.GENERAL,
+    parameter_form=_agent_config_check_docker,
 )
