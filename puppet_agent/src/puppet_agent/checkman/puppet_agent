@@ -1,0 +1,20 @@
+title: Puppet Agent
+agents: linux, windows
+catalog: app/puppet
+license: GPLv2
+distribution: Kuhn & Rueß GmbH
+description:
+ This check monitors the status of the local Puppet agent. The accompanying
+ agent plug-in (available for Linux and Windows) reads the
+ {last_run_summary.yaml} of the Puppet agent and reports the timestamp of the
+ last run together with the event and resource counters.
+
+ The check reports the time of the last Puppet run and, when configured, warns
+ if the last run is too long ago. In addition the event failures and the
+ resource counters (changed, failed, failed to restart, out of sync, restarted,
+ scheduled) are checked against upper levels. All levels are configurable via
+ the rule "Puppet Agent" (default WARN/CRIT at 10 / 15 for the counters and at
+ 1600 s / 3200 s for the time since the last run).
+
+discovery:
+ One service is created on each host that reports a Puppet agent last run.
