@@ -1,0 +1,25 @@
+title: GTEC USV: Output Load per Phase
+agents: snmp
+catalog: hw/power/gtec
+license: GPLv3
+distribution: kuhn-ruess
+
+description:
+ This check monitors the output load percentage of each of the three
+ phases of a GTEC uninterruptible power supply (USV/UPS). The values are
+ read via SNMP from the GTEC enterprise MIB
+ (.1.3.6.1.4.1.935.1.1.1.8.3.5-7).
+
+ The check goes WARN or CRIT when the output load of a phase exceeds the
+ configured upper levels. By default it warns at 85% and goes critical at
+ 90%.
+
+ The levels can be configured with the rule "Levels for output load of an
+ UPS" (ruleset {ups_out_load}).
+
+item:
+ The name of the phase, one of {"phase 1"}, {"phase 2"} or {"phase 3"}.
+
+discovery:
+ One service is created for each of the three phases reported by the
+ device.
