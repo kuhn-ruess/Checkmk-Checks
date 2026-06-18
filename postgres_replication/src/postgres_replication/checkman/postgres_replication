@@ -1,0 +1,21 @@
+title: PostgreSQL Replication
+agents: linux
+catalog: app/postgresql
+license: GPLv2
+distribution: Kuhn & Rueß GmbH
+description:
+ This check monitors the replication slots of a PostgreSQL server. The
+ accompanying agent plug-in {postgres_replication.sh} queries
+ {pg_replication_slots} and reports for each slot its type, the restart LSN,
+ the replication delta and whether the slot is currently active.
+
+ For each slot the check reports the slot type and the LSN. A slot that is not
+ active results in {CRIT}. If the agent provides the delta in bytes, the
+ replication lag is additionally checked against upper levels, configurable via
+ the rule "PostgreSQL Replication" (default WARN/CRIT at 30 MiB / 60 MiB).
+
+item:
+ The name of the replication slot.
+
+discovery:
+ One service is created for each replication slot reported by the agent.
