@@ -1,0 +1,20 @@
+title: MSSQL: User Connections
+agents: windows
+catalog: app/mssql
+license: GPLv2
+distribution: check_mk
+description:
+ This check monitors the user connections of a Microsoft SQL Server
+ instance based on the General_Statistics counters of the mssql_counters
+ agent section.
+
+ It reports the current number of user connections as well as the
+ logins per second and logouts per second rates. Upper levels for all
+ three values can be configured via the rule "MSSQL user connections".
+
+item:
+ The name of the MSSQL instance.
+
+discovery:
+ One service is created for each instance that provides the
+ General_Statistics counters.
