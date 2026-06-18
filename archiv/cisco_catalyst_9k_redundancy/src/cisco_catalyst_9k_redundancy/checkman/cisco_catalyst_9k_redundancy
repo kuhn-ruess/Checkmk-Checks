@@ -1,0 +1,15 @@
+title: Cisco Catalyst 9000: Stack Ring Redundancy
+agents: snmp
+catalog: hw/network/cisco
+license: GPL
+distribution: kuhn-ruess
+description:
+ Checks whether the StackWise stack ports of a Cisco Catalyst 9000 series
+ switch form a redundant ring. The state is read from the
+ CISCO-STACKWISE-MIB (cswRingRedundant).
+
+ The check is OK when the stack ports form a redundant ring and CRITICAL
+ when they do not.
+
+inventory:
+ One service is created per host.

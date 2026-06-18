@@ -1,0 +1,23 @@
+title: Cisco Catalyst 9000: StackWise Virtual Switch Redundancy State
+agents: snmp
+catalog: hw/network/cisco
+license: GPL
+distribution: kuhn-ruess
+description:
+ Monitors the StackWise Virtual (VSS) member switches of a Cisco Catalyst
+ 9000 series switch. Role and state of each member switch are read from the
+ CISCO-STACKWISE-MIB (cswSwitchRole, cswSwitchState).
+
+ The switch state is OK when it is "ready" and CRITICAL otherwise. The
+ switch role is OK unless an expected role is configured and the actual role
+ differs, in which case the check becomes CRITICAL.
+
+ The expected switch role can be configured via the rule
+ "Cisco Catalyst 9k redundancy State".
+
+item:
+ The current switch number.
+
+inventory:
+ One service is created per member switch. The discovered role is stored as
+ the default expected role.

@@ -1,0 +1,17 @@
+title: Cisco Catalyst 9000: StackWise Virtual Link Interconnect Port State
+agents: snmp
+catalog: hw/network/cisco
+license: GPL
+distribution: kuhn-ruess
+description:
+ Monitors the StackWise Virtual Link (SVL) interconnect ports of a Cisco
+ Catalyst 9000 series switch. The port and neighbor port operational state
+ are read from the CISCO-STACKWISE-MIB (cswDistrStackPhyPortOperStatus).
+
+ The check is OK when the port is up and CRITICAL when the port is down.
+
+item:
+ The physical stack port number.
+
+inventory:
+ One service is created per distributed stack physical port.
