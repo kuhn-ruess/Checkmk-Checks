@@ -1,0 +1,25 @@
+title: Tridium Niagara Station: Cross-Probe Special State
+agents: snmp
+catalog: hw/environment
+license: GPLv2
+distribution: check_mk
+description:
+ This check merges the probe tables below .1.3.6.1.4.1.4131.1.6.21 and
+ .1.3.6.1.4.1.4131.1.6.22 of a Tridium Niagara station and evaluates each
+ probe with an optional cross-probe rule. Detection fires when the device
+ sysObjectID starts with .1.3.6.1.4.1.4131.1.
+
+ With a configured rule the check looks at another field: if that field has
+ a given state, a target state is required on this probe, otherwise an
+ alternative target state is required. If the actual state differs from the
+ required one the service goes {CRIT}. Alternatively a plain allow list of
+ states can be configured. Without configuration the service is always
+ {OK}. Numeric values additionally yield a {value} metric.
+
+ The behaviour is configured via the rule "Tridium Special".
+
+discovery:
+ One service is created for each probe found in the merged tables.
+
+item:
+ The probe (sensor) name as reported by the device.

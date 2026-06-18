@@ -1,0 +1,18 @@
+title: Tridium Niagara Station: Fuel Tank
+agents: snmp
+catalog: hw/environment
+license: GPLv2
+distribution: check_mk
+description:
+ This check reads the fuel tank consumption and level of a Tridium Niagara
+ station from .1.3.6.1.4.1.4131.1.6.15.1.1.3. Detection fires when the
+ device sysObjectID starts with .1.3.6.1.4.1.4131.1.
+
+ The remaining litres are computed from the consumption reading plus a
+ fixed tank size of 6000 litres. Lower WARN/CRIT levels on the remaining
+ litres can be configured via the rule "Tridium Fuel"; the service goes
+ {WARN} or {CRIT} when the remaining amount drops at or below them. The
+ check reports the metrics {usage}, {last_cons} and {level}.
+
+discovery:
+ One service is created when the fuel tree is present on the device.
