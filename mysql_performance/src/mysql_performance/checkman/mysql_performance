@@ -1,0 +1,26 @@
+title: MySQL: Thread Cache Hitrate
+agents: linux
+catalog: app/mysql
+license: GPLv3
+distribution: kuhn-ruess
+
+description:
+ This check evaluates the thread cache efficiency of a MySQL instance.
+ It uses the {Threads_created} and {Connections} status counters from the
+ standard Checkmk {mysql} agent section and computes the hitrate as
+ {Threads_created / Connections * 100}.
+
+ A lower value is better: it means most client connections reused a cached
+ thread instead of forcing MySQL to create a new one. The check goes WARN
+ when the hitrate reaches 80% and CRIT when it reaches 90%.
+
+ The levels can be configured with the rule "MySQL Thread Cache Hitrate"
+ (ruleset {mysql_tchitrate}).
+
+item:
+ The MySQL instance name followed by {Thread Cache}, e.g.
+ {mysql Thread Cache}.
+
+discovery:
+ One service is created per MySQL instance that reports both the
+ {Threads_created} and {Connections} counters.
