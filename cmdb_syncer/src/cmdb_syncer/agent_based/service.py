@@ -115,16 +115,12 @@ def check_cmdb_syncer_cron(item, params, section):
     now = datetime.now()
     delta = now - last_start_obj
     delta_sec = delta.total_seconds()
-    if levels := params['max_time_since_last_start']:
-        yield from check_levels(
-                      value=delta_sec,
-                      levels_upper=levels,
-                      label="Last Start",
-                      render_func=render.time_offset,
-                  )
-    else:
-        yield Result(state=state,
-                     summary=f"Time since last run: {render.time_offset(delta_sec)}")
+    yield from check_levels(
+                  value=delta_sec,
+                  levels_upper=params.get('max_time_since_last_start', ('no_levels', None)),
+                  label="Time since last run",
+                  render_func=render.time_offset,
+              )
 
 agent_section_cmdb_syncer_cron = AgentSection(
     name = "cmdb_syncer_cron",
@@ -139,7 +135,7 @@ check_plugin_cmdb_syncer_cron = CheckPlugin(
     discovery_function = discover_cmdb_syncer_cron,
     check_function = check_cmdb_syncer_cron,
     check_default_parameters = {
-        'max_time_since_last_start': None,
+        'max_time_since_last_start': ('no_levels', None),
     },
     check_ruleset_name = "cmdb_syncer_cron",
 )

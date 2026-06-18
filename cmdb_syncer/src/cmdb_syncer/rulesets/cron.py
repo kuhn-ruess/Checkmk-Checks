@@ -20,9 +20,9 @@ from cmk.rulesets.v1.form_specs import (
 from cmk.rulesets.v1.rule_specs import CheckParameters, HostAndItemCondition, Topic
 
 
-def _parameter_form_quobyte_volumes():
+def _parameter_form_cmdb_syncer_cron():
     return Dictionary(
-        title = Title("Quobyte volume levels"),
+        title = Title("CMDB Syncer cronjob levels"),
         elements = {
             "max_time_since_last_start": DictElement(
                 parameter_form = SimpleLevels(
@@ -42,7 +42,7 @@ rule_spec_cmdbsyncer_cron = CheckParameters(
     name = "cmdb_syncer_cron",
     topic = Topic.OPERATING_SYSTEM,
     condition = HostAndItemCondition(item_title = Title("Job name")),
-    parameter_form = _parameter_form_quobyte_volumes,
+    parameter_form = _parameter_form_cmdb_syncer_cron,
     title = Title("CMDB Syncer Cronjobs"),
 )
 

@@ -1,0 +1,22 @@
+title: CMDB Syncer: Cronjobs
+agents: cmdb_syncer
+catalog: app/cmdb_syncer
+license: GPLv2
+distribution: check_mk
+description:
+ This check monitors the cronjobs of a CMDB Syncer installation, queried
+ via the CMDB Syncer special agent.
+
+ For each job it reports the last message, whether it is currently
+ running, the next planned run and the time since the last start. The
+ check becomes CRIT if the job reports an error and WARN if the job has
+ never started.
+
+ Upper levels on the time since the last start can be configured via the
+ rule "CMDB Syncer Cronjobs". By default no levels are applied.
+
+item:
+ The name of the cronjob.
+
+discovery:
+ One service is created for each cronjob.

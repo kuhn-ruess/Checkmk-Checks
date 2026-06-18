@@ -1,0 +1,18 @@
+title: CMDB Syncer: Services
+agents: cmdb_syncer
+catalog: app/cmdb_syncer
+license: GPLv2
+distribution: check_mk
+description:
+ This check monitors the services of a CMDB Syncer installation, queried
+ via the CMDB Syncer special agent.
+
+ For each service it reports the status message. If the service reports
+ an error the check becomes CRIT and shows the failure reason returned by
+ the API. Additional detail messages are shown as OK results.
+
+item:
+ The name of the service.
+
+discovery:
+ One service is created for each CMDB Syncer service.
