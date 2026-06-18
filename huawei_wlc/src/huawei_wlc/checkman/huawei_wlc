@@ -1,0 +1,25 @@
+title: Huawei WLC: Access Point Status
+agents: snmp
+catalog: hw/network/huawei
+license: GPL
+distribution: kuhn-ruess
+description:
+ This check monitors the access points managed by a Huawei Wireless LAN
+ Controller (WLC). One service per access point reports the AP run state,
+ the management IP address, the up/down traffic and the number of currently
+ associated (online) users.
+
+ The run state is mapped via a static table. The states {fault},
+ {configFailed}, {commitFailed}, {nameConflicted} and {invalid} map to
+ {CRIT}; {standby} and {verMismatch} map to {WARN}; all other states are
+ {OK}.
+
+ Optional upper levels on the number of online users can be configured via
+ the rule "Huawei WLC access point". The check is detected on devices whose
+ sysObjectID equals .1.3.6.1.4.1.2011.2.240.6.
+
+item:
+ The name of the access point ({hwWlanApName}).
+
+discovery:
+ One service is created for each access point reported by the controller.
