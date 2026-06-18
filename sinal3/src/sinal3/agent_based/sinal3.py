@@ -421,6 +421,12 @@ def check_sinal3_volts(item, params, section):
     Check the voltage services for SINA L3
     """
     if 'volts' in section:
+        def _to_fixed(levels):
+            # The native "voltage" ruleset stores plain (warn, crit) float
+            # tuples, but check_levels (v2) expects ("fixed", (warn, crit)).
+            if levels and isinstance(levels, tuple) and not isinstance(levels[0], str):
+                return ("fixed", levels)
+            return levels
         for nr, name, volts in section['volts']:
             if name == item:
                 name = name.replace(":","_")
@@ -428,8 +434,8 @@ def check_sinal3_volts(item, params, section):
                 yield from check_levels(
                         volts,
                         metric_name="sina_volts.%s" % name,
-                        levels_lower=params.get("levels_lower"),
-                        levels_upper=params.get("levels"),
+                        levels_lower=_to_fixed(params.get("levels_lower")),
+                        levels_upper=_to_fixed(params.get("levels")),
                         render_func=lambda v: "%.2f V" % volts,
                         label="Volts",
                 )
@@ -440,7 +446,7 @@ check_plugin_sinal3_volts = CheckPlugin(
         service_name="Voltage %s",
         discovery_function=discover_sinal3_volts,
         check_function=check_sinal3_volts,
-        check_default_parameters={"levels": ("fixed", (250, 260)), "levels_lower": ("fixed", (0,0))},
+        check_default_parameters={"levels": (250.0, 260.0), "levels_lower": (0.0, 0.0)},
         check_ruleset_name="voltage",
 )
 
