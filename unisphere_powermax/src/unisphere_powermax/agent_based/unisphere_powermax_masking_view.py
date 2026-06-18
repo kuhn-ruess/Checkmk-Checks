@@ -108,31 +108,35 @@ def discover_masking_view_port_summary(section):
     for port in section[0]:
         sym_prefix = '_'.join(port[0].split('_')[0:-1])
         for mv in json.loads(port[1]).get('maskingview', []):
-            items.append((f'{sym_prefix}_{mv}', sym_prefix, mv))
+            items.append(f'{sym_prefix}_{mv}')
 
-    for i in set(items):
-        yield Service(item=i[0], parameters={'symId': i[1], 'maskingView': i[2]})
+    for item in set(items):
+        yield Service(item=item)
 
 
 def check_masking_view_port_summary(item, params, section):
     """
     Check masking view port summary for PowerMax systems.
+
+    The masking view and symId are derived from the service item
+    (`<symId>_<maskingView>`) so no identification data needs to be
+    stored in the discovered service parameters.
     """
     n_ports = 0
     n_online_ports = 0
 
-    for i in section[0]:
-        if not params['symId'] in i[0] :
-            continue
-        json_data = json.loads(i[1])
-        if params['maskingView'] not in  json_data.get('maskingview', []):
-            continue
+    for port in section[0]:
+        sym_prefix = '_'.join(port[0].split('_')[0:-1])
+        json_data = json.loads(port[1])
+        for mv in json_data.get('maskingview', []):
+            if f'{sym_prefix}_{mv}' != item:
+                continue
 
-        n_ports += 1
-        if json_data.get('director_status', 'unkn') == 'Online':
-            n_online_ports += 1
-        #if json_data.get('port_status', 'unkn') == 'ON':
-        #    n_online_ports += 1
+            n_ports += 1
+            if json_data.get('director_status', 'unkn') == 'Online':
+                n_online_ports += 1
+            #if json_data.get('port_status', 'unkn') == 'ON':
+            #    n_online_ports += 1
 
 
 
@@ -170,24 +174,28 @@ def discover_masking_view_volume_summary(section):
         sym_prefix = '_'.join(volume[0].split('_')[0:-1])
         mv = json.loads(volume[1]).get('maskingView', None)
         if mv is not None:
-            items.append((f'{sym_prefix}_{mv}', sym_prefix, mv))
+            items.append(f'{sym_prefix}_{mv}')
 
-    for i in set(items):
-        yield Service(item=i[0], parameters={'symId': i[1], 'maskingView': i[2]})
+    for item in set(items):
+        yield Service(item=item)
 
 
 def check_masking_view_volume_summary(item, params, section):
     """
     Check masking view volume summary for PowerMax systems.
+
+    The masking view and symId are derived from the service item
+    (`<symId>_<maskingView>`) so no identification data needs to be
+    stored in the discovered service parameters.
     """
     n_volumes = 0
     n_ready_volumes = 0
 
-    for i in section[0]:
-        if not params['symId'] in i[0] :
-            continue
-        json_data = json.loads(i[1])
-        if json_data.get('maskingView', None) != params['maskingView']:
+    for volume in section[0]:
+        sym_prefix = '_'.join(volume[0].split('_')[0:-1])
+        json_data = json.loads(volume[1])
+        mv = json_data.get('maskingView', None)
+        if mv is None or f'{sym_prefix}_{mv}' != item:
             continue
 
         n_volumes += 1

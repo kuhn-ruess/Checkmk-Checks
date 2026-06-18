@@ -1,0 +1,30 @@
+title: Dell EMC Unisphere PowerMax: Masking View Volume Summary
+agents: unisphere_powermax
+catalog: hw/storagehw/dell
+license: GPLv2
+distribution: check_mk
+description:
+ This check monitors the volumes that belong to a masking view of a Dell
+ EMC PowerMax storage array, queried via the Unisphere REST API special
+ agent.
+
+ For every masking view it reports the percentage of volumes in state
+ {Ready} together with the absolute count of ready volumes versus the
+ total number of volumes of that masking view.
+
+ The check goes {WARN} or {CRIT} when the percentage of ready volumes
+ drops below the configured lower levels. The defaults warn below 100%
+ and go critical below 50%. Both levels can be adjusted with the rule
+ "PowerMax Masking View Volume Summary". If no volume data is delivered by
+ the agent the service becomes {UNKNOWN}.
+
+ The masking view and the Symmetrix id are derived from the service item,
+ so no identification data is stored in the discovered service parameters.
+
+item:
+ The Symmetrix id followed by the masking view name, joined with an
+ underscore (for example {SYMMETRIX_000297600410_mv_example}).
+
+discovery:
+ One service is created for every combination of Symmetrix and masking
+ view found in the agent output.
