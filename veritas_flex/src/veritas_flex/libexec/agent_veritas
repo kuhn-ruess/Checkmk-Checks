@@ -106,9 +106,9 @@ class FlexApi:
             logging.debug(f'API URL: {hardware_health_url}')
             try:
                 r = self.session.get(hardware_health_url)
-                logging.debug(f'Hardware Health API Call Response: {r.text}')
                 json_body = r.json()
-                if len(json_body.keys()) == 2:
+                logging.debug(f'Hardware Health API Call Response: {json_body}')
+                if len(json_body.keys()) == 3:
                     state = 0
                     health_status.append(f'{state} "{node} Hardware Health" - Hardware is healthy')
                 else:
@@ -128,10 +128,10 @@ class FlexApi:
             logging.debug(f'API URL: {services_health_url}')
             try:
                 r = self.session.get(services_health_url)
-                logging.debug(f'Services Health API Call Response: {r.text}')
                 json_body = r.json()
+                logging.debug(f'Services Health API Call Response: {json_body}')
                 logging.debug(f'Json Body: {json_body}')
-                if len(json_body.keys()) == 3:
+                if len(json_body.keys()) == 5:
                     state = 0
                     health_status.append(f'{state} "{node} Services Health" - Services are healthy')
                 else:
