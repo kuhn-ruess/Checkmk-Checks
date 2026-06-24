@@ -1,0 +1,19 @@
+title: Rittal Blue e+ fans and compressor
+agents: snmp
+catalog: hw/environment/rittal
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Fan and compressor monitoring of a Rittal Blue e+ cooling unit: internal
+ fan, external fan and compressor speed, each in percent with the component
+ status from the appliance.
+
+ The running level in percent is emitted as performance data. Components
+ reporting status {not available} are not discovered.
+
+item:
+ The Blue e+ device name plus the component, e.g. "Blue e Plus 1 Compressor".
+
+inventory:
+ One service per fan and compressor of each Blue e+ unit.

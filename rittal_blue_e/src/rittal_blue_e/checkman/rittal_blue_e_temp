@@ -1,0 +1,21 @@
+title: Rittal Blue e+ temperature
+agents: snmp
+catalog: hw/environment/rittal
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Temperature sensors of a Rittal Blue e+ cooling unit: internal, ambient
+ and (if connected) the external temperature sensor.
+
+ By default the warning/alarm thresholds configured on the appliance itself
+ are used as upper levels; these can be overridden with the {Rittal Blue e+
+ temperature} ruleset. The value is also emitted as performance data.
+
+ Sensors reporting status {not available} are not discovered.
+
+item:
+ The Blue e+ device name plus the sensor, e.g. "Blue e Plus 1 Internal".
+
+inventory:
+ One service per connected temperature sensor of each Blue e+ unit.

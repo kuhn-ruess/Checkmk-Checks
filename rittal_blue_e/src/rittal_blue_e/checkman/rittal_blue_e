@@ -1,0 +1,29 @@
+title: Rittal Blue e+ cooling unit health
+agents: snmp
+catalog: hw/environment/rittal
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Monitors Rittal Blue e+ cooling units connected to a Rittal CMC III
+ Processing Unit or IoT Interface via SNMP.
+
+ The bundled Checkmk cmciii check does not recognise the Blue e+ variable
+ naming scheme, so these units are never discovered by it. This check reads
+ the CMC III variable table {.1.3.6.1.4.1.2606.7.4.2.2.1} directly and keeps
+ only sub-devices whose device-table type is {Blue e+}.
+
+ One service per unit aggregates all component status fields (Cooling,
+ Air Circuits, Fans, Compressor, EEV, Filter, Door, Electronics, Condensate,
+ System Messages, Error List and the temperature alarms). Status codes are
+ mapped from the RITTAL-CMC-III-MIB {cmcIIIMsgStatus} enumeration, since the
+ IoT Interface firmware reports only the numeric code. The state mapping is
+ overridable via the {Rittal Blue e+ unit health} ruleset.
+
+ Cooling capacity, EER and input power are emitted as performance data.
+
+item:
+ The Blue e+ device name from the CMC III device table, e.g. "Blue e Plus 1".
+
+inventory:
+ One service per Blue e+ unit found in the CMC III device table.

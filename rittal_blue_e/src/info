@@ -1,0 +1,20 @@
+{'author': 'Kuhn & Rueß GmbH',
+ 'description': 'Monitor Rittal Blue e+ cooling units connected to a Rittal '
+                'CMC III Processing Unit or IoT Interface via SNMP. The '
+                'bundled cmciii check does not recognise the Blue e+ variable '
+                'naming scheme, so these units are otherwise not discovered. '
+                'Creates one health service per unit (all component statuses, '
+                'cooling capacity, EER, input power) plus temperature and '
+                'fan/compressor services.\n',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks',
+ 'files': {'cmk_addons_plugins': ['rittal_blue_e/agent_based/rittal_blue_e.py',
+                                  'rittal_blue_e/checkman/rittal_blue_e',
+                                  'rittal_blue_e/checkman/rittal_blue_e_fan',
+                                  'rittal_blue_e/checkman/rittal_blue_e_temp',
+                                  'rittal_blue_e/rulesets/rittal_blue_e.py']},
+ 'name': 'rittal_blue_e',
+ 'title': 'Rittal Blue e+ Cooling Unit Monitoring',
+ 'version': '1.0.0',
+ 'version.min_required': '2.3.0',
+ 'version.packaged': '2.3.0p25',
+ 'version.usable_until': None}
