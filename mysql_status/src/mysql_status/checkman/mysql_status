@@ -1,4 +1,5 @@
 title: Checks any amount of mysql status vars
+catalog: app/mysql
 agents: linux
 author: Kuhn & Rueß GmbH <info@bkuhn-ruess.de>
 license: GPL
