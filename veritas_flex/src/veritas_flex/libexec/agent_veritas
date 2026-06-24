@@ -35,7 +35,7 @@ class FlexApi:
             "password": password,
             "username": username,
             "revocable": True,
-            "time-to-live": 30
+            "time-to-live": 10
         }
         self.session = requests.Session()
         self.session.headers.update(self.headers)
@@ -170,6 +170,7 @@ def main():
     for state in services_health:
         print(state)
     instances = flex.get_instances()
+    flex.do_logout()
     for instance in instances:
         if instance['status'] == 'ONLINE':
             state = 0
@@ -177,8 +178,6 @@ def main():
             state = 2
         print(str(state) + " " + instance['hostname'] + " - " + "is " + instance['status'])
 
-
-    #flex.do_logout()
 
 if __name__ == '__main__':
     main()
