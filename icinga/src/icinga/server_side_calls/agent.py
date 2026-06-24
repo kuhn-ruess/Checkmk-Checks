@@ -16,6 +16,8 @@ class ConfigParser(BaseModel):
     username: str
     password: Secret
     ssl_verify: bool = True
+    group_services: bool = True
+    piggyback_prefix: str = ""
 
 def icinga_arguments(params, host_config):
     """
@@ -30,6 +32,10 @@ def icinga_arguments(params, host_config):
         args.append(
             "--no-verify"
         )
+    if not params.group_services:
+        args.append("--no-group")
+    if params.piggyback_prefix:
+        args += ["--piggyback-prefix", params.piggyback_prefix]
     yield SpecialAgentCommand(command_arguments=args)
 
 special_agent_icinga = SpecialAgentConfig(

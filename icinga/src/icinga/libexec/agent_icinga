@@ -3,6 +3,7 @@
 Checkmk Special Agent for Icinga
 """
 import argparse
+import re
 import sys
 import xml.etree.ElementTree as ET
 from typing import List, Dict, Any
@@ -18,8 +19,12 @@ parser = argparse.ArgumentParser(description="Icinga Special Agent")
 parser.add_argument("--hostname")
 parser.add_argument("--username")
 parser.add_argument("--password")
-parser.add_argument("--no-verify", action="store_true", default=False, help="Enable SSL certificate verification")
+parser.add_argument("--no-verify", action="store_true", default=False, help="Disable SSL certificate verification")
 parser.add_argument("--timeout", type=int, default=30, help="Request timeout in seconds")
+parser.add_argument("--no-group", action="store_true", default=False,
+                    help="Emit one service per sub item instead of grouping them into the parent service")
+parser.add_argument("--piggyback-prefix", default="",
+                    help="Prefix prepended to every piggyback host name")
 
 args = parser.parse_args()
 
@@ -28,42 +33,79 @@ username = args.username
 password = args.password
 ssl_verify = not args.no_verify
 timeout = args.timeout
+group_services = not args.no_group
+piggyback_prefix = args.piggyback_prefix
 
 if not ssl_verify:
     disable_warnings(InsecureRequestWarning)
 
 
 auth = HTTPBasicAuth(username, password)
-def convert_perfdata(perf_list: List[Dict[str, Any]]) -> str:
+
+
+def sanitize_metric_name(label: str, check_name: str, used: set) -> str:
     """
-    Converts Icinga performance data format to Checkmk local check format.
-    
-    Args:
-        perf_list: List of performance data dictionaries
-        
-    Returns:
-        Formatted performance data string
+    Turn an Icinga perfdata label into a valid Checkmk metric name.
+
+    Checkmk only accepts ``[a-z0-9_]`` and the name must not start with a
+    digit. Invalid characters (``/``, ``.``, ``-``, spaces, ...) are replaced
+    by underscores. If nothing usable is left, or the name would start with a
+    digit, it is derived from the check name. Uniqueness within one service is
+    ensured by appending a counter.
+    """
+    name = re.sub(r"[^a-z0-9_]", "_", (label or "").lower())
+    name = re.sub(r"_+", "_", name).strip("_")
+
+    check = re.sub(r"[^a-z0-9_]", "_", (check_name or "").lower())
+    check = re.sub(r"_+", "_", check).strip("_")
+
+    if not name:
+        name = check or "metric"
+    elif name[0].isdigit():
+        name = f"{check}_{name}" if check else f"m_{name}"
+
+    candidate = name
+    counter = 2
+    while candidate in used:
+        candidate = f"{name}_{counter}"
+        counter += 1
+    used.add(candidate)
+    return candidate
+
+
+def convert_perfdata(perf_list: List[Dict[str, Any]], check_name: str) -> str:
+    """
+    Convert Icinga performance data into Checkmk local check format, with
+    sanitized metric names and empty fields for missing thresholds.
     """
     if not perf_list:
-        return '-'
+        return "-"
     result = []
+    used: set = set()
     for entry in perf_list:
         if isinstance(entry, dict):
-            #{'counter': False, 'crit': None, 'label': 'api_num_conn_endpoints', 'max': None, 'min': None, 'type': 'PerfdataValue', 'unit': '', 'value': 1, 'warn': None},
-            result.append(f"{entry['label']}={entry['value']};{entry['warn']};{entry['crit']};{entry['min']};{entry['max']}")
+            name = sanitize_metric_name(entry.get("label", ""), check_name, used)
+            fields = [entry.get("warn"), entry.get("crit"), entry.get("min"), entry.get("max")]
+            tail = ";".join("" if f is None else str(f) for f in fields)
+            result.append(f"{name}={entry.get('value')};{tail}")
         else:
-            result.append(entry)
+            # Pre-formatted string: sanitize the metric name part if present.
+            text = str(entry)
+            if "=" in text:
+                label, _, rest = text.partition("=")
+                text = f"{sanitize_metric_name(label, check_name, used)}={rest}"
+            result.append(text)
     return "|".join(result)
 
 
 def convert_output(raw_output):
-    if not "<table>" in raw_output:
-        return raw_output.replace('\n', ', ')
+    if "<table>" not in raw_output:
+        return raw_output.replace("\n", ", ")
 
     try:
         root = ET.fromstring(f"<root>{raw_output}</root>")
     except ET.ParseError:
-        return raw_output.replace('\n', ', ')
+        return raw_output.replace("\n", ", ")
 
     table = root.find("table")
     rows = list(table)
@@ -78,9 +120,9 @@ def convert_output(raw_output):
         while len(cells) < len(headers):
             cells.append(None)
         for idx, header in enumerate(headers):
-            if header.lower() in ['status', 'state']:
+            if header.lower() in ["status", "state"]:
                 raw_state = cells[idx]
-                if not raw_state or raw_state.lower() in ['ok']:
+                if not raw_state or raw_state.lower() in ["ok"]:
                     state = 0
                 else:
                     state = 2
@@ -94,6 +136,7 @@ def convert_output(raw_output):
 
 API_ENDPOINT_SERVICES = "/v1/objects/services"
 
+
 def main():
     """Main function to structure the code properly"""
 
@@ -106,25 +149,45 @@ def main():
         print(f"Error connecting to Icinga: {e}", file=sys.stderr)
         sys.exit(1)
 
-    for result_set in response.json()['results']:
-        attrs = result_set.get('attrs')
+    for result_set in response.json()["results"]:
+        attrs = result_set.get("attrs")
         if not attrs:
             continue
-        print(f"<<<<{attrs['host_name']}>>>>")
+        print(f"<<<<{piggyback_prefix}{attrs['host_name']}>>>>")
         print("<<<local>>>")
-        output = convert_output(attrs['last_check_result']['output'])
-        service_name = attrs['name']
-        state = attrs['state']
+
+        service_name = attrs["name"]
+        state = int(attrs["state"])
+        output = convert_output(attrs["last_check_result"]["output"])
+        perfdata = convert_perfdata(attrs["last_check_result"]["performance_data"], service_name)
+
         if isinstance(output, list):
+            detail_lines = []
+            worst = state
             for sub_state, sub_data in output:
-                sub_name, sub_output = sub_data[:2]
-                sub_name = sub_name.replace('Parameter: ', '') #hack
-                print(f"{sub_state} \"{service_name} {sub_name}\" - {sub_ouput}")
+                sub_name = sub_data[0] if sub_data else ""
+                sub_output = sub_data[1] if len(sub_data) > 1 else ""
+                sub_name = sub_name.replace("Parameter: ", "")  # hack
+                if group_services:
+                    detail_lines.append(", ".join(c for c in sub_data if c))
+                    worst = max(worst, sub_state)
+                else:
+                    print(f'{sub_state} "{service_name} {sub_name}" - {sub_output}')
+
+            if group_services:
+                # One grouped service: rows folded into the details (\n).
+                summary = f"General Service {service_name}"
+                text = summary
+                if detail_lines:
+                    text = summary + "\\n" + "\\n".join(detail_lines)
+                print(f'{worst} "{service_name}" {perfdata} {text}')
+                continue
             output = f"General Service {service_name}"
-        perfdata = convert_perfdata(attrs['last_check_result']['performance_data'])
-        print(f"{state} \"{service_name}\" {perfdata} {output}")
+
+        print(f'{state} "{service_name}" {perfdata} {output}')
 
     print("<<<<>>>>")
+
 
 if __name__ == "__main__":
     main()
