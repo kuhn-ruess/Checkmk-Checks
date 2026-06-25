@@ -98,6 +98,36 @@ def convert_perfdata(perf_list: List[Dict[str, Any]], check_name: str) -> str:
     return "|".join(result)
 
 
+# Map an Icinga/Nagios status text to a Checkmk state code.
+_STATE_BY_TEXT = {
+    "ok": 0, "up": 0,
+    "warning": 1, "warn": 1,
+    "critical": 2, "crit": 2, "down": 2,
+    "unknown": 3,
+}
+
+# Severity ranking used to pick the worst state. Checkmk treats CRIT as worse
+# than UNKNOWN (OK < WARN < UNKNOWN < CRIT), so a plain max() over the state
+# codes would be wrong (it would rank UNKNOWN=3 above CRIT=2).
+_SEVERITY = {0: 0, 1: 1, 3: 2, 2: 3}
+
+
+def _parse_state(raw_state):
+    """Full state derivation: map a status cell to OK/WARN/CRIT/UNKNOWN.
+
+    An empty cell counts as OK; any text we do not recognise becomes UNKNOWN
+    rather than silently CRIT.
+    """
+    if not raw_state:
+        return 0
+    return _STATE_BY_TEXT.get(raw_state.strip().lower(), 3)
+
+
+def _worst(*states):
+    """Return the worst state by Checkmk severity, not by numeric value."""
+    return max(states, key=lambda s: _SEVERITY.get(s, _SEVERITY[3]))
+
+
 def convert_output(raw_output):
     if "<table>" not in raw_output:
         return raw_output.replace("\n", ", ")
@@ -122,10 +152,7 @@ def convert_output(raw_output):
         for idx, header in enumerate(headers):
             if header.lower() in ["status", "state"]:
                 raw_state = cells[idx]
-                if not raw_state or raw_state.lower() in ["ok"]:
-                    state = 0
-                else:
-                    state = 2
+                state = _parse_state(raw_state)
                 if not raw_state:
                     continue
             line.append(f"{header}: {cells[idx]}")
@@ -170,7 +197,7 @@ def main():
                 sub_name = sub_name.replace("Parameter: ", "")  # hack
                 if group_services:
                     detail_lines.append(", ".join(c for c in sub_data if c))
-                    worst = max(worst, sub_state)
+                    worst = _worst(worst, sub_state)
                 else:
                     print(f'{sub_state} "{service_name} {sub_name}" - {sub_output}')
 

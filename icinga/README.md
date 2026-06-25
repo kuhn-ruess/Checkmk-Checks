@@ -12,7 +12,7 @@ Special agent that connects to an Icinga 2 instance over the REST API and mirror
 2. For every result it emits a piggyback block for the Icinga `host_name` containing a `<<<local>>>` section.
 3. For each service it prints a local check line `<state> "<service_name>" <perfdata> <output>`.
 4. Performance data from Icinga (`label=value;warn;crit;min;max`) is converted to the Checkmk local check perfdata format.
-5. Multi-row table outputs are parsed with `ElementTree`; a column called `status` / `state` determines the per-row Checkmk state (OK when empty or `ok`, otherwise CRIT).
+5. Multi-row table outputs are parsed with `ElementTree`; a column called `status` / `state` determines the per-row Checkmk state. The status text is mapped to a full state — `ok`/`up` → OK, `warning`/`warn` → WARN, `critical`/`crit`/`down` → CRIT, `unknown` (or any unrecognised text) → UNKNOWN, empty → OK.
 
 ## Package contents
 
@@ -51,7 +51,8 @@ agent_icinga --hostname <host> --username <user> --password <pw> [--no-verify]
 - **Services:** one Checkmk local service per Icinga service, named exactly like the Icinga service.
 - **State:** taken verbatim from Icinga (`attrs['state']`).
 - **Metrics:** all Icinga performance data is forwarded.
-- **Sub-services:** if an output contains a `<table>`, extra services named `<service> <row-label>` are emitted with per-row state derived from the `status` / `state` column.
+- **Sub-services:** if an output contains a `<table>`, the rows are split out. With grouping (default) the rows are folded into the parent service, whose state is the **worst** of its own state and all row states (severity order OK < WARN < UNKNOWN < CRIT, so CRIT outranks UNKNOWN). With `--no-group` each row becomes its own service `<service> <row-label>`.
+- **Row state:** derived from the `status` / `state` column via a full mapping — `ok`/`up` → OK, `warning`/`warn` → WARN, `critical`/`crit`/`down` → CRIT, `unknown` or any unrecognised text → UNKNOWN, empty → OK.
 
 ## Known limitations
 
