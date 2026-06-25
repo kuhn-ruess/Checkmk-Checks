@@ -1,7 +1,7 @@
 # Windows Volumes (folder mount points)
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0-2f4f4f) ![packaged](https://img.shields.io/badge/packaged-2.3.0p1-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.3.0p1-blue)
 <!-- compatibility-badges:end -->
 
 Monitors Windows volumes that are mounted into a **folder** instead of a drive letter — for example data/log/backup volumes of a database server that are mounted under `C:\Mounts\...`.

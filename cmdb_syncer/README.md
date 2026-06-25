@@ -1,7 +1,7 @@
 # CMDB Syncer Monitoring
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0p1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p8-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.5.0-blue)
 <!-- compatibility-badges:end -->
 
 Special agent that monitors jobs running inside [CMDB Syncer](https://github.com/Bastian-Kuhn/cmdbsyncer). It can report the status of named Syncer "services" (source jobs) and optionally the state of Syncer cron jobs, with one Checkmk service per configured job. Requires CMDB Syncer 3.9 or newer because an API username is now mandatory.

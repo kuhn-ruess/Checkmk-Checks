@@ -1,7 +1,7 @@
 # BHome Notification
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p13-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.5.0-blue)
 <!-- compatibility-badges:end -->
 
 Notification script that forwards Checkmk host and service events to a BHome events API. Each notification is posted as a JSON payload to `https://<portal_domain>/events-service/api/v1.0/events` using a JWT obtained from `auth_api.login`.

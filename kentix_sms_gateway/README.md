@@ -1,7 +1,7 @@
 # Kentix SMS Gateway notification
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.1.0p9-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.4-informational) ![packaged](https://img.shields.io/badge/packaged-2.1.0-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.4-informational) ![packaged](https://img.shields.io/badge/packaged-2.5.0-blue)
 <!-- compatibility-badges:end -->
 
 Bulk-capable Checkmk notification plugin that sends SMS messages through a Kentix AlarmManager's built-in SMS gateway. The notification target is the contact's pager number.

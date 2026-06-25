@@ -1,7 +1,7 @@
 # SINA device monitoring K+R Updated
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.0.0p1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.5.0-blue)
 <!-- compatibility-badges:end -->
 
 SNMP monitoring for secunet SINA L3 boxes. Originally written by Christian Michaelski (CONET Solutions GmbH); this package is the Kuhn & Rueß fork ported to `cmk.agent_based.v2`. A single `sinal3` SNMP section feeds 15 check plugins covering temperatures, fans, voltages, HSB system state, software/config/ACL versions, box type, serial, NTP, IPsec, IKE-SA and policy counters.

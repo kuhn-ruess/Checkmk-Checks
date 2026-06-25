@@ -1,7 +1,7 @@
 # Bacula / Bareos Jobs Monitoring
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.2.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.4-informational) ![packaged](https://img.shields.io/badge/packaged-2.2.0p9-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.4-informational) ![packaged](https://img.shields.io/badge/packaged-2.5.0-blue)
 <!-- compatibility-badges:end -->
 
 Monitors Bacula / Bareos backup jobs by querying the catalog database directly on the Director host. One Checkmk service per job name reports the most recent job state and the age of the last backup, with configurable allow / deny state lists and age thresholds.

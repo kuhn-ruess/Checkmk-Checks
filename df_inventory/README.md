@@ -1,7 +1,7 @@
 # Filesystem Inventory
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0p13-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0b1-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.5.0-blue)
 <!-- compatibility-badges:end -->
 
 Adds filesystem ownership data to the Checkmk HW/SW inventory by looking up the owner of each mount point in `/etc/passwd` and collecting their email address. A wrapper for the built-in `mail` notification script then redirects Filesystem service notifications to that owner instead of the normal contact.

@@ -1,7 +1,7 @@
 # HTTP endpoint freshness monitoring
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0-2f4f4f) ![packaged](https://img.shields.io/badge/packaged-2.4.0-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0-2f4f4f) ![Checkmk max](https://img.shields.io/badge/Checkmk%20max-2.5-informational) ![packaged](https://img.shields.io/badge/packaged-2.4.0-blue)
 <!-- compatibility-badges:end -->
 
 Generic check that verifies an HTTP endpoint is still being kept up to date by an upstream producer (a cron job, a CDN cache, a periodic export, ...). The accompanying special agent fetches each configured URL and derives an "age in seconds" from one of three sources, then applies WARN/CRIT thresholds to that age.
