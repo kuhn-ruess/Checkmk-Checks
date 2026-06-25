@@ -1,0 +1,23 @@
+title: AWS Lambda metrics (CloudWatch)
+agents: aws_lambda_cw
+catalog: cloud/aws
+license: GPLv3
+distribution: check_mk
+description:
+ This check monitors AWS Lambda functions via CloudWatch. It is intended for
+ Checkmk editions without the built-in AWS Lambda integration (which is a
+ Checkmk Ultimate feature). The special agent fetches the CloudWatch metrics
+ Invocations, Errors, Throttles and Duration (average and maximum) per
+ function over a configurable look-back window.
+
+ One service is created per Lambda function. The service reports the number
+ of invocations, errors (count and rate), throttles and the execution
+ duration. Upper levels can be configured for errors, error rate, throttles
+ and both duration values. By default the service goes {WARN}/{CRIT} on one
+ or more errors or throttles in the window.
+
+item:
+ The Lambda function name.
+
+discovery:
+ One service is created for every function returned by the special agent.
