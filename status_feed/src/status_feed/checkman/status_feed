@@ -1,0 +1,31 @@
+title: Status RSS/Atom feed
+agents: status_feed
+catalog: cloud/general
+license: GPLv3
+distribution: check_mk
+description:
+ This check monitors status RSS/Atom feeds. It works with the per-service
+ status feeds published by AWS at https://status.aws.amazon.com/ as well as
+ Statuspage-style incident-history feeds such as
+ https://status.scrivito.com/incidents.atom. For every feed configured in
+ the special agent rule the check verifies that the feed is reachable and
+ contains valid XML data, and inspects the most recent published entry.
+
+ The service goes {CRIT} when the feed cannot be fetched or parsed (HTTP
+ error, timeout, non-XML response). If the feed is healthy and contains no
+ entries at all, the source is currently not reporting any incident and the
+ state is {OK}.
+
+ In age mode (default, suited to AWS per-service feeds) the service goes
+ {WARN} or {CRIT} when the newest entry is younger than the configured
+ thresholds. In incident mode (suited to Statuspage-style history feeds that
+ keep resolved incidents forever) the lifecycle of the newest entry decides:
+ a resolved entry is {OK} regardless of age, an active incident raises the
+ configured state.
+
+item:
+ The configured feed name, e.g. {Amazon CloudFront} or {Scrivito}.
+
+discovery:
+ One service is discovered for every feed entry returned by the
+ special agent.

@@ -4,12 +4,18 @@ Kuhn & Rueß GmbH
 Consulting and Development
 https://kuhn-ruess.de
 
-Special agent: fetch AWS service status RSS feeds and emit one section line
-per configured feed. Each line is a JSON object describing reachability,
-latest item, and item count.
+Special agent: fetch status RSS/Atom feeds and emit one section line per
+configured feed. Each line is a JSON object describing reachability, the
+latest item and the detected incident state.
+
+Generalised from the original AWS-only agent: works with the per-service
+status feeds published by AWS (https://status.aws.amazon.com/) as well as
+Statuspage-style incident-history feeds (e.g. https://status.scrivito.com/
+incidents.atom).
 """
 import argparse
 import json
+import re
 import sys
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
@@ -18,20 +24,53 @@ from urllib.request import Request, urlopen
 from xml.etree import ElementTree as ET
 
 
+# Keywords used to classify the most recent feed entry. Statuspage-style
+# feeds embed the lifecycle state in the entry text; AWS service feeds only
+# publish an entry while an event is in flight.
+ACTIVE_KEYWORDS = (
+    "investigating",
+    "identified",
+    "monitoring",
+    "degraded",
+    "degradation",
+    "partial outage",
+    "major outage",
+    "service disruption",
+    "disruption",
+    "increased error",
+    "elevated error",
+    "in progress",
+    "ongoing",
+)
+RESOLVED_KEYWORDS = (
+    "resolved",
+    "operational",
+    "completed",
+    "back to normal",
+    "fully restored",
+    "all systems",
+)
+
+
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="AWS Status RSS monitoring")
+    parser = argparse.ArgumentParser(description="Status RSS/Atom feed monitoring")
     parser.add_argument(
         "--feed",
         action="append",
         default=[],
         metavar="NAME=URL",
-        help="Service feed in the form 'Service Name=https://...rss'. May be given multiple times.",
+        help="Feed in the form 'Name=https://...'. May be given multiple times.",
     )
     parser.add_argument(
         "--timeout",
         type=float,
         default=15.0,
         help="HTTP timeout in seconds (default: 15)",
+    )
+    parser.add_argument(
+        "--user-agent",
+        default="checkmk-status-feed/1.0",
+        help="User-Agent header sent with each request.",
     )
     args = parser.parse_args()
     if not args.feed:
@@ -68,10 +107,37 @@ def parse_date(value):
     return dt
 
 
+def _strip_html(text):
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = (
+        text.replace("&nbsp;", " ")
+        .replace("&amp;", "&")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+    )
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def classify_state(title, summary):
+    """Best-effort lifecycle classification of an incident entry.
+
+    Returns "active", "resolved" or "unknown". Statuspage feeds list the
+    newest update first, so the leading keyword wins.
+    """
+    haystack = f"{title} {summary}".lower()
+    pos = {kw: haystack.find(kw) for kw in ACTIVE_KEYWORDS if kw in haystack}
+    pos.update({kw: haystack.find(kw) for kw in RESOLVED_KEYWORDS if kw in haystack})
+    if not pos:
+        return "unknown"
+    first = min(pos, key=pos.get)
+    return "resolved" if first in RESOLVED_KEYWORDS else "active"
+
+
 def extract_items(xml_text):
     """
     Return list of dicts {title, published, summary} sorted newest first.
-    Supports RSS 2.0 (<item>) and Atom (<entry>).
+    Supports RSS 2.0 (<item>) and Atom (<entry>); for Atom the human-readable
+    text may live in <summary> or <content>.
     """
     root = ET.fromstring(xml_text)
     ns = {"atom": "http://www.w3.org/2005/Atom"}
@@ -81,7 +147,7 @@ def extract_items(xml_text):
         items.append({
             "title": (item.findtext("title") or "").strip(),
             "published": (item.findtext("pubDate") or "").strip(),
-            "summary": (item.findtext("description") or "").strip(),
+            "summary": _strip_html(item.findtext("description") or ""),
         })
 
     for entry in root.iter("{http://www.w3.org/2005/Atom}entry"):
@@ -91,10 +157,12 @@ def extract_items(xml_text):
             or entry.findtext("atom:published", default="", namespaces=ns)
         )
         summary_el = entry.find("atom:summary", ns)
+        content_el = entry.find("atom:content", ns)
+        body_el = summary_el if summary_el is not None else content_el
         items.append({
             "title": (title_el.text or "").strip() if title_el is not None else "",
             "published": published.strip(),
-            "summary": (summary_el.text or "").strip() if summary_el is not None else "",
+            "summary": _strip_html(body_el.text or "") if body_el is not None else "",
         })
 
     def sort_key(it):
@@ -105,7 +173,7 @@ def extract_items(xml_text):
     return items
 
 
-def probe_feed(name, url, timeout):
+def probe_feed(name, url, timeout, user_agent):
     result = {
         "name": name,
         "url": url,
@@ -116,10 +184,11 @@ def probe_feed(name, url, timeout):
         "latest_published": None,
         "latest_age_seconds": None,
         "latest_summary": None,
+        "latest_state": None,
         "http_status": None,
     }
     try:
-        req = Request(url, headers={"User-Agent": "checkmk-aws-status-rss/1.0"})
+        req = Request(url, headers={"User-Agent": user_agent})
         with urlopen(req, timeout=timeout) as resp:
             result["http_status"] = resp.status
             body = resp.read()
@@ -147,6 +216,7 @@ def probe_feed(name, url, timeout):
         result["latest_title"] = latest["title"] or None
         result["latest_published"] = latest["published"] or None
         result["latest_summary"] = (latest["summary"] or "")[:500] or None
+        result["latest_state"] = classify_state(latest["title"], latest["summary"])
         dt = parse_date(latest["published"])
         if dt is not None:
             now = datetime.now(timezone.utc)
@@ -156,7 +226,7 @@ def probe_feed(name, url, timeout):
 
 def main():
     args = parse_arguments()
-    print("<<<aws_status_rss:sep(0)>>>")
+    print("<<<status_feed:sep(0)>>>")
     for spec in args.feed:
         try:
             name, url = split_feed(spec)
@@ -168,7 +238,7 @@ def main():
                 "error": str(exc),
             }))
             continue
-        info = probe_feed(name, url, args.timeout)
+        info = probe_feed(name, url, args.timeout, args.user_agent)
         print(json.dumps(info, sort_keys=True))
     return 0
 
