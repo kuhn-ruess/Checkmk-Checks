@@ -15,7 +15,8 @@ description:
  Sensors reporting status {not available} are not discovered.
 
 item:
- The Blue e+ device name plus the sensor, e.g. "Blue e Plus 1 Internal".
+ The temperature sensor: {Internal}, {Ambient} or {External}. When more than
+ one Blue e+ unit is connected, the device name is appended in parentheses.
 
 inventory:
  One service per connected temperature sensor of each Blue e+ unit.

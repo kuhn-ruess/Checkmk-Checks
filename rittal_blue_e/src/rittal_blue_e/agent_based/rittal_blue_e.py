@@ -235,6 +235,12 @@ _COMPONENTS = [
 ]
 
 
+def _dev_suffix(section, dev):
+    """Disambiguate sensors by device only when more than one unit exists,
+    so the common single-unit case keeps clean Checkmk-style names."""
+    return "" if len(section) <= 1 else f" ({dev})"
+
+
 def discover_rittal_blue_e(section) -> DiscoveryResult:
     for item in section:
         yield Service(item=item)
@@ -283,7 +289,7 @@ def check_rittal_blue_e(item, params, section):
 
 check_plugin_rittal_blue_e = CheckPlugin(
     name="rittal_blue_e",
-    service_name="Blue e+ %s",
+    service_name="Cooling Unit %s",
     discovery_function=discover_rittal_blue_e,
     check_function=check_rittal_blue_e,
     check_ruleset_name="rittal_blue_e",
@@ -310,7 +316,7 @@ def _temp_sensors(section):
             status = _status(variables, f"{key}.Status")
             if status and status[0] == _NOT_AVAIL:
                 continue
-            yield f"{dev} {label}", dev, key
+            yield f"{label}{_dev_suffix(section, dev)}", dev, key
 
 
 def discover_rittal_blue_e_temp(section) -> DiscoveryResult:
@@ -355,7 +361,7 @@ def check_rittal_blue_e_temp(item, params, section):
 
 check_plugin_rittal_blue_e_temp = CheckPlugin(
     name="rittal_blue_e_temp",
-    service_name="Blue e+ Temperature %s",
+    service_name="Temperature %s",
     sections=["rittal_blue_e"],
     discovery_function=discover_rittal_blue_e_temp,
     check_function=check_rittal_blue_e_temp,
@@ -367,8 +373,8 @@ check_plugin_rittal_blue_e_temp = CheckPlugin(
 # --- fans and compressor ------------------------------------------------
 
 _FANS = [
-    ("Monitoring.Internal Fan", "Value", "Internal Fan"),
-    ("Monitoring.External Fan", "Value", "External Fan"),
+    ("Monitoring.Internal Fan", "Value", "Fan Internal"),
+    ("Monitoring.External Fan", "Value", "Fan External"),
     ("Monitoring.Compressor", "Speed", "Compressor"),
 ]
 
@@ -382,7 +388,7 @@ def _fan_sensors(section):
             status = _status(variables, f"{key}.Status")
             if status and status[0] == _NOT_AVAIL:
                 continue
-            yield f"{dev} {label}", dev, key, field
+            yield f"{label}{_dev_suffix(section, dev)}", dev, key, field
 
 
 def discover_rittal_blue_e_fan(section) -> DiscoveryResult:
@@ -411,7 +417,7 @@ def check_rittal_blue_e_fan(item, params, section):
 
 check_plugin_rittal_blue_e_fan = CheckPlugin(
     name="rittal_blue_e_fan",
-    service_name="Blue e+ %s",
+    service_name="%s",
     sections=["rittal_blue_e"],
     discovery_function=discover_rittal_blue_e_fan,
     check_function=check_rittal_blue_e_fan,

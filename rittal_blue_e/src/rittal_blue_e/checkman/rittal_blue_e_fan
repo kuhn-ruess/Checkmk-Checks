@@ -13,7 +13,9 @@ description:
  reporting status {not available} are not discovered.
 
 item:
- The Blue e+ device name plus the component, e.g. "Blue e Plus 1 Compressor".
+ The component: {Fan Internal}, {Fan External} or {Compressor}. When more
+ than one Blue e+ unit is connected, the device name is appended in
+ parentheses.
 
 inventory:
  One service per fan and compressor of each Blue e+ unit.

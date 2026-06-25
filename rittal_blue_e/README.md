@@ -23,11 +23,15 @@ filters to sub-devices whose device-table type is `Blue e+`
 
 ## Services
 
-| Service | Item | Content |
-|---|---|---|
-| `Blue e+ <name>` | e.g. `Blue e Plus 1` | Aggregated health of all component status fields (Cooling, Air Circuits, Fans, Compressor, EEV, Filter, Door, Electronics, Condensate, System Messages, Error List, temperature alarms). Performance data: input power, cooling capacity, EER. |
-| `Blue e+ Temperature <name> <sensor>` | e.g. `Blue e Plus 1 Internal` | Internal / Ambient / External temperature with the appliance thresholds (overridable) and perfdata. |
-| `Blue e+ <name> <fan>` | e.g. `Blue e Plus 1 Compressor` | Internal fan, external fan and compressor speed in percent with component status. |
+Service names follow the Checkmk style. With more than one Blue e+ unit on
+the same CMC III, the device name is appended in parentheses to keep the
+items unique.
+
+| Service | Content |
+|---|---|
+| `Cooling Unit <name>` | Aggregated health of all component status fields (Cooling, Air Circuits, Fans, Compressor, EEV, Filter, Door, Electronics, Condensate, System Messages, Error List, temperature alarms). Performance data: input power, cooling capacity, EER. |
+| `Temperature Internal` / `Temperature Ambient` / `Temperature External` | Temperature with the appliance thresholds (overridable) and perfdata. |
+| `Fan Internal` / `Fan External` / `Compressor` | Internal fan, external fan and compressor speed in percent with component status. |
 
 Sensors/components reporting status *not available* are not discovered.
 
