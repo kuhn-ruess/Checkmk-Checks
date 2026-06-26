@@ -111,6 +111,11 @@ _STATE_BY_TEXT = {
 # codes would be wrong (it would rank UNKNOWN=3 above CRIT=2).
 _SEVERITY = {0: 0, 1: 1, 3: 2, 2: 3}
 
+# Cosmetic status icons for the grouped service output. Plain Unicode emoji
+# (UTF-8) — they render in the Checkmk GUI; the actual service state still
+# comes from the worst sub-state, not from these.
+_STATE_ICONS = {0: "🟢", 1: "🟡", 2: "🔴", 3: "⚪"}
+
 
 def _parse_state(raw_state):
     """Full state derivation: map a status cell to OK/WARN/CRIT/UNKNOWN.
@@ -196,13 +201,16 @@ def main():
                 sub_output = sub_data[1] if len(sub_data) > 1 else ""
                 sub_name = sub_name.replace("Parameter: ", "")  # hack
                 if group_services:
-                    detail_lines.append(", ".join(c for c in sub_data if c))
+                    icon = _STATE_ICONS.get(sub_state, _STATE_ICONS[3])
+                    detail_lines.append(f"{icon} " + ", ".join(c for c in sub_data if c))
                     worst = _worst(worst, sub_state)
                 else:
                     print(f'{sub_state} "{service_name} {sub_name}" - {sub_output}')
 
             if group_services:
-                # One grouped service: rows folded into the details (\n).
+                # One grouped service: rows folded into the details (\n), each
+                # prefixed with its status icon. The summary line stays plain —
+                # icons live in the details only.
                 summary = f"General Service {service_name}"
                 text = summary
                 if detail_lines:
