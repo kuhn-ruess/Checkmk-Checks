@@ -20,6 +20,13 @@ description:
  every check cycle. This override skips such all-zero rows already during
  discovery, so no bogus "HW Controller 0" service is created.
 
+ On Gen11 / iLO 6, healthy controllers often report
+ {cpqDaCntlrBoardCondition} = "other", which the built-in check maps to
+ {WARN}, pinning the service to WARN permanently. The check parameter rule
+ "HP ProLiant RAID controller" lets you remap the state reported for the
+ "other" value of Condition, Board-Condition and Board-Status independently
+ (each defaults to {WARN}, i.e. the built-in behaviour).
+
  This plugin re-registers the section and check under the original name
  {hp_proliant_da_cntlr} and therefore shadows the built-in version. Remove
  the package once the upstream check skips phantom rows itself.

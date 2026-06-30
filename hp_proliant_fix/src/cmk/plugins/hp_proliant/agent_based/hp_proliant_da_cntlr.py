@@ -91,6 +91,16 @@ _OTHER_STATE_DESCRIPTION = (
 
 Section = Mapping[str, list[str] | None]
 
+# Default check parameters. All "other" states default to WARN, i.e. the exact
+# behaviour of the built-in plugin. HPE ProLiant Gen11 / iLO 6 firmware tends to
+# report cpqDaCntlrBoardCondition = other(1) for perfectly healthy controllers,
+# which makes the service WARN forever; users can remap that here.
+_DEFAULT_PARAMETERS = {
+    "condition_other_state": 1,
+    "board_condition_other_state": 1,
+    "board_status_other_state": 1,
+}
+
 
 def _is_phantom(cond: str, role: str, b_status: str, b_cond: str) -> bool:
     """A real controller never reports the (non-existent) "0" enum value.
@@ -113,16 +123,28 @@ def discovery_hp_proliant_da_cntlr(section: Section) -> DiscoveryResult:
     yield from (Service(item=item) for item, line in section.items() if line is not None)
 
 
-def check_hp_proliant_da_cntlr(item: str, section: Section) -> CheckResult:
+def _state_for(
+    value: str, state_map: Mapping[str, tuple[State, str]], other_state: int
+) -> tuple[State, str]:
+    """Resolve a cell to (State, text); the "other"(1) state is configurable."""
+    state, text = state_map[value]
+    if value == "1":
+        state = State(other_state)
+    return state, text
+
+
+def check_hp_proliant_da_cntlr(
+    item: str, params: Mapping[str, int], section: Section
+) -> CheckResult:
     line = section.get(item)
     if not line:
         yield Result(state=State.UNKNOWN, summary="Controller not found in SNMP data")
         return
 
     _index, model, slot, cond, role, b_status, b_cond, serial = line
-    cond_state, cond_txt = _COND_MAP[cond]
-    bcond_state, bcond_txt = _COND_MAP[b_cond]
-    bstat_state, bstat_txt = _STATE_MAP[b_status]
+    cond_state, cond_txt = _state_for(cond, _COND_MAP, params["condition_other_state"])
+    bcond_state, bcond_txt = _state_for(b_cond, _COND_MAP, params["board_condition_other_state"])
+    bstat_state, bstat_txt = _state_for(b_status, _STATE_MAP, params["board_status_other_state"])
 
     has_other = "1" in (cond, b_cond) or b_status == "1"
     yield Result(
@@ -152,4 +174,6 @@ check_plugin_hp_proliant_da_cntlr = CheckPlugin(
     service_name="HW Controller %s",
     discovery_function=discovery_hp_proliant_da_cntlr,
     check_function=check_hp_proliant_da_cntlr,
+    check_default_parameters=_DEFAULT_PARAMETERS,
+    check_ruleset_name="hp_proliant_da_cntlr",
 )

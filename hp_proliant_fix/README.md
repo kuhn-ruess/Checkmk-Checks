@@ -33,6 +33,25 @@ The fixed plugin skips phantom (all-zero) rows already during discovery, so no
 bogus service is created. Behaviour for real controllers is unchanged. The
 check logic is self-contained (no imports from `cmk.plugins` internals).
 
+## Permanent WARN on Gen11 / iLO 6
+
+On Gen11 / iLO 6, healthy controllers frequently report
+`cpqDaCntlrBoardCondition` = `other`, even though `cpqDaCntlrCondition` is `ok`
+and `cpqDaCntlrBoardStatus` is `enabled`. The built-in check maps `other` to
+**WARN**, so the `HW Controller` service is stuck on WARN forever.
+
+This package adds a check parameter rule **"HP ProLiant RAID controller"**
+(*Setup → Service monitoring rules*) that remaps the state reported for the
+`other` value of each column independently:
+
+- *State when Condition is 'other'* (default WARN)
+- *State when Board-Condition is 'other'* (default WARN) — set to **OK** to
+  clear the Gen11/iLO6 false WARN
+- *State when Board-Status is 'other'* (default WARN)
+
+All defaults are WARN, i.e. identical to the built-in check, so installing the
+package changes nothing until a rule is created.
+
 ## Compatibility
 
 Checkmk 2.5 (the built-in check uses the agent_based v2 API there).
