@@ -1,0 +1,32 @@
+title: HP ProLiant: Smart Array / RAID Controllers (phantom-row fix)
+agents: snmp
+catalog: hw/server/hp
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Drop-in replacement for the built-in {hp_proliant_da_cntlr} check. It
+ monitors the condition, board condition and board status of HP/HPE ProLiant
+ Smart Array / RAID controllers read from the {cpqDaCntlrTable}
+ (.1.3.6.1.4.1.232.3.2.2.1.1) and behaves exactly like the shipped check for
+ real controllers.
+
+ It additionally fixes a discovery problem seen on ProLiant Gen11 systems
+ managed via iLO 6: their controller table contains a phantom/placeholder row
+ (typically at index 0) whose condition, board status and board condition
+ cells are all "0". The vendor MIB has no "0" enum value, so this is not a
+ real controller. The built-in check discovers a service for that row anyway
+ and then reports it as {UNKNOWN} ("Controller not found in SNMP data") on
+ every check cycle. This override skips such all-zero rows already during
+ discovery, so no bogus "HW Controller 0" service is created.
+
+ This plugin re-registers the section and check under the original name
+ {hp_proliant_da_cntlr} and therefore shadows the built-in version. Remove
+ the package once the upstream check skips phantom rows itself.
+
+item:
+ The controller index from the {cpqDaCntlrTable}, e.g. "23".
+
+inventory:
+ One service per controller that reports valid (non-zero) condition and
+ status cells. Phantom/placeholder rows are not discovered.
