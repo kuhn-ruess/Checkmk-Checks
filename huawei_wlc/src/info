@@ -6,6 +6,6 @@
                                   'huawei_wlc/checkman/huawei_wlc']},
  'name': 'huawei_wlc',
  'title': u'Huawei WLC Monitoring',
- 'version': '2.0.0',
+ 'version': '2.0.1',
  'version.min_required': '2.4.0b1',
  'version.packaged': '2.5.0'}

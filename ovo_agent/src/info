@@ -8,6 +8,6 @@
                                   'ovo_agent/rulesets/bakery.py']},
  'name': 'ovo_agent',
  'title': 'HP OpenView Agent Version Monitoring',
- 'version': '1.0.0',
+ 'version': '1.0.1',
  'version.min_required': '2.3.0',
  'version.packaged': '2.4.0p7'}

@@ -7,6 +7,6 @@
                                   'wordpress/rulesets/bakery.py']},
  'name': 'wordpress',
  'title': 'Wordpress Instance Monitoring',
- 'version': '1.0.0-dev1',
+ 'version': '1.0.0-dev2',
  'version.min_required': '2.4.0p1',
  'version.packaged': '2.4.0p8'}

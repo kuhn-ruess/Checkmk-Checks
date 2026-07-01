@@ -6,6 +6,6 @@
                                   'notification_monitor/libexec/agent_notification_monitor']},
  'name': 'notification_monitor',
  'title': 'Monitor Failed Notifications',
- 'version': '1.0.0-dev1',
+ 'version': '1.0.0-dev2',
  'version.min_required': '2.3.0',
  'version.packaged': '2.4.0p8'}

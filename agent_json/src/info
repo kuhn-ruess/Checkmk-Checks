@@ -6,6 +6,6 @@
                                   'agent_json/server_side_calls/agent_json.py']},
  'name': 'agent_json',
  'title': 'Agent JSON',
- 'version': '2.2.0',
+ 'version': '2.2.1',
  'version.min_required': '2.3.0b1',
  'version.packaged': '2.3.0p9'}

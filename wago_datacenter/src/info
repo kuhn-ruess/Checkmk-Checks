@@ -5,6 +5,6 @@
                                   'wago_datacenter/checkman/wago_datacenter']},
  'name': 'wago_datacenter',
  'title': 'WAGO Datacenter Signals',
- 'version': '1.2.0',
+ 'version': '1.2.1',
  'version.min_required': '2.4.0b1',
  'version.packaged': '2.4.0p24'}

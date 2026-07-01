@@ -8,6 +8,6 @@
            'notifications': ['sms_eagle']},
  'name': 'notify_sms_eagle',
  'title': 'SMS Eagle Notification',
- 'version': '2.3.0',
+ 'version': '2.3.1',
  'version.min_required': '2.4.0b1',
  'version.packaged': '2.5.0'}

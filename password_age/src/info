@@ -7,6 +7,6 @@
                                   'password_age/rulesets/bakery.py']},
  'name': 'password_age',
  'title': 'Password Age',
- 'version': '3.0.2',
+ 'version': '3.0.3',
  'version.min_required': '2.3.0',
  'version.packaged': '2.4.0p13'}

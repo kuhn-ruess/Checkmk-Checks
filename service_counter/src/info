@@ -8,6 +8,6 @@
                                   'service_counter/server_side_calls/service_counter.py']},
  'name': 'service_counter',
  'title': 'Count pattern in services for metrics',
- 'version': '2.1.3',
+ 'version': '2.1.4',
  'version.min_required': '2.4.0',
  'version.packaged': '2.4.0p14'}

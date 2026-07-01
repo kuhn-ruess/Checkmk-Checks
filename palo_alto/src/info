@@ -12,6 +12,6 @@
                                   'palo_alto/rulesets/gp_tunnels.py']},
  'name': 'palo_alto',
  'title': 'Palo Alto enhanced checks',
- 'version': '1.1.0',
+ 'version': '1.1.1',
  'version.min_required': '2.4.0',
  'version.packaged': '2.4.0p4'}

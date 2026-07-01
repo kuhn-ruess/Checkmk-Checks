@@ -5,6 +5,6 @@
            'notifications': ['alarms']},
  'name': 'alarms',
  'title': 'Alarms',
- 'version': '2.1.0',
+ 'version': '2.1.1',
  'version.min_required': '2.4.0b1',
  'version.packaged': '2.5.0'}

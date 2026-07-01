@@ -29,6 +29,6 @@
  'name': 'tridium_station',
  'num_files': 24,
  'title': u'Tridium Station Monitoring',
- 'version': '2.0.0',
+ 'version': '2.0.1',
  'version.min_required': '2.4.0b1',
  'version.packaged': '2.5.0'}

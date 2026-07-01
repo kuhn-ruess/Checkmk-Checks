@@ -9,6 +9,6 @@
  'files': {'bin': ['sync_ec_events.py']},
  'name': 'ec_cleanup',
  'title': 'EC Cleanup Script',
- 'version': '1.0.3',
+ 'version': '1.0.4',
  'version.min_required': '2.4.0',
  'version.packaged': '2.4.0p13'}

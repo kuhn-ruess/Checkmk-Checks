@@ -23,6 +23,6 @@
                                   'pure/graphing/arraydetails.py']},
  'name': 'pure',
  'title': 'Pure checks',
- 'version': '2.0.4',
+ 'version': '2.0.5',
  'version.min_required': '2.3.0b1',
  'version.packaged': '2.3.0p30'}

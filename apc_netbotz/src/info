@@ -6,6 +6,6 @@
                                   'apc_netbotz/agent_based/vibration.py']},
  'name': 'apc_netbotz',
  'title': 'APC Netbotz sensors',
- 'version': '1.0.0',
+ 'version': '1.0.1',
  'version.min_required': '2.4.0b1',
  'version.packaged': '2.4.0p24'}

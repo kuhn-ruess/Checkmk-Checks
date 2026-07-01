@@ -6,6 +6,6 @@
                                   'nfs_df/rulesets/backery.py']},
  'name': 'nfs_df',
  'title': 'NFS Filesystem Monitoring',
- 'version': '1.0.1',
+ 'version': '1.0.2',
  'version.min_required': '2.3.0',
  'version.packaged': '2.4.0p7'}

@@ -10,6 +10,6 @@
                                   'service_metric_counter/server_side_calls/service_counter.py']},
  'name': 'service_metric_counter',
  'title': 'Count the Value of Service Perfdata Metrics',
- 'version': '2.0.0',
+ 'version': '2.0.1',
  'version.min_required': '2.3.0p1',
  'version.packaged': '2.3.0p25'}

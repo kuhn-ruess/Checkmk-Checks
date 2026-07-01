@@ -7,6 +7,6 @@
                                   'arcgis_portal/server_side_calls/agent.py']},
  'name': 'arcgis_portal',
  'title': 'Arcgis Portal Monitoring',
- 'version': '0.0.3',
+ 'version': '0.0.4',
  'version.min_required': '2.4.0',
  'version.packaged': '2.4.0p18'}

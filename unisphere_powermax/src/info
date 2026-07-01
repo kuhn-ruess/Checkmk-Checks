@@ -17,6 +17,6 @@
                                   'unisphere_powermax/checkman/unisphere_powermax_volume_masking_view_volume_summary']},
  'name': 'unisphere_powermax',
  'title': 'Unisphere PowerMax',
- 'version': '3.0.10',
+ 'version': '3.0.11',
  'version.min_required': '2.3.0p2',
  'version.packaged': '2.4.0p7'}

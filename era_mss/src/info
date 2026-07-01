@@ -28,6 +28,6 @@
                                   'era_mss/rulesets/era_vserver.py']},
  'name': 'era_mss',
  'title': 'ERA MSS Target Processor Monitoring',
- 'version': '1.0.0',
+ 'version': '1.0.1',
  'version.min_required': '2.4.0p15',
  'version.packaged': '2.4.0p15'}

@@ -7,6 +7,6 @@
                                   'videotext/server_side_calls/active_check.py']},
  'name': 'videotext',
  'title': 'Videotext timestamp monitoring',
- 'version': '1.0.2',
+ 'version': '1.0.3',
  'version.min_required': '2.3.0b1',
  'version.packaged': '2.3.0p9'}

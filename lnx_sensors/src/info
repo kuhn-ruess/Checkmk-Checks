@@ -11,6 +11,6 @@
                                   'lnx_sensors/agent_based/agent_bakery_lnx_sensors.py']},
  'name': 'lnx_sensors',
  'title': 'Monitoring Linux sensors',
- 'version': '1.0.4',
+ 'version': '1.0.5',
  'version.min_required': '2.3.0b1',
  'version.packaged': '2.5.0'}

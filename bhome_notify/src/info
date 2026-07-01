@@ -6,6 +6,6 @@
            'notifications': ['bhome_notify']},
  'name': 'bhome_notify',
  'title': 'BHome Notification',
- 'version': '1.1.0',
+ 'version': '1.1.1',
  'version.min_required': '2.4.0b1',
  'version.packaged': '2.5.0'}

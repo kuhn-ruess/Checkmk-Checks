@@ -11,6 +11,6 @@
                                   'icinga/server_side_calls/agent.py']},
  'name': 'icinga',
  'title': 'Icinga Connector',
- 'version': '1.4.0',
+ 'version': '1.4.1',
  'version.min_required': '2.4.0p1',
  'version.packaged': '2.4.0p18'}

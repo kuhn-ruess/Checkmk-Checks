@@ -4,6 +4,6 @@
  'files': {'cmk_addons_plugins': ['sina_inventory/agent_based/sina_inventory.py']},
  'name': 'sina_inventory',
  'title': 'Sina Inventory',
- 'version': '1.0.0',
+ 'version': '1.0.1',
  'version.min_required': '2.3.0p1',
  'version.packaged': '2.4.0'}

@@ -5,6 +5,6 @@
                                   'mysql_galera_cluster/rulesets/params.py']},
  'name': 'mysql_galera_cluster',
  'title': 'Mysql Galera Cluster Monitoring',
- 'version': '2.0.0-dev2',
+ 'version': '2.0.0-dev3',
  'version.min_required': '2.4.0p1',
  'version.packaged': '2.4.0p8'}

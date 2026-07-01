@@ -12,6 +12,6 @@
                                   'discover_os_labels/rulesets/bakery.py']},
  'name': 'discover_os_labels',
  'title': 'discover_os_labels',
- 'version': '3.0.1',
+ 'version': '3.0.2',
  'version.min_required': '2.3.0',
  'version.packaged': '2.4.0p13'}

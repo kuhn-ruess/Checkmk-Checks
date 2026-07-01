@@ -7,6 +7,6 @@
                                   'cisco_vpc/rulesets/cisco_vpc_role.py']},
  'name': 'cisco_vpc',
  'title': 'Cisco VPC',
- 'version': '2.0.0',
+ 'version': '2.0.1',
  'version.min_required': '2.4.0',
  'version.packaged': '2.4.0p18'}

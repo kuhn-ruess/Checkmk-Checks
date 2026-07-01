@@ -28,6 +28,6 @@
                                   'alteon_application_switch/graphing/metrics.py']},
  'name': 'alteon_application_switch',
  'title': 'Alteon Application Switch monitoring',
- 'version': '3.0.0-dev2',
+ 'version': '3.0.0-dev3',
  'version.min_required': '2.3.0',
  'version.packaged': '2.4.0p7'}

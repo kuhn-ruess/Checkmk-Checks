@@ -14,6 +14,6 @@
                                   'sonicwall/checkman/sonicwall_vpn']},
  'name': 'sonicwall',
  'title': 'Sonicwall VPN Monitoring',
- 'version': '1.1.0',
+ 'version': '1.1.1',
  'version.min_required': '2.4.0p1',
  'version.packaged': '2.5.0'}

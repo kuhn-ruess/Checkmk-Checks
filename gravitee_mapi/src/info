@@ -7,6 +7,6 @@
                                   'gravitee_mapi/server_side_calls/agent.py']},
  'name': 'gravitee_mapi',
  'title': 'Gravitee API Management Monitoring',
- 'version': '0.0.2',
+ 'version': '0.0.3',
  'version.min_required': '2.4.0',
  'version.packaged': '2.4.0p18'}

@@ -5,6 +5,6 @@
            'notifications': ['cherwell_notify']},
  'name': 'cherwell_notify',
  'title': 'Cherwell notifcation script',
- 'version': '2.0.2',
+ 'version': '2.0.3',
  'version.min_required': '2.3.0b1',
  'version.packaged': '2.4.0p7'}

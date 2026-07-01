@@ -6,6 +6,6 @@
                                   'veritas_flex/server_side_calls/veritas.py']},
  'name': 'veritas_flex',
  'title': 'Veritas Flex Appliance',
- 'version': '1.0.2',
+ 'version': '1.0.3',
  'version.min_required': '2.3.0',
  'version.packaged': '2.3.0p25'}

@@ -11,6 +11,6 @@
                                   'dell_pmax/server_side_calls/agent_pmax.py']},
  'name': 'dell_pmax',
  'title': 'DELL EMC PowerMax',
- 'version': '2.0.2',
+ 'version': '2.0.3',
  'version.min_required': '2.3.0',
  'version.packaged': '2.4.0'}

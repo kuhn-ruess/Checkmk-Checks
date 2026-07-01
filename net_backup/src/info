@@ -6,6 +6,6 @@
                                   'net_backup/checkman/net_backup']},
  'name': 'net_backup',
  'title': u'Net Backup Checks',
- 'version': '2.0.0',
+ 'version': '2.0.1',
  'version.min_required': '2.4.0b1',
  'version.packaged': '2.5.0'}

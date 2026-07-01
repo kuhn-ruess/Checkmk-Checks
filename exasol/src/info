@@ -13,6 +13,6 @@
                                   'exasol/server_side_calls/exasol.py']},
  'name': 'exasol',
  'title': 'Exsasol appliance monitoring',
- 'version': '2.1.0',
+ 'version': '2.1.1',
  'version.min_required': '2.3.0b1',
  'version.packaged': '2.3.0p30'}

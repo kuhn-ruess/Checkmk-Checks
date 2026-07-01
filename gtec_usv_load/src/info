@@ -5,6 +5,6 @@
                                   'gtec_usv_load/checkman/gtec_usv_load']},
  'name': 'gtec_usv_load',
  'title': u'Gtec USV Load',
- 'version': '1.1.0',
+ 'version': '1.1.1',
  'version.min_required': '2.4.0b1',
  'version.packaged': '2.5.0'}

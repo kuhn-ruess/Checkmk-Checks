@@ -6,6 +6,6 @@
                                   'cisco_portsec/rulesets/agent.py']},
  'name': 'cisco_portsec',
  'title': 'Cisco Portsecurity Status',
- 'version': '1.0.3',
+ 'version': '1.0.4',
  'version.min_required': '2.4.0',
  'version.packaged': '2.4.0p18'}
