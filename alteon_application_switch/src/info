@@ -30,5 +30,4 @@
  'title': 'Alteon Application Switch monitoring',
  'version': '3.0.0-dev2',
  'version.min_required': '2.3.0',
- 'version.packaged': '2.4.0p7',
- 'version.usable_until': '2.5'}
+ 'version.packaged': '2.4.0p7'}

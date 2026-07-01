@@ -6,5 +6,4 @@
  'title': 'Oxidized export',
  'version': '1.0.2',
  'version.min_required': '2.3.0b1',
- 'version.packaged': '2.4.0p5',
- 'version.usable_until': '2.4'}
+ 'version.packaged': '2.4.0p5'}

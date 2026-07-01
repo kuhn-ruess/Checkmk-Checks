@@ -8,5 +8,4 @@
  'title': 'Agent JSON',
  'version': '2.2.0',
  'version.min_required': '2.3.0b1',
- 'version.packaged': '2.3.0p9',
- 'version.usable_until': '2.5'}
+ 'version.packaged': '2.3.0p9'}

@@ -24,5 +24,4 @@
  'title': 'Vertiv Avocent ACS 8000 console server',
  'version': '1.0.0',
  'version.min_required': '2.4.0',
- 'version.packaged': '2.4.0p4',
- 'version.usable_until': '2.5'}
+ 'version.packaged': '2.4.0p4'}

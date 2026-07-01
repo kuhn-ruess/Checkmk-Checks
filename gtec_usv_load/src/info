@@ -7,5 +7,4 @@
  'title': u'Gtec USV Load',
  'version': '1.1.0',
  'version.min_required': '2.4.0b1',
- 'version.packaged': '2.5.0',
- 'version.usable_until': '2.4'}
+ 'version.packaged': '2.5.0'}

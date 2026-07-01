@@ -12,5 +12,4 @@
  'title': 'Clean spool files of Checkmk Notification Spooler',
  'version': '1.0.1',
  'version.min_required': '2.3.0b1',
- 'version.packaged': '2.3.0p9',
- 'version.usable_until': '2.4'}
+ 'version.packaged': '2.3.0p9'}
