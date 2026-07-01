@@ -6,10 +6,9 @@ https://kuhn-ruess.de
 
 Special agent: pull AWS Lambda metrics from CloudWatch via boto3.
 
-Lambda monitoring is only available out of the box in Checkmk Ultimate. For
-non-Ultimate editions this agent fetches the relevant CloudWatch metrics
-(invocations, errors, throttles, duration) per function directly and emits
-one JSON object per function under section header <<<aws_lambda_cw>>>.
+This agent fetches the relevant CloudWatch metrics (invocations, errors,
+throttles, duration) per function directly and emits one JSON object per
+function under section header <<<aws_lambda_cw>>>.
 
 Required IAM permissions: cloudwatch:ListMetrics, cloudwatch:GetMetricData.
 """
@@ -24,6 +23,21 @@ def parse_arguments(argv):
     parser.add_argument("--access-key-id", required=True, help="AWS access key id")
     parser.add_argument("--secret-key", required=True, help="AWS secret access key")
     parser.add_argument("--region", default="eu-central-1", help="AWS region (default: eu-central-1)")
+    parser.add_argument(
+        "--role-arn",
+        help="Optional IAM role ARN to assume via STS before reading CloudWatch. "
+        "Use when the access key itself has no CloudWatch permissions and only "
+        "serves to assume a (possibly cross-account) monitoring role.",
+    )
+    parser.add_argument(
+        "--external-id",
+        help="Optional ExternalId passed to sts:AssumeRole (only with --role-arn).",
+    )
+    parser.add_argument(
+        "--role-session-name",
+        default="checkmk-aws-lambda-cw",
+        help="Session name for the assumed role (default: checkmk-aws-lambda-cw).",
+    )
     parser.add_argument(
         "--function",
         action="append",
@@ -101,12 +115,30 @@ def main(argv):
         return 1
 
     try:
-        client = boto3.client(
-            "cloudwatch",
-            aws_access_key_id=args.access_key_id,
-            aws_secret_access_key=args.secret_key,
-            region_name=args.region,
-        )
+        client_kwargs = {
+            "aws_access_key_id": args.access_key_id,
+            "aws_secret_access_key": args.secret_key,
+            "region_name": args.region,
+        }
+        if args.role_arn:
+            # The access key only serves to assume the (possibly cross-account)
+            # monitoring role; the temporary credentials carry the CloudWatch
+            # permissions.
+            sts = boto3.client("sts", **client_kwargs)
+            assume_kwargs = {
+                "RoleArn": args.role_arn,
+                "RoleSessionName": args.role_session_name,
+            }
+            if args.external_id:
+                assume_kwargs["ExternalId"] = args.external_id
+            creds = sts.assume_role(**assume_kwargs)["Credentials"]
+            client_kwargs = {
+                "aws_access_key_id": creds["AccessKeyId"],
+                "aws_secret_access_key": creds["SecretAccessKey"],
+                "aws_session_token": creds["SessionToken"],
+                "region_name": args.region,
+            }
+        client = boto3.client("cloudwatch", **client_kwargs)
     except Exception as exc:  # noqa: BLE001 - report any setup failure to the check
         sys.stderr.write(f"could not create CloudWatch client: {exc}\n")
         return 1

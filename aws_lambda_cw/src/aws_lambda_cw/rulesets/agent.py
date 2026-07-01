@@ -24,9 +24,8 @@ def _form_special_agent_aws_lambda_cw():
     return Dictionary(
         title=Title("AWS Lambda (CloudWatch)"),
         help_text=Help(
-            "Monitor AWS Lambda functions via CloudWatch for Checkmk editions "
-            "without the built-in AWS Lambda integration. Needs an access key "
-            "with the IAM permissions cloudwatch:ListMetrics and "
+            "Monitor AWS Lambda functions via CloudWatch. Needs an IAM identity "
+            "with the permissions cloudwatch:ListMetrics and "
             "cloudwatch:GetMetricData."
         ),
         elements={
@@ -40,6 +39,32 @@ def _form_special_agent_aws_lambda_cw():
             "secret_key": DictElement(
                 parameter_form=Password(title=Title("Secret access key")),
                 required=True,
+            ),
+            "role_arn": DictElement(
+                parameter_form=String(
+                    title=Title("Assume IAM role (ARN)"),
+                    help_text=Help(
+                        "Optional. If the access key itself has no CloudWatch "
+                        "permissions and only serves to assume a (possibly "
+                        "cross-account) monitoring role, enter that role's ARN "
+                        "here, e.g. arn:aws:iam::123456789012:role/monitoring. "
+                        "The agent then calls sts:AssumeRole and reads CloudWatch "
+                        "with the temporary credentials."
+                    ),
+                    custom_validate=(LengthInRange(min_value=1),),
+                ),
+                required=False,
+            ),
+            "external_id": DictElement(
+                parameter_form=String(
+                    title=Title("External ID"),
+                    help_text=Help(
+                        "Optional ExternalId for sts:AssumeRole. Only used "
+                        "together with an assumed role ARN."
+                    ),
+                    custom_validate=(LengthInRange(min_value=1),),
+                ),
+                required=False,
             ),
             "region": DictElement(
                 parameter_form=String(

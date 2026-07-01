@@ -13,6 +13,8 @@ from cmk.server_side_calls.v1 import HostConfig, Secret, SpecialAgentCommand, Sp
 class ConfigParser(BaseModel):
     access_key_id: str
     secret_key: Secret
+    role_arn: str | None = None
+    external_id: str | None = None
     region: str = "eu-central-1"
     functions: list[str] | None = None
     interval: int | None = None
@@ -24,6 +26,10 @@ def agent_arguments(params: ConfigParser, host_config: HostConfig):
         "--secret-key", params.secret_key.unsafe(),
         "--region", params.region,
     ]
+    if params.role_arn:
+        args.extend(["--role-arn", params.role_arn])
+    if params.external_id:
+        args.extend(["--external-id", params.external_id])
     if params.interval:
         args.extend(["--interval", str(params.interval)])
     for function in params.functions or []:
