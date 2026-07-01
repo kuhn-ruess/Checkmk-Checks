@@ -11,6 +11,10 @@ description:
  the special agent rule the check verifies that the feed is reachable and
  contains valid XML data, and inspects the most recent published entry.
 
+ The special agent rule can route the feed requests through an HTTP proxy.
+ By default the proxy configured in the process environment is used; the
+ rule also allows an explicit proxy URL or forcing a direct connection.
+
  The service goes {CRIT} when the feed cannot be fetched or parsed (HTTP
  error, timeout, non-XML response). If the feed is healthy and contains no
  entries at all, the source is currently not reporting any incident and the

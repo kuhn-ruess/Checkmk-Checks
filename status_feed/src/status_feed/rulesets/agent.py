@@ -13,6 +13,7 @@ from cmk.rulesets.v1.form_specs import (
     Dictionary,
     Float,
     List,
+    Proxy,
     String,
 )
 from cmk.rulesets.v1.form_specs.validators import LengthInRange, Url, UrlProtocol
@@ -86,6 +87,17 @@ def _form_special_agent_status_feed():
                         "reject the default; a browser-like value can help."
                     ),
                     prefill=DefaultValue("checkmk-status-feed/1.0"),
+                ),
+                required=False,
+            ),
+            "proxy": DictElement(
+                parameter_form=Proxy(
+                    title=Title("HTTP proxy"),
+                    help_text=Help(
+                        "Proxy used to reach the feed URLs. Leave unset to use "
+                        "the proxy configured in the process environment, or "
+                        "choose 'No proxy' to always connect directly."
+                    ),
                 ),
                 required=False,
             ),

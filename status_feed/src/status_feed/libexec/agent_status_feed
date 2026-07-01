@@ -20,7 +20,7 @@ import sys
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+from urllib.request import ProxyHandler, Request, build_opener
 from xml.etree import ElementTree as ET
 
 
@@ -71,6 +71,18 @@ def parse_arguments():
         "--user-agent",
         default="checkmk-status-feed/1.0",
         help="User-Agent header sent with each request.",
+    )
+    proxy_group = parser.add_mutually_exclusive_group()
+    proxy_group.add_argument(
+        "--proxy",
+        metavar="URL",
+        help="Route all feed requests through this HTTP proxy "
+        "(e.g. http://proxy.example:3128).",
+    )
+    proxy_group.add_argument(
+        "--no-proxy",
+        action="store_true",
+        help="Connect directly, ignoring any proxy set in the environment.",
     )
     args = parser.parse_args()
     if not args.feed:
@@ -173,7 +185,22 @@ def extract_items(xml_text):
     return items
 
 
-def probe_feed(name, url, timeout, user_agent):
+def build_opener_for_proxy(proxy, no_proxy):
+    """Return a urllib opener honouring the requested proxy behaviour.
+
+    * ``--proxy URL`` routes every request through that proxy.
+    * ``--no-proxy`` disables proxies entirely (an empty ProxyHandler).
+    * neither flag keeps urllib's default, i.e. the proxies configured via
+      the process environment (http_proxy/https_proxy/no_proxy).
+    """
+    if proxy:
+        return build_opener(ProxyHandler({"http": proxy, "https": proxy}))
+    if no_proxy:
+        return build_opener(ProxyHandler({}))
+    return build_opener()
+
+
+def probe_feed(name, url, timeout, user_agent, opener):
     result = {
         "name": name,
         "url": url,
@@ -189,7 +216,7 @@ def probe_feed(name, url, timeout, user_agent):
     }
     try:
         req = Request(url, headers={"User-Agent": user_agent})
-        with urlopen(req, timeout=timeout) as resp:
+        with opener.open(req, timeout=timeout) as resp:
             result["http_status"] = resp.status
             body = resp.read()
     except HTTPError as exc:
@@ -226,6 +253,7 @@ def probe_feed(name, url, timeout, user_agent):
 
 def main():
     args = parse_arguments()
+    opener = build_opener_for_proxy(args.proxy, args.no_proxy)
     print("<<<status_feed:sep(0)>>>")
     for spec in args.feed:
         try:
@@ -238,7 +266,7 @@ def main():
                 "error": str(exc),
             }))
             continue
-        info = probe_feed(name, url, args.timeout, args.user_agent)
+        info = probe_feed(name, url, args.timeout, args.user_agent, opener)
         print(json.dumps(info, sort_keys=True))
     return 0
 
