@@ -30,11 +30,11 @@ def _check_memory_usage(db, params, section):
 
     totmem = section[(obj_id, instance)]["total_server_memory_(kb)"]
     tarmem = section[(obj_id, instance)]["target_server_memory_(kb)"]
-    value = 100 * (totmem / tarmem)
-    targig= tarmem / 1048576    
+    value = 100 * (totmem / tarmem) if tarmem else 0.0
+    targig= tarmem / 1048576
     infotext = "%.2f %% MemoryUsage of %.2f GB TargetMem" % (value,targig)
 
-    if levels is not None:
+    if levels is not None and levels[1] is not None:
         warn, crit = levels[1]
         levelstext = " (warn, crit at %d/%d%%)" % (warn, crit)
         yield Metric("perf_MemoryUsage", value, levels=(warn, crit))
@@ -56,9 +56,9 @@ def _check_memory_grants(db, params, section):
     levels = params.get("MemoryGrantsPending")
 
     mgrants = section[(obj_id, instance)]["memory_grants_pending"]
-    infotext = "%d memory_grants_pending" % mgrants 
+    infotext = "%d memory_grants_pending" % mgrants
 
-    if levels is not None:
+    if levels is not None and levels[1] is not None:
         warn, crit = levels[1]
         levelstext = " (warn, crit at %s/%s)" % (warn, crit)
         yield Metric("perf_MemoryGrantsPending", mgrants, levels=(warn, crit))
@@ -81,7 +81,7 @@ def _check_page_life_expectancy(db, params, section):
     page_life_expectancy = section[(obj_id, instance)]["page_life_expectancy"]
     infotext = "page_life_expectancy is %s"  % render.timespan(page_life_expectancy)
 
-    if levels != None:
+    if levels is not None and levels[1] is not None:
         yield Metric("perf_page_life_expectancy", page_life_expectancy, levels=levels[1])
         warn, crit = levels[1]
         levelstext =  " (warn / crit below %s/%s)" % (render.timespan(warn), render.timespan(crit))
@@ -117,7 +117,7 @@ def _check_lazy_writes(db, params, section):
     )
     infotext = "%.2f lazy_writes/sec" %value
 
-    if levels is not None:
+    if levels is not None and levels[1] is not None:
         warn, crit = levels[1]
         levelstext = " (warn, crit at %s/%s)" % (warn, crit)
         yield Metric("perf_LazyWrites", value, levels=(warn, crit))

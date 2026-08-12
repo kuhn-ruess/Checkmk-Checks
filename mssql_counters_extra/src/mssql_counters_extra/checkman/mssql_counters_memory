@@ -1,0 +1,22 @@
+title: MSSQL: Memory
+agents: windows
+catalog: app/mssql
+license: GPLv2
+distribution: check_mk
+description:
+ This check monitors memory related counters of a Microsoft SQL Server
+ instance based on the Memory_Manager and Buffer_Manager counters of the
+ mssql_counters agent section.
+
+ It reports the memory usage in percent of the target server memory, the
+ number of pending memory grants, the page life expectancy and the
+ lazy writes per second. Levels for each of these values can be configured
+ individually via the rule "MSSQL Memory". Setting a value to "No levels"
+ disables the corresponding thresholds while the metric is still reported.
+
+item:
+ The name of the MSSQL instance.
+
+discovery:
+ One service is created for each instance that provides both the
+ Buffer_Manager and Memory_Manager counters.
