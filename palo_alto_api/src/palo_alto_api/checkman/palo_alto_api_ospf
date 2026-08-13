@@ -1,0 +1,18 @@
+title: Palo Alto: OSPF Neighbors (XML API)
+agents: palo_alto_api
+catalog: hw/network/palo_alto
+license: GPLv3
+distribution: kuhn-ruess
+description:
+ This check monitors the OSPF and OSPFv3 neighbors of a Palo Alto Networks
+ firewall as read from {show routing protocol ospf neighbor} and its OSPFv3
+ counterpart through the PAN-OS XML API. It reports the neighbor state and area.
+
+ The service is {OK} while the neighbor state is {full} or {2way} and goes to
+ the configurable monitoring state (default {CRIT}) otherwise.
+
+item:
+ The protocol and neighbor address, e.g. {OSPF 10.0.0.1} or {OSPFv3 fe80::1}.
+
+discovery:
+ One service is created for each OSPF and OSPFv3 neighbor.

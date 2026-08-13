@@ -1,0 +1,19 @@
+title: Palo Alto: Environment (XML API)
+agents: palo_alto_api
+catalog: hw/network/palo_alto
+license: GPLv3
+distribution: kuhn-ruess
+description:
+ This check monitors the environmental sensors (temperature, fans, power) of a
+ Palo Alto Networks firewall as read from {show system environmentals} through
+ the PAN-OS XML API.
+
+ The service goes {CRIT} when the firewall raises the sensor's alarm flag. For
+ temperature sensors the reading is published as a metric and optional upper
+ temperature levels can be configured.
+
+item:
+ The sensor category and description, e.g. {thermal Temperature @ Slot 1}.
+
+discovery:
+ One service is created for each environmental sensor.

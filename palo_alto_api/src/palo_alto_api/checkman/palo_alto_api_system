@@ -1,0 +1,16 @@
+title: Palo Alto: System Info (XML API)
+agents: palo_alto_api
+catalog: hw/network/palo_alto
+license: GPLv3
+distribution: kuhn-ruess
+description:
+ This check reports the general system information of a Palo Alto Networks
+ firewall as read from {show system info} through the PAN-OS XML API: the model,
+ the PAN-OS software version, the serial number, the content versions (App-ID,
+ threat, antivirus, URL filtering, GlobalProtect client) and the uptime.
+
+ The service is always {OK}; it goes {CRIT} only if the agent reports an error.
+ The uptime is published as a metric.
+
+discovery:
+ One service is created when system information is available.

@@ -1,0 +1,21 @@
+title: Palo Alto: High Availability (XML API)
+agents: palo_alto_api
+catalog: hw/network/palo_alto
+license: GPLv3
+distribution: kuhn-ruess
+description:
+ This check monitors the high availability status of a Palo Alto Networks
+ firewall as read from {show high-availability all} through the PAN-OS XML API.
+ The {Palo Alto HA} service reports the local and peer HA state, the HA mode and
+ the configuration synchronization status. Additional {Palo Alto HA Link ...}
+ services report the connection status of the individual HA links.
+
+ The healthy local states are {active}, {passive}, {active-primary} and
+ {active-secondary}; other states, an unsynchronized configuration or a link
+ that is not up are reported with the configurable monitoring states.
+
+item:
+ {HA} for the summary and {HA Link <name>} for each HA link.
+
+discovery:
+ One service is created for the HA summary and one for each HA link.

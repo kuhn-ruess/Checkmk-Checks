@@ -1,0 +1,22 @@
+title: Palo Alto: IKE Gateways (XML API)
+agents: palo_alto_api
+catalog: hw/network/palo_alto
+license: GPLv3
+distribution: kuhn-ruess
+description:
+ This check monitors the IKE gateways of a Palo Alto Networks firewall.
+
+ The special agent {agent_palo_alto_api} lists the IKE security associations
+ through the PAN-OS XML API ({show vpn ike-sa}) and, unless disabled, fetches
+ the negotiated cipher of each gateway ({show vpn ike-sa detail}). The service
+ reports the gateway state, the peer address and the cipher.
+
+ The service is {OK} while the IKE security association is {established}. Any
+ other state is reported with the configurable monitoring state (default
+ {WARN}).
+
+item:
+ The name of the IKE gateway as returned by the firewall.
+
+discovery:
+ One service is created for each IKE gateway / security association.

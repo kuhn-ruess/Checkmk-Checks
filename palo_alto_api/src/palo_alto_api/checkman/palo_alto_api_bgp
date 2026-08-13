@@ -1,0 +1,18 @@
+title: Palo Alto: BGP Peers (XML API)
+agents: palo_alto_api
+catalog: hw/network/palo_alto
+license: GPLv3
+distribution: kuhn-ruess
+description:
+ This check monitors the BGP peers of a Palo Alto Networks firewall as read from
+ {show routing protocol bgp peer} through the PAN-OS XML API. It reports the
+ peer status together with the peer address, peer group and remote AS.
+
+ The service is {OK} while the peer is {established} and goes to the configurable
+ monitoring state (default {CRIT}) otherwise.
+
+item:
+ The BGP peer name.
+
+discovery:
+ One service is created for each BGP peer.

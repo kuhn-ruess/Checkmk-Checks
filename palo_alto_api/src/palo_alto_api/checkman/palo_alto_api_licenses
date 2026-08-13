@@ -1,0 +1,19 @@
+title: Palo Alto: Licenses (XML API)
+agents: palo_alto_api
+catalog: hw/network/palo_alto
+license: GPLv3
+distribution: kuhn-ruess
+description:
+ This check monitors the licenses installed on a Palo Alto Networks firewall as
+ read from {request license info} through the PAN-OS XML API. For every license
+ that has an expiration date the remaining validity in days is reported.
+
+ The service goes {WARN} or {CRIT} when the remaining validity falls below the
+ configured lower thresholds (default 30 / 14 days) or {CRIT} when the license
+ has already expired. Licenses that never expire are reported as {OK}.
+
+item:
+ The license feature name.
+
+discovery:
+ One service is created for each installed license.

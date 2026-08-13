@@ -1,0 +1,20 @@
+title: Palo Alto: Interfaces (XML API)
+agents: palo_alto_api
+catalog: hw/network/palo_alto
+license: GPLv3
+distribution: kuhn-ruess
+description:
+ This check monitors the network interfaces of a Palo Alto Networks firewall as
+ read from {show interface} through the PAN-OS XML API. It reports the link
+ state and, based on the interface byte and error counters, the inbound and
+ outbound bandwidth and the error/discard rates.
+
+ The service goes {CRIT} (configurable) when an interface is not up. Optional
+ upper levels can be configured for the error/discard rates. By default tunnel,
+ vlan and loopback interfaces are excluded in the special agent rule.
+
+item:
+ The interface name, e.g. {ethernet1/1}.
+
+discovery:
+ One service is created for each discovered hardware interface.

@@ -1,0 +1,19 @@
+title: Palo Alto: CPU Utilization (XML API)
+agents: palo_alto_api
+catalog: hw/network/palo_alto
+license: GPLv3
+distribution: kuhn-ruess
+description:
+ This check monitors the CPU utilization of the data plane(s) and the management
+ plane of a Palo Alto Networks firewall. The one-minute average load is read
+ from {show system state} through the PAN-OS XML API.
+
+ The service goes {WARN} or {CRIT} when the utilization exceeds the configured
+ upper levels (default 80 / 90 %).
+
+item:
+ The plane: {Data Plane} (or {Data Plane N} on multi-dataplane systems) and
+ {Management Plane}.
+
+discovery:
+ One service is created for each detected plane.

@@ -1,0 +1,27 @@
+title: Palo Alto: Certificate Expiry (XML API)
+agents: palo_alto_api
+catalog: hw/network/palo_alto
+license: GPLv3
+distribution: kuhn-ruess
+description:
+ This check monitors the expiry of the certificates configured on a Palo Alto
+ Networks firewall.
+
+ The special agent {agent_palo_alto_api} reads the configured certificates
+ (shared and per virtual system) through the PAN-OS XML API and reports the
+ remaining validity in days for every certificate that carries an expiry date,
+ for example the individual management/SSL certificate of the firewall or an
+ imported Azure SAML IDP certificate. The device certificate is reported in
+ addition when the API user has superuser privileges.
+
+ The remaining validity is published as the metric {certificate_validity_days}.
+ The service goes {WARN} or {CRIT} when it falls below the configured lower
+ thresholds (default 30 / 14 days). Certificates that are also monitored
+ elsewhere can be excluded in the special agent rule.
+
+item:
+ The name of the certificate as configured on the firewall.
+
+discovery:
+ One service is created for each configured certificate that has an expiry
+ date.

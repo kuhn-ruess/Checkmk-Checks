@@ -1,0 +1,16 @@
+title: Palo Alto: Sessions (XML API)
+agents: palo_alto_api
+catalog: hw/network/palo_alto
+license: GPLv3
+distribution: kuhn-ruess
+description:
+ This check monitors the session table of a Palo Alto Networks firewall as read
+ from {show session info} through the PAN-OS XML API. It reports the session
+ table utilization (active vs. supported sessions) together with the number of
+ active TCP, UDP and ICMP sessions and the connections-per-second rate.
+
+ The service goes {WARN} or {CRIT} when the utilization exceeds the configured
+ upper levels (default 80 / 90 %).
+
+discovery:
+ One service is created when session information is available.

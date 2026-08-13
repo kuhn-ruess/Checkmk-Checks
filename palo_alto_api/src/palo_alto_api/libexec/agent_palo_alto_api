@@ -1,0 +1,763 @@
+#!/usr/bin/env python3
+"""
+Palo Alto XML API Special Agent
+
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+import argparse
+import json
+import re
+import sys
+import traceback
+from datetime import datetime, timezone
+from xml.etree import ElementTree
+
+import requests
+import urllib3
+
+
+ALL_SECTIONS = [
+    "certificates",
+    "ipsec",
+    "ike",
+    "system",
+    "sessions",
+    "cpu",
+    "environment",
+    "ha",
+    "interfaces",
+    "bgp",
+    "ospf",
+    "licenses",
+]
+
+DEFAULT_IF_EXCLUDE = r"^(tunnel|vlan|loopback)"
+
+DEBUG = False
+
+
+def debug(message):
+    if DEBUG:
+        print(f"DEBUG: {message}", file=sys.stderr)
+
+
+def parse_arguments():
+    """Parse the command line arguments."""
+    parser = argparse.ArgumentParser(description="Palo Alto XML API Special Agent")
+    parser.add_argument("--host", required=True, help="Firewall management address")
+    parser.add_argument("--api-key", required=True, help="PAN-OS XML API key")
+    parser.add_argument("--timeout", type=int, default=30, help="API request timeout in seconds")
+    parser.add_argument("--no-verify-ssl", action="store_true", help="Disable SSL certificate verification")
+    parser.add_argument("--proxy-url", help="Proxy URL (e.g. http://proxy.example.com:8080)")
+    parser.add_argument(
+        "--collect",
+        default=",".join(ALL_SECTIONS),
+        help="Comma separated list of topics to collect (default: all). "
+        f"Available: {', '.join(ALL_SECTIONS)}",
+    )
+    parser.add_argument(
+        "--no-ciphers",
+        action="store_true",
+        help="Skip the extra per-tunnel/per-gateway API calls that fetch cipher details",
+    )
+    parser.add_argument("--cert-include", help="Only report certificates whose name matches this regex")
+    parser.add_argument("--cert-exclude", help="Skip certificates whose name matches this regex")
+    parser.add_argument("--if-include", help="Only report interfaces whose name matches this regex")
+    parser.add_argument(
+        "--if-exclude",
+        default=DEFAULT_IF_EXCLUDE,
+        help="Skip interfaces whose name matches this regex",
+    )
+    parser.add_argument("--debug", action="store_true", help="Print diagnostics to stderr and full tracebacks")
+    return parser.parse_args()
+
+
+class PaloAltoApi:
+    def __init__(self, host, api_key, timeout, verify_ssl, proxy_url):
+        self.url = f"https://{host}/api/"
+        self.api_key = api_key
+        self.timeout = timeout
+        self.verify_ssl = verify_ssl
+        self.proxies = (
+            {"http": proxy_url, "https": proxy_url} if proxy_url else None
+        )
+
+    def _request(self, payload):
+        """Send a request and return the parsed <response>, raising on API errors."""
+        # verify is passed per request so REQUESTS_CA_BUNDLE cannot re-enable it.
+        payload = dict(payload, key=self.api_key)
+        debug(f"POST {self.url} type={payload.get('type')} cmd={payload.get('cmd', payload.get('xpath'))}")
+        resp = requests.post(
+            self.url,
+            data=payload,
+            timeout=self.timeout,
+            verify=self.verify_ssl,
+            proxies=self.proxies,
+        )
+        resp.raise_for_status()
+        root = ElementTree.fromstring(resp.content)
+        if root.attrib.get("status") != "success":
+            message = " ".join(t.strip() for t in root.itertext() if t and t.strip())
+            raise RuntimeError(message or "PAN-OS XML API returned a non-success status")
+        return root
+
+    def op(self, cmd):
+        """Run an operational command."""
+        return self._request({"type": "op", "cmd": cmd})
+
+    def request(self, cmd):
+        """Run a request-type command."""
+        return self._request({"type": "op", "cmd": cmd})
+
+    def config_get(self, xpath):
+        """Read a config subtree by XPath."""
+        return self._request({"type": "config", "action": "get", "xpath": xpath})
+
+
+def leaf_values(entry):
+    """Flatten an XML entry into a {tag: text} dict of leaf children and attributes."""
+    values = dict(entry.attrib)
+    for child in entry:
+        if len(child) == 0:
+            text = (child.text or "").strip()
+            if text:
+                values[child.tag] = text
+    return values
+
+
+def first(values, *keys):
+    """Return the first non-empty value among the given keys."""
+    for key in keys:
+        value = values.get(key)
+        if value:
+            return value
+    return ""
+
+
+def parse_pan_datetime(raw):
+    """Parse a PAN-OS timestamp into a UTC datetime, or None."""
+    raw = re.sub(r"\s+", " ", raw.strip())
+    raw = re.sub(r"\s+(GMT|UTC)$", "", raw)
+    for fmt in (
+        "%b %d %H:%M:%S %Y",
+        "%Y/%m/%d %H:%M:%S",
+        "%Y%m%d%H%M%S",
+        "%Y-%m-%dT%H:%M:%S",
+        "%B %d, %Y",
+    ):
+        try:
+            return datetime.strptime(raw, fmt).replace(tzinfo=timezone.utc)
+        except ValueError:
+            continue
+    return None
+
+
+def days_until(not_after):
+    """Days from now until the given datetime."""
+    return (not_after - datetime.now(timezone.utc)).days
+
+
+def emit(section, records):
+    """Print a section header followed by one JSON object per record."""
+    print(f"<<<{section}:sep(0)>>>")
+    for record in records:
+        print(json.dumps(record))
+
+
+def emit_error(section, exc):
+    """Emit a section containing a single error record."""
+    print(f"<<<{section}:sep(0)>>>")
+    print(json.dumps({"error": str(exc)}))
+
+
+CERT_XPATHS = (
+    "/config/shared/certificate",
+    "/config/devices/entry/vsys/entry/certificate",
+)
+
+
+def collect_certificates(api, include_re, exclude_re):
+    """Collect configured certificates (shared and per-vsys) that have an expiry."""
+    certs = {}
+    for xpath in CERT_XPATHS:
+        try:
+            root = api.config_get(xpath)
+        except Exception as exc:
+            debug(f"certificate xpath {xpath} failed: {exc}")
+            continue
+        for entry in root.iter("entry"):
+            name = entry.attrib.get("name")
+            not_after_raw = entry.findtext("not-valid-after")
+            if not name or not not_after_raw:
+                continue
+            if include_re and not include_re.search(name):
+                continue
+            if exclude_re and exclude_re.search(name):
+                continue
+            not_after = parse_pan_datetime(not_after_raw)
+            if not_after is None:
+                debug(f"could not parse not-valid-after {not_after_raw!r} for {name}")
+                continue
+            certs[name] = {
+                "item": name,
+                "name": name,
+                "subject": entry.findtext("common-name") or name,
+                "issuer": entry.findtext("issuer") or "",
+                "not_after": not_after.strftime("%Y-%m-%dT%H:%M:%S"),
+                "days_remaining": days_until(not_after),
+            }
+    device_cert = collect_device_certificate(api)
+    if device_cert:
+        certs[device_cert["item"]] = device_cert
+    debug(f"certificates with expiry: {len(certs)}")
+    return list(certs.values())
+
+
+def collect_device_certificate(api):
+    """Collect the device certificate (needs superuser), or None."""
+    try:
+        root = api.op("<show><device-certificate><status></status></device-certificate></show>")
+    except Exception as exc:
+        debug(f"device certificate unavailable: {exc}")
+        return None
+    not_after_raw = ""
+    for tag in ("not_valid_after", "not-valid-after"):
+        node = root.find(f".//{tag}")
+        if node is not None and node.text:
+            not_after_raw = node.text
+            break
+    if not not_after_raw:
+        return None
+    not_after = parse_pan_datetime(not_after_raw)
+    if not_after is None:
+        return None
+    return {
+        "item": "Device Certificate",
+        "name": "device-certificate",
+        "subject": "PAN-OS device certificate",
+        "issuer": "",
+        "not_after": not_after.strftime("%Y-%m-%dT%H:%M:%S"),
+        "days_remaining": days_until(not_after),
+    }
+
+
+def collect_ipsec(api, fetch_ciphers):
+    """Collect IPSec tunnels with state and, optionally, their cipher."""
+    root = api.op("<show><vpn><ipsec-sa></ipsec-sa></vpn></show>")
+    tunnels = {}
+    for entry in root.iter("entry"):
+        values = leaf_values(entry)
+        name = first(values, "name")
+        if not name:
+            continue
+        tunnel_name = name.split(":", 1)[0]
+        tunnels[name] = {
+            "item": name,
+            "name": name,
+            "tunnel": tunnel_name,
+            "state": first(values, "state").lower() or "unknown",
+            "peerip": first(values, "peerip", "peer-ip"),
+            "localip": first(values, "localip", "local-ip"),
+            "inner_if": first(values, "inner-if"),
+            "outer_if": first(values, "outer-if"),
+            "monitor": first(values, "mon", "monitor").lower(),
+            "gwid": first(values, "gwid"),
+            "cipher": "",
+        }
+    if fetch_ciphers:
+        for tunnel in tunnels.values():
+            tunnel["cipher"] = fetch_ipsec_cipher(api, tunnel["tunnel"])
+    debug(f"IPSec tunnels: {len(tunnels)}")
+    return list(tunnels.values())
+
+
+def fetch_ipsec_cipher(api, tunnel_name):
+    """Return the negotiated cipher of a single IPSec tunnel."""
+    cmd = f"<show><vpn><ipsec-sa><tunnel>{tunnel_name}</tunnel></ipsec-sa></vpn></show>"
+    try:
+        root = api.op(cmd)
+    except Exception as exc:
+        debug(f"ipsec cipher for {tunnel_name} failed: {exc}")
+        return ""
+    values = {}
+    for entry in root.iter("entry"):
+        values.update(leaf_values(entry))
+    return format_cipher(
+        first(values, "esp-enc", "enc", "encryption"),
+        first(values, "esp-auth", "auth", "authentication"),
+        first(values, "dh", "dh-group", "pfs-dh"),
+    )
+
+
+def collect_ike(api, fetch_ciphers):
+    """Collect IKE gateways with state and, optionally, their cipher."""
+    root = api.op("<show><vpn><ike-sa></ike-sa></vpn></show>")
+    gateways = {}
+    for entry in root.iter("entry"):
+        values = leaf_values(entry)
+        name = first(values, "name", "gateway", "gwid")
+        if not name:
+            continue
+        gateways[name] = {
+            "item": name,
+            "name": name,
+            "state": first(values, "state").lower() or "unknown",
+            "peerip": first(values, "peerip", "peer-ip", "gwip"),
+            "localip": first(values, "localip", "local-ip"),
+            "role": first(values, "role"),
+            "cipher": "",
+        }
+    if fetch_ciphers:
+        for gateway in gateways.values():
+            gateway["cipher"] = fetch_ike_cipher(api, gateway["name"])
+    debug(f"IKE gateways: {len(gateways)}")
+    return list(gateways.values())
+
+
+def fetch_ike_cipher(api, gateway_name):
+    """Return the negotiated cipher of a single IKE gateway."""
+    cmd = (
+        "<show><vpn><ike-sa><detail><gateway>"
+        f"{gateway_name}"
+        "</gateway></detail></ike-sa></vpn></show>"
+    )
+    try:
+        root = api.op(cmd)
+    except Exception as exc:
+        debug(f"ike cipher for {gateway_name} failed: {exc}")
+        return ""
+    values = {}
+    for entry in root.iter("entry"):
+        values.update(leaf_values(entry))
+    return format_cipher(
+        first(values, "enc", "encryption", "esp-enc"),
+        first(values, "hash", "auth", "authentication"),
+        first(values, "dh", "dh-group"),
+    )
+
+
+def format_cipher(enc, auth, dh):
+    """Join encryption, authentication and DH group into a cipher string."""
+    return "/".join(p for p in (enc, auth, dh) if p)
+
+
+SYSTEM_UPTIME_RE = re.compile(r"(\d+)\s+days?,\s*(\d+):(\d+):(\d+)")
+
+
+def collect_system(api):
+    """Collect system info: versions, serial, model and uptime."""
+    root = api.op("<show><system><info></info></system></show>")
+    system = root.find(".//system")
+    values = leaf_values(system) if system is not None else {}
+    uptime_seconds = None
+    match = SYSTEM_UPTIME_RE.search(values.get("uptime", ""))
+    if match:
+        days, hours, minutes, seconds = (int(g) for g in match.groups())
+        uptime_seconds = ((days * 24 + hours) * 60 + minutes) * 60 + seconds
+    record = {
+        "item": "System",
+        "hostname": values.get("hostname", ""),
+        "model": values.get("model", ""),
+        "family": values.get("family", ""),
+        "serial": values.get("serial", ""),
+        "sw_version": values.get("sw-version", ""),
+        "app_version": values.get("app-version", ""),
+        "app_release_date": values.get("app-release-date", ""),
+        "threat_version": values.get("threat-version", ""),
+        "av_version": values.get("av-version", ""),
+        "url_filtering_version": values.get("url-filtering-version", ""),
+        "gp_client_version": values.get("global-protect-client-package-version", ""),
+        "uptime": values.get("uptime", ""),
+        "uptime_seconds": uptime_seconds,
+    }
+    return [record]
+
+
+def collect_sessions(api):
+    """Collect the session table counters."""
+    root = api.op("<show><session><info></info></session></show>")
+    result = root.find("result")
+    values = leaf_values(result) if result is not None else {}
+
+    def as_int(*keys):
+        raw = first(values, *keys)
+        try:
+            return int(float(raw))
+        except (TypeError, ValueError):
+            return None
+
+    record = {
+        "item": "Sessions",
+        "num_max": as_int("num-max"),
+        "num_active": as_int("num-active"),
+        "num_tcp": as_int("num-tcp"),
+        "num_udp": as_int("num-udp"),
+        "num_icmp": as_int("num-icmp"),
+        "cps": as_int("cps", "num-cps"),
+        "pps": as_int("pps"),
+        "kbps": as_int("kbps"),
+    }
+    return [record]
+
+
+CPU_EXPORT_RE = re.compile(
+    r"^sys\.monitor\.s\d+\.(?P<name>\S+?)\.exports:.*?1minavg'?\s*:\s*(?P<load>\d+)",
+    re.MULTILINE,
+)
+CPU_PLANE_NAMES = {"mp": "Management Plane"}
+
+
+def collect_cpu(api):
+    """Collect the 1-minute CPU load per data and management plane."""
+    root = api.op(
+        "<show><system><state><filter>sys.monitor.s1.*.exports</filter></state></system></show>"
+    )
+    text = "".join(root.itertext())
+    records = []
+    for match in CPU_EXPORT_RE.finditer(text):
+        name = match.group("name")
+        if name.startswith("dp"):
+            label = f"Data Plane {name[2:]}" if name != "dp0" else "Data Plane"
+        else:
+            label = CPU_PLANE_NAMES.get(name, name)
+        records.append({"item": label, "plane": name, "load": int(match.group("load"))})
+    debug(f"CPU planes: {[r['item'] for r in records]}")
+    return records
+
+
+ENV_VALUE_TAGS = {
+    "DegreesC": ("temperature", "°C"),
+    "RPMs": ("fan", "RPM"),
+    "Volts": ("voltage", "V"),
+}
+
+
+def collect_environment(api):
+    """Collect environmental sensors (temperature, fans, power)."""
+    root = api.op("<show><system><environmentals></environmentals></system></show>")
+    result = root.find("result")
+    records = []
+    if result is None:
+        return records
+    for category in result:
+        category_name = category.tag
+        for entry in category.iter("entry"):
+            values = leaf_values(entry)
+            description = values.get("description") or values.get("slot") or category_name
+            reading = None
+            kind = None
+            unit = ""
+            for tag, (kind_name, unit_symbol) in ENV_VALUE_TAGS.items():
+                if tag in values:
+                    try:
+                        reading = float(values[tag])
+                    except ValueError:
+                        reading = None
+                    kind, unit = kind_name, unit_symbol
+                    break
+            alarm_raw = values.get("alarm", "").strip().lower()
+            alarm = alarm_raw in ("true", "yes", "1")
+            records.append({
+                "item": f"{category_name} {description}".strip(),
+                "category": category_name,
+                "description": description,
+                "kind": kind or category_name,
+                "reading": reading,
+                "unit": unit,
+                "min": values.get("min", ""),
+                "max": values.get("max", ""),
+                "alarm": alarm,
+            })
+    debug(f"environment sensors: {len(records)}")
+    return records
+
+
+def collect_ha(api):
+    """Collect the high-availability status and its HA links."""
+    root = api.op("<show><high-availability><all></all></high-availability></show>")
+    result = root.find("result")
+    records = []
+    if result is None:
+        return records
+
+    enabled = (result.findtext("enabled") or "").strip().lower()
+    group = result.find("group")
+    if enabled in ("no", "") and group is None:
+        records.append({"item": "HA", "enabled": "no", "local_state": "disabled"})
+        return records
+
+    local_info = group.find("local-info") if group is not None else None
+    peer_info = group.find("peer-info") if group is not None else None
+
+    def info_text(node, *tags):
+        if node is None:
+            return ""
+        for tag in tags:
+            value = node.findtext(tag)
+            if value:
+                return value.strip()
+        return ""
+
+    records.append({
+        "item": "HA",
+        "enabled": enabled or "yes",
+        "local_state": info_text(local_info, "state"),
+        "local_state_reason": info_text(local_info, "state-reason"),
+        "peer_state": info_text(peer_info, "state"),
+        "mode": info_text(group, "mode") or info_text(local_info, "mode"),
+        "running_sync": info_text(group, "running-sync"),
+    })
+
+    for node in (local_info, peer_info):
+        if node is None:
+            continue
+        for child in node:
+            conn = child.findtext("conn-status")
+            if conn:
+                records.append({
+                    "item": f"HA Link {child.tag}",
+                    "link": child.tag,
+                    "conn_status": conn.strip(),
+                })
+    debug(f"HA records: {len(records)}")
+    return records
+
+
+def collect_interfaces(api, include_re, exclude_re):
+    """Collect interfaces with their link state and counters."""
+    root = api.op("<show><interface>all</interface></show>")
+    result = root.find("result")
+    interfaces = {}
+    if result is None:
+        return []
+
+    hw = result.find("hw")
+    if hw is not None:
+        for entry in hw.findall("entry"):
+            values = leaf_values(entry)
+            name = values.get("name")
+            if not name:
+                continue
+            if include_re and not include_re.search(name):
+                continue
+            if exclude_re and exclude_re.search(name):
+                continue
+            interfaces[name] = {
+                "item": name,
+                "name": name,
+                "state": first(values, "state").lower() or "unknown",
+                "speed": first(values, "speed"),
+                "duplex": first(values, "duplex"),
+                "mac": first(values, "mac"),
+            }
+
+    for name, record in interfaces.items():
+        record.update(fetch_interface_counters(api, name))
+    debug(f"interfaces: {len(interfaces)}")
+    return list(interfaces.values())
+
+
+def fetch_interface_counters(api, name):
+    """Return the byte, error and discard counters of a single interface."""
+    try:
+        root = api.op(f"<show><interface>{name}</interface></show>")
+    except Exception as exc:
+        debug(f"interface counters for {name} failed: {exc}")
+        return {}
+    counters = {}
+    port = root.find(".//counters/hw/entry/port")
+    if port is not None:
+        counters.update(leaf_values(port))
+    hw_state = root.find(".//hw/state")
+    result = {}
+    for key, tag in (
+        ("rx_bytes", "rx-bytes"),
+        ("tx_bytes", "tx-bytes"),
+        ("rx_errors", "rx-error"),
+        ("tx_errors", "tx-error"),
+        ("rx_discards", "rx-discards"),
+        ("tx_discards", "tx-discards"),
+    ):
+        raw = counters.get(tag)
+        if raw is not None:
+            try:
+                result[key] = int(raw)
+            except ValueError:
+                pass
+    if hw_state is not None and hw_state.text:
+        result["state"] = hw_state.text.strip().lower()
+    return result
+
+
+def collect_bgp(api):
+    """Collect BGP peers with their session state."""
+    root = api.op("<show><routing><protocol><bgp><peer></peer></bgp></protocol></routing></show>")
+    result = root.find("result")
+    peers = []
+    if result is None:
+        return peers
+    for entry in result.findall("entry"):
+        values = leaf_values(entry)
+        name = first(values, "peer-name", "peer")
+        if not name:
+            continue
+        peers.append({
+            "item": name,
+            "name": name,
+            "state": first(values, "status").lower() or "unknown",
+            "peer_group": first(values, "peer-group"),
+            "peer_address": first(values, "peer-address", "peer-router-id"),
+            "remote_as": first(values, "remote-as"),
+            "local_as": first(values, "local-as"),
+            "status_duration": first(values, "status-duration"),
+        })
+    debug(f"BGP peers: {len(peers)}")
+    return peers
+
+
+def collect_ospf(api):
+    """Collect OSPF and OSPFv3 neighbors."""
+    records = []
+    records.extend(_collect_ospf_family(
+        api,
+        "<show><routing><protocol><ospf><neighbor></neighbor></ospf></protocol></routing></show>",
+        "OSPF",
+        ("neighbor-address",),
+        ("status", "state"),
+    ))
+    records.extend(_collect_ospf_family(
+        api,
+        "<show><routing><protocol><ospfv3><neighbor></neighbor></ospfv3></protocol></routing></show>",
+        "OSPFv3",
+        ("neighbor-link-local", "neighbor-address"),
+        ("state", "status"),
+    ))
+    return records
+
+
+def _collect_ospf_family(api, cmd, family, address_tags, state_tags):
+    """Collect the neighbors of one OSPF family."""
+    try:
+        root = api.op(cmd)
+    except Exception as exc:
+        debug(f"{family} neighbors failed: {exc}")
+        return []
+    result = root.find("result")
+    records = []
+    if result is None:
+        return records
+    for entry in result.iter("entry"):
+        values = leaf_values(entry)
+        address = first(values, *address_tags)
+        if not address:
+            continue
+        records.append({
+            "item": f"{family} {address}",
+            "family": family,
+            "address": address,
+            "area": first(values, "area-id"),
+            "state": first(values, *state_tags).lower() or "unknown",
+        })
+    debug(f"{family} neighbors: {len(records)}")
+    return records
+
+
+def collect_licenses(api):
+    """Collect the installed licenses with their expiry."""
+    root = api.request("<request><license><info></info></license></request>")
+    result = root.find("result")
+    records = []
+    if result is None:
+        return records
+    for entry in result.iter("entry"):
+        values = leaf_values(entry)
+        feature = first(values, "feature")
+        if not feature:
+            continue
+        expires_raw = first(values, "expires")
+        expired = first(values, "expired").lower() in ("yes", "true", "1")
+        record = {
+            "item": feature,
+            "feature": feature,
+            "description": first(values, "description"),
+            "expired": expired,
+            "expires": expires_raw,
+            "not_after": "",
+            "days_remaining": None,
+        }
+        if expires_raw and expires_raw.lower() != "never":
+            not_after = parse_pan_datetime(expires_raw)
+            if not_after is not None:
+                record["not_after"] = not_after.strftime("%Y-%m-%dT%H:%M:%S")
+                record["days_remaining"] = days_until(not_after)
+        records.append(record)
+    debug(f"licenses: {len(records)}")
+    return records
+
+
+def compile_re(pattern):
+    """Compile a regex pattern, or return None when empty."""
+    return re.compile(pattern) if pattern else None
+
+
+def main():
+    """Run the agent and emit the selected sections."""
+    global DEBUG
+    args = parse_arguments()
+    DEBUG = args.debug
+
+    if args.no_verify_ssl:
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+    api = PaloAltoApi(
+        host=args.host,
+        api_key=args.api_key,
+        timeout=args.timeout,
+        verify_ssl=not args.no_verify_ssl,
+        proxy_url=args.proxy_url,
+    )
+
+    selected = {s.strip() for s in args.collect.split(",") if s.strip()}
+    cert_include = compile_re(args.cert_include)
+    cert_exclude = compile_re(args.cert_exclude)
+    if_include = compile_re(args.if_include)
+    if_exclude = compile_re(args.if_exclude)
+    fetch_ciphers = not args.no_ciphers
+
+    producers = {
+        "certificates": ("palo_alto_api_certificates",
+                          lambda: collect_certificates(api, cert_include, cert_exclude)),
+        "ipsec": ("palo_alto_api_ipsec", lambda: collect_ipsec(api, fetch_ciphers)),
+        "ike": ("palo_alto_api_ike", lambda: collect_ike(api, fetch_ciphers)),
+        "system": ("palo_alto_api_system", lambda: collect_system(api)),
+        "sessions": ("palo_alto_api_sessions", lambda: collect_sessions(api)),
+        "cpu": ("palo_alto_api_cpu", lambda: collect_cpu(api)),
+        "environment": ("palo_alto_api_environment", lambda: collect_environment(api)),
+        "ha": ("palo_alto_api_ha", lambda: collect_ha(api)),
+        "interfaces": ("palo_alto_api_interfaces",
+                       lambda: collect_interfaces(api, if_include, if_exclude)),
+        "bgp": ("palo_alto_api_bgp", lambda: collect_bgp(api)),
+        "ospf": ("palo_alto_api_ospf", lambda: collect_ospf(api)),
+        "licenses": ("palo_alto_api_licenses", lambda: collect_licenses(api)),
+    }
+
+    exit_code = 0
+    for key in ALL_SECTIONS:
+        if key not in selected:
+            continue
+        section, producer = producers[key]
+        try:
+            emit(section, producer())
+        except Exception as exc:
+            if DEBUG:
+                traceback.print_exc()
+            emit_error(section, exc)
+            exit_code = 1
+
+    return exit_code
+
+
+if __name__ == "__main__":
+    sys.exit(main())
