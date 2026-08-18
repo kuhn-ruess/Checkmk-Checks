@@ -5,9 +5,13 @@ Kuhn & Rueß GmbH
 Consulting and Development
 https://kuhn-ruess.de
 """
-from pydantic import BaseModel
-
-from cmk.server_side_calls.v1 import HostConfig, Secret, SpecialAgentCommand, SpecialAgentConfig
+from cmk.server_side_calls.v1 import (
+    HostConfig,
+    Secret,
+    SpecialAgentCommand,
+    SpecialAgentConfig,
+    noop_parser,
+)
 
 
 ALL_SECTIONS = [
@@ -26,63 +30,54 @@ ALL_SECTIONS = [
 ]
 
 
-class ConfigParser(BaseModel):
-    """
-    Config Parser
-    """
-    api_key: Secret
-    address: str | None = None
-    timeout: int = 30
-    no_verify_ssl: bool = False
-    proxy_url: str | None = None
-    collect: list[str] | None = None
-    fetch_ciphers: bool = True
-    cert_include: str | None = None
-    cert_exclude: str | None = None
-    if_include: str | None = None
-    if_exclude: str | None = None
-
-
-def agent_arguments(params: ConfigParser, host_config: HostConfig):
+def agent_arguments(params, host_config: HostConfig):
     """
     Build Special Agent Command Line
     """
-    address = params.address or host_config.primary_ip_config.address
+    address = params.get("address") or host_config.primary_ip_config.address
     args: list[str | Secret] = [
         "--host", address,
-        "--api-key", params.api_key.unsafe(),
-        "--timeout", str(params.timeout),
+        "--timeout", str(params.get("timeout", 30)),
     ]
 
-    if params.no_verify_ssl:
+    auth_method, auth = params["auth"]
+    if auth_method == "credentials":
+        args += [
+            "--username", auth["username"],
+            "--password", auth["password"].unsafe(),
+        ]
+    else:
+        args += ["--api-key", auth["key"].unsafe()]
+
+    if params.get("no_verify_ssl"):
         args.append("--no-verify-ssl")
 
-    if params.proxy_url:
-        args.extend(["--proxy-url", params.proxy_url])
+    if params.get("proxy_url"):
+        args += ["--proxy-url", params["proxy_url"]]
 
-    selected = params.collect if params.collect is not None else ALL_SECTIONS
-    args.extend(["--collect", ",".join(selected)])
+    selected = params.get("collect") or ALL_SECTIONS
+    args += ["--collect", ",".join(selected)]
 
-    if not params.fetch_ciphers:
+    if not params.get("fetch_ciphers", True):
         args.append("--no-ciphers")
 
-    if params.cert_include:
-        args.extend(["--cert-include", params.cert_include])
+    if params.get("cert_include"):
+        args += ["--cert-include", params["cert_include"]]
 
-    if params.cert_exclude:
-        args.extend(["--cert-exclude", params.cert_exclude])
+    if params.get("cert_exclude"):
+        args += ["--cert-exclude", params["cert_exclude"]]
 
-    if params.if_include:
-        args.extend(["--if-include", params.if_include])
+    if params.get("if_include"):
+        args += ["--if-include", params["if_include"]]
 
-    if params.if_exclude is not None:
-        args.extend(["--if-exclude", params.if_exclude])
+    if params.get("if_exclude") is not None:
+        args += ["--if-exclude", params["if_exclude"]]
 
     yield SpecialAgentCommand(command_arguments=args)
 
 
 special_agent_palo_alto_api = SpecialAgentConfig(
     name="palo_alto_api",
-    parameter_parser=ConfigParser.model_validate,
+    parameter_parser=noop_parser,
     commands_function=agent_arguments,
 )

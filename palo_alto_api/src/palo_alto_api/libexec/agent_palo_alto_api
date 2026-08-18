@@ -47,7 +47,9 @@ def parse_arguments():
     """Parse the command line arguments."""
     parser = argparse.ArgumentParser(description="Palo Alto XML API Special Agent")
     parser.add_argument("--host", required=True, help="Firewall management address")
-    parser.add_argument("--api-key", required=True, help="PAN-OS XML API key")
+    parser.add_argument("--api-key", help="PAN-OS XML API key")
+    parser.add_argument("--username", help="User for on-the-fly API key generation (type=keygen)")
+    parser.add_argument("--password", help="Password for on-the-fly API key generation (type=keygen)")
     parser.add_argument("--timeout", type=int, default=30, help="API request timeout in seconds")
     parser.add_argument("--no-verify-ssl", action="store_true", help="Disable SSL certificate verification")
     parser.add_argument("--proxy-url", help="Proxy URL (e.g. http://proxy.example.com:8080)")
@@ -75,20 +77,20 @@ def parse_arguments():
 
 
 class PaloAltoApi:
-    def __init__(self, host, api_key, timeout, verify_ssl, proxy_url):
+    def __init__(self, host, api_key, timeout, verify_ssl, proxy_url, username=None, password=None):
         self.url = f"https://{host}/api/"
         self.api_key = api_key
+        self.username = username
+        self.password = password
         self.timeout = timeout
         self.verify_ssl = verify_ssl
         self.proxies = (
             {"http": proxy_url, "https": proxy_url} if proxy_url else None
         )
 
-    def _request(self, payload):
-        """Send a request and return the parsed <response>, raising on API errors."""
+    def _post(self, payload):
+        """POST a payload and return the parsed <response>, raising on API errors."""
         # verify is passed per request so REQUESTS_CA_BUNDLE cannot re-enable it.
-        payload = dict(payload, key=self.api_key)
-        debug(f"POST {self.url} type={payload.get('type')} cmd={payload.get('cmd', payload.get('xpath'))}")
         resp = requests.post(
             self.url,
             data=payload,
@@ -102,6 +104,24 @@ class PaloAltoApi:
             message = " ".join(t.strip() for t in root.itertext() if t and t.strip())
             raise RuntimeError(message or "PAN-OS XML API returned a non-success status")
         return root
+
+    def _ensure_key(self):
+        """Generate an API key from username/password on first use (type=keygen)."""
+        if self.api_key:
+            return
+        debug(f"POST {self.url} type=keygen user={self.username}")
+        root = self._post({"type": "keygen", "user": self.username, "password": self.password})
+        key = root.findtext(".//key")
+        if not key:
+            raise RuntimeError("PAN-OS keygen did not return an API key")
+        self.api_key = key.strip()
+
+    def _request(self, payload):
+        """Send a keyed request and return the parsed <response>."""
+        self._ensure_key()
+        payload = dict(payload, key=self.api_key)
+        debug(f"POST {self.url} type={payload.get('type')} cmd={payload.get('cmd', payload.get('xpath'))}")
+        return self._post(payload)
 
     def op(self, cmd):
         """Run an operational command."""
@@ -708,12 +728,19 @@ def main():
     args = parse_arguments()
     DEBUG = args.debug
 
+    if not args.api_key and not (args.username and args.password):
+        parser_error = "Either --api-key or --username and --password are required"
+        print(f"ERROR: {parser_error}", file=sys.stderr)
+        return 1
+
     if args.no_verify_ssl:
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
     api = PaloAltoApi(
         host=args.host,
         api_key=args.api_key,
+        username=args.username,
+        password=args.password,
         timeout=args.timeout,
         verify_ssl=not args.no_verify_ssl,
         proxy_url=args.proxy_url,

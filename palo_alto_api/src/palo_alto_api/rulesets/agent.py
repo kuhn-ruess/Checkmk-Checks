@@ -9,6 +9,8 @@ https://kuhn-ruess.de
 from cmk.rulesets.v1 import Help, Label, Title
 from cmk.rulesets.v1.form_specs import (
     BooleanChoice,
+    CascadingSingleChoice,
+    CascadingSingleChoiceElement,
     DefaultValue,
     DictElement,
     Dictionary,
@@ -20,6 +22,7 @@ from cmk.rulesets.v1.form_specs import (
     RegularExpression,
     String,
 )
+from cmk.rulesets.v1.form_specs.validators import LengthInRange
 from cmk.rulesets.v1.rule_specs import SpecialAgent, Topic
 
 
@@ -48,14 +51,68 @@ def _parameter_form():
             "creates its own services on the host."
         ),
         elements={
-            "api_key": DictElement(
-                parameter_form=Password(
-                    title=Title("API key"),
+            "auth": DictElement(
+                parameter_form=CascadingSingleChoice(
+                    title=Title("Authentication"),
                     help_text=Help(
-                        "PAN-OS XML API key, generated with "
-                        "https://<firewall>/api/?type=keygen&user=<user>&password=<password> . "
-                        "Certificates and the device certificate require superuser rights."
+                        "Choose how the agent authenticates against the PAN-OS XML "
+                        "API. On PAN-OS the API key is bound to a user and differs "
+                        "per firewall. Provide a fixed API key, or a username and "
+                        "password so the agent generates a fresh key per run via "
+                        "type=keygen. Certificates and the device certificate "
+                        "require a user with superuser rights."
                     ),
+                    prefill=DefaultValue("api_key"),
+                    elements=[
+                        CascadingSingleChoiceElement(
+                            name="api_key",
+                            title=Title("API key"),
+                            parameter_form=Dictionary(
+                                elements={
+                                    "key": DictElement(
+                                        parameter_form=Password(
+                                            title=Title("API key"),
+                                            help_text=Help(
+                                                "PAN-OS XML API key, generated with "
+                                                "https://<firewall>/api/?type=keygen"
+                                                "&user=<user>&password=<password> ."
+                                            ),
+                                            custom_validate=(LengthInRange(min_value=1),),
+                                        ),
+                                        required=True,
+                                    ),
+                                },
+                            ),
+                        ),
+                        CascadingSingleChoiceElement(
+                            name="credentials",
+                            title=Title("Username and password"),
+                            parameter_form=Dictionary(
+                                help_text=Help(
+                                    "The agent requests a fresh API key on every run "
+                                    "via type=keygen before it queries the firewall. "
+                                    "Use this when the API key is bound to a user and "
+                                    "differs per firewall."
+                                ),
+                                elements={
+                                    "username": DictElement(
+                                        parameter_form=String(
+                                            title=Title("Username"),
+                                            custom_validate=(LengthInRange(min_value=1),),
+                                        ),
+                                        required=True,
+                                    ),
+                                    "password": DictElement(
+                                        parameter_form=Password(
+                                            title=Title("Password"),
+                                            custom_validate=(LengthInRange(min_value=1),),
+                                        ),
+                                        required=True,
+                                    ),
+                                },
+                            ),
+                        ),
+                    ],
                 ),
                 required=True,
             ),
