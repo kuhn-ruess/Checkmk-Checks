@@ -17,4 +17,7 @@ item:
  The interface name, e.g. {ethernet1/1}.
 
 discovery:
- One service is created for each discovered hardware interface.
+ One service is created for each hardware interface that is up at discovery
+ time. Interfaces that are down at discovery (e.g. nothing connected) are
+ skipped; an interface that goes down after discovery stays monitored and
+ alerts as configured.

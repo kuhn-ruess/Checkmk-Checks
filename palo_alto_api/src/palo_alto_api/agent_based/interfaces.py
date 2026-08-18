@@ -45,9 +45,14 @@ agent_section_palo_alto_api_interfaces = AgentSection(
 
 
 def discover_palo_alto_api_interfaces(section):
-    for item in section:
-        if item != "_error":
-            yield Service(item=item)
+    # Skip interfaces that are down at discovery time (e.g. nothing connected);
+    # interfaces that go down later stay monitored and alert as configured.
+    for item, data in section.items():
+        if item == "_error":
+            continue
+        if data.get("state") == "down":
+            continue
+        yield Service(item=item)
 
 
 def _rate(value_store, key, now, value):

@@ -8,11 +8,15 @@ description:
  firewall as read from {show routing protocol ospf neighbor} and its OSPFv3
  counterpart through the PAN-OS XML API. It reports the neighbor state and area.
 
- The service is {OK} while the neighbor state is {full} or {2way} and goes to
- the configurable monitoring state (default {CRIT}) otherwise.
+ The neighbor state seen at discovery is stored as the target state. The
+ service stays {OK} as long as the state matches it (so both {full} and {2way}
+ are fine when discovered that way) and goes to the configurable monitoring
+ state (default {CRIT}) once the state changes. Re-run the service discovery to
+ accept a new state as target.
 
 item:
  The protocol and neighbor address, e.g. {OSPF 10.0.0.1} or {OSPFv3 fe80::1}.
 
 discovery:
- One service is created for each OSPF and OSPFv3 neighbor.
+ One service is created for each OSPF and OSPFv3 neighbor, storing its current
+ state as the target state.

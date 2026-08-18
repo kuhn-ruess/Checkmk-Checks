@@ -6,8 +6,15 @@ Kuhn & Rueß GmbH
 Consulting and Development
 https://kuhn-ruess.de
 """
-from cmk.rulesets.v1 import Help, Title
-from cmk.rulesets.v1.form_specs import DefaultValue, DictElement, Dictionary, Integer
+from cmk.rulesets.v1 import Help, Label, Title
+from cmk.rulesets.v1.form_specs import (
+    DefaultValue,
+    DictElement,
+    Dictionary,
+    Integer,
+    List,
+    String,
+)
 from cmk.rulesets.v1.rule_specs import CheckParameters, HostAndItemCondition, Topic
 
 
@@ -15,6 +22,21 @@ def _parameter_form():
     return Dictionary(
         title=Title("Palo Alto license expiry"),
         elements={
+            "ignored_licenses": DictElement(
+                parameter_form=List(
+                    title=Title("Ignore expiry of these licenses"),
+                    help_text=Help(
+                        "Feature names of licenses that should always stay OK, even when "
+                        "expired. Use this for licenses that are knowingly superseded, e.g. "
+                        "an old 'DNS Security' license that a firewall shows as expired once "
+                        "'Advanced DNS Security' is active (PAN-OS keeps the old one as a "
+                        "passive entry). Enter the name exactly as shown in the service, e.g. "
+                        "'DNS Security'."
+                    ),
+                    element_template=String(label=Label("License feature name")),
+                ),
+                required=False,
+            ),
             "warn_days": DictElement(
                 parameter_form=Integer(
                     title=Title("Warning threshold (days)"),

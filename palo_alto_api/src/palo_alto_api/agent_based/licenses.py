@@ -52,6 +52,13 @@ def check_palo_alto_api_licenses(item, params, section):
 
     data = section[item]
 
+    if item in params.get("ignored_licenses", []):
+        state = "expired" if data.get("expired") else "valid"
+        yield Result(state=State.OK, summary=f"License ignored (currently {state})")
+        if data.get("description"):
+            yield Result(state=State.OK, notice=f"Description: {data['description']}")
+        return
+
     if data.get("expired"):
         yield Result(state=State.CRIT, summary="License has expired")
 

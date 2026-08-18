@@ -12,6 +12,11 @@ description:
  configured lower thresholds (default 30 / 14 days) or {CRIT} when the license
  has already expired. Licenses that never expire are reported as {OK}.
 
+ Individual licenses can be listed in the check parameters to always stay {OK},
+ even when expired. This is meant for knowingly superseded licenses, e.g. an old
+ {DNS Security} license that a firewall keeps as a passive entry once {Advanced
+ DNS Security} is active.
+
 item:
  The license feature name.
 
