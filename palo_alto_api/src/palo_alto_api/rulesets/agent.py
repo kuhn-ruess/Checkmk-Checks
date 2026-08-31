@@ -21,6 +21,8 @@ from cmk.rulesets.v1.form_specs import (
     Password,
     RegularExpression,
     String,
+    TimeMagnitude,
+    TimeSpan,
 )
 from cmk.rulesets.v1.form_specs.validators import LengthInRange
 from cmk.rulesets.v1.rule_specs import SpecialAgent, Topic
@@ -130,6 +132,34 @@ def _parameter_form():
                     prefill=DefaultValue([name for name, _ in _SECTIONS]),
                 ),
                 required=True,
+            ),
+            "cache": DictElement(
+                parameter_form=Dictionary(
+                    title=Title("Cache the data of single topics"),
+                    help_text=Help(
+                        "Topics without a cache time are queried on every check "
+                        "cycle. For a topic with a cache time the firewall is only "
+                        "asked once per interval, in between the agent reports the "
+                        "stored data and marks it as cached. Useful for slow topics "
+                        "that rarely change, like certificates or IKE gateways, on "
+                        "firewalls where a complete query does not fit into one "
+                        "check cycle. The cache is kept per firewall below "
+                        "~/tmp/check_mk/agents/agent_palo_alto_api."
+                    ),
+                    elements={
+                        name: DictElement(
+                            parameter_form=TimeSpan(
+                                title=Title(title),
+                                displayed_magnitudes=(
+                                    TimeMagnitude.MINUTE,
+                                    TimeMagnitude.HOUR,
+                                    TimeMagnitude.DAY,
+                                ),
+                            ),
+                        )
+                        for name, title in _SECTIONS
+                    },
+                ),
             ),
             "address": DictElement(
                 parameter_form=String(

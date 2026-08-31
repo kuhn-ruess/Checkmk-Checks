@@ -8,10 +8,14 @@ https://kuhn-ruess.de
 """
 import argparse
 import json
+import os
 import re
 import sys
+import time
 import traceback
 from datetime import datetime, timezone
+from pathlib import Path
+from tempfile import gettempdir
 from xml.etree import ElementTree
 
 import requests
@@ -34,6 +38,8 @@ ALL_SECTIONS = [
 ]
 
 DEFAULT_IF_EXCLUDE = r"^(tunnel|vlan|loopback)"
+
+CACHE_SUBDIR = "agents/agent_palo_alto_api"
 
 DEBUG = False
 
@@ -63,6 +69,13 @@ def parse_arguments():
         "--no-ciphers",
         action="store_true",
         help="Skip the extra per-tunnel/per-gateway API calls that fetch cipher details",
+    )
+    parser.add_argument(
+        "--cache-sections",
+        default="",
+        help="Comma separated <section>=<seconds> pairs. Data of these topics is fetched "
+        "from the firewall only once per given interval and served from a local cache "
+        "in between (e.g. certificates=86400,ike=3600)",
     )
     parser.add_argument("--cert-include", help="Only report certificates whose name matches this regex")
     parser.add_argument("--cert-exclude", help="Skip certificates whose name matches this regex")
@@ -179,11 +192,76 @@ def days_until(not_after):
     return (not_after - datetime.now(timezone.utc)).days
 
 
-def emit(section, records):
+def parse_cache_sections(raw):
+    """Parse the --cache-sections argument into a {topic: seconds} dict."""
+    intervals = {}
+    for chunk in raw.split(","):
+        chunk = chunk.strip()
+        if not chunk:
+            continue
+        topic, _, seconds = chunk.partition("=")
+        topic = topic.strip()
+        if topic not in ALL_SECTIONS:
+            debug(f"ignoring cache setting for unknown topic {topic!r}")
+            continue
+        try:
+            interval = int(float(seconds))
+        except ValueError:
+            debug(f"ignoring invalid cache interval {seconds!r} for {topic}")
+            continue
+        if interval > 0:
+            intervals[topic] = interval
+    return intervals
+
+
+def cache_file(host, topic):
+    """Path of the cache file of one topic of one firewall."""
+    base = os.environ.get("OMD_ROOT")
+    root = Path(base) / "tmp/check_mk" if base else Path(gettempdir())
+    safe_host = re.sub(r"[^A-Za-z0-9_.-]", "_", host)
+    return root / CACHE_SUBDIR / f"{safe_host}_{topic}.json"
+
+
+def load_cache(host, topic, max_age):
+    """Return (timestamp, records) of a cache file that is still valid, or None."""
+    path = cache_file(host, topic)
+    try:
+        content = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return None
+    except (OSError, ValueError) as exc:
+        debug(f"cannot read cache {path}: {exc}")
+        return None
+    timestamp = content.get("timestamp", 0)
+    age = time.time() - timestamp
+    if age < 0 or age >= max_age:
+        debug(f"cache {path} is {int(age)}s old, refreshing")
+        return None
+    debug(f"using cache {path}, age {int(age)}s of {max_age}s")
+    return timestamp, content.get("data", [])
+
+
+def store_cache(host, topic, timestamp, records):
+    """Write the records of one topic to its cache file."""
+    path = cache_file(host, topic)
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp_path = path.with_suffix(".tmp")
+        tmp_path.write_text(
+            json.dumps({"timestamp": timestamp, "data": records}), encoding="utf-8"
+        )
+        tmp_path.replace(path)
+    except OSError as exc:
+        debug(f"cannot write cache {path}: {exc}")
+
+
+def emit(section, records, cache_info=None):
     """Print a section header followed by one JSON object per record."""
-    print(f"<<<{section}:sep(0)>>>")
+    cached = f":cached({int(cache_info[0])},{int(cache_info[1])})" if cache_info else ""
+    print(f"<<<{section}:sep(0){cached}>>>")
     for record in records:
         print(json.dumps(record))
+    sys.stdout.flush()
 
 
 def emit_error(section, exc):
@@ -770,18 +848,36 @@ def main():
         "licenses": ("palo_alto_api_licenses", lambda: collect_licenses(api)),
     }
 
+    cache_intervals = parse_cache_sections(args.cache_sections)
+
     exit_code = 0
     for key in ALL_SECTIONS:
         if key not in selected:
             continue
         section, producer = producers[key]
+        max_age = cache_intervals.get(key)
+        if max_age:
+            cached = load_cache(args.host, key, max_age)
+            if cached:
+                timestamp, records = cached
+                emit(section, records, cache_info=(timestamp, max_age + 60))
+                continue
         try:
-            emit(section, producer())
+            records = producer()
         except Exception as exc:
             if DEBUG:
                 traceback.print_exc()
             emit_error(section, exc)
             exit_code = 1
+            continue
+        if max_age:
+            timestamp = int(time.time())
+            # written before the next topic is fetched so a run that hits the
+            # fetcher timeout does not lose the data it already collected.
+            store_cache(args.host, key, timestamp, records)
+            emit(section, records, cache_info=(timestamp, max_age + 60))
+        else:
+            emit(section, records)
 
     return exit_code
 

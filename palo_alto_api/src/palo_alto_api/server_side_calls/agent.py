@@ -58,6 +58,15 @@ def agent_arguments(params, host_config: HostConfig):
     selected = params.get("collect") or ALL_SECTIONS
     args += ["--collect", ",".join(selected)]
 
+    cache = params.get("cache") or {}
+    cache_args = [
+        f"{name}={int(seconds)}"
+        for name, seconds in cache.items()
+        if name in selected and seconds
+    ]
+    if cache_args:
+        args += ["--cache-sections", ",".join(cache_args)]
+
     if not params.get("fetch_ciphers", True):
         args.append("--no-ciphers")
 
