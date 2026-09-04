@@ -62,7 +62,7 @@ def check_mssql_access_methods(item, params, section):
         finfotext = "%.2f full_scans/sec" % fsrate
         levels = params.get("AccessFullScans")
 
-        if levels is not None:
+        if levels is not None and levels[1] is not None:
             warn, crit = levels[1]
             levelstext = " (warn/crit at %.2f/%.2f)" % levels[1]
             yield Metric("perf_AccessFullScans", fsrate, levels=levels[1])
@@ -90,7 +90,7 @@ def check_mssql_access_methods(item, params, section):
         iinfotext = "%.2f index_searches/sec" % israte
         levels = params.get("AccessIndexSearches")
 
-        if levels is not None:
+        if levels is not None and levels[1] is not None:
             warn, crit = levels[1]
             levelstext = " (warn/crit at %.2f/%.2f)" % levels[1]
             yield Metric("perf_AccessIndexSearches" , israte, levels=levels[1])
@@ -113,7 +113,7 @@ def check_mssql_access_methods(item, params, section):
         infotext = "Index hit ratio: %.2f%%" % index_hitratio_perc
         levels = params.get("index_hit_ratio")
 
-        if levels is not None:
+        if levels is not None and levels[1] is not None:
             warn, crit = levels[1]
             levelstext = " (warn/crit below %.1f/%.1f%%)" % levels[1]
             yield Metric("index_hitratio", index_hitratio_perc, levels=levels[1])

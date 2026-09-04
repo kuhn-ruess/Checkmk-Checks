@@ -58,7 +58,7 @@ def check_mssql_work_files_tables(item, params, section):
     infotext = "%.2f workfiles_created/sec" % value
     levels = params.get("WorkFiles")
 
-    if levels is not None:
+    if levels is not None and levels[1] is not None:
         warn, crit = levels[1]
         levelstext = " (warn/crit at %.2f/%.2f)" % levels[1]
         yield Metric("perf_WorkFiles", value, levels=levels[1])
@@ -83,7 +83,7 @@ def check_mssql_work_files_tables(item, params, section):
     infotext = "%.2f worktables_created/sec " % value
     levels = params.get("WorkTables")
 
-    if levels is not None:
+    if levels is not None and levels[1] is not None:
         warn, crit = levels[1]
         levelstext = " (warn/crit at %.2f/%.2f)" % levels[1]
         yield Metric("perf_WorkTables", value, levels=levels[1])
