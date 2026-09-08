@@ -1,0 +1,9 @@
+<<<check_mk>>>
+Version: 2.4.0p8
+AgentOS: windows
+Hostname: dstest
+<<<digital_signage:sep(124):cached(1788785557,120)>>>
+GPU_Load 3D|2
+GPU_Load Copy|0
+GPU_Load VideoProcessing|7
+GPU_Load VideoDecode|5

@@ -1,0 +1,25 @@
+title: Digital Signage: GPU Engine Load
+agents: windows
+catalog: os/hardware
+license: GPLv3
+distribution: kuhn-ruess
+description:
+ This check monitors the GPU engine utilisation of Windows hosts used as
+ digital signage players, for example displays in shops or at airports.
+
+ The agent plugin {digital_signage.ps1} queries the WMI class
+ {Win32_PerfFormattedData_GPUPerformanceCounters_GPUEngine} and reports the
+ utilisation of the {3D}, {Copy}, {VideoProcessing} and {VideoDecode} engines.
+ Each value is delivered as a metric ({gpu_load_3d}, {gpu_load_copy},
+ {gpu_load_videoprocessing}, {gpu_load_videodecode}).
+
+ The service goes {WARN} or {CRIT} when an engine exceeds its configured upper
+ levels. The defaults are 90 percent for {WARN} and 95 percent for {CRIT} for
+ every engine. The levels can be changed per engine with the rule
+ "Digital Signage".
+
+ The agent plugin can be deployed with the agent bakery rule
+ "digital_sinage: Digital Signage Monitoring (Windows)".
+
+discovery:
+ One service is created on every host that sends the {digital_signage} section.
