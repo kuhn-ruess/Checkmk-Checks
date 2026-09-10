@@ -4,440 +4,139 @@
 #
 # Copyright (C) 2026 Kuhn & Rueß GmbH - License: GNU General Public License v2
 """
-Wrapper around the built-in ``mail`` notification plug-in.
+Wrapper around the built-in mail notification plug-in.
 
-A contact's email address may name an LDAP group instead of a mailbox. Such
-entries are resolved against the LDAP connections that are *already* configured
-in Checkmk (Setup > Users > LDAP connections) - no second set of LDAP
-credentials is needed. The address stored at the group object is used as
-recipient; everything else, i.e. the complete HTML mail configuration, is
-handed over to the built-in plug-in unchanged.
+A recipient that is no mail address is looked up as an LDAP group in the LDAP
+connections already configured in this site; the address stored at the group is
+used instead. Everything else is left to the built-in plug-in.
 """
 # pylint: disable=import-error
 
 import io
 import os
-import re
 import sys
-from pathlib import Path
 
 import ldap
-import ldap.dn
 import ldap.filter
 
-from cmk.utils import password_store, paths
+from cmk.utils import password_store
 
-CONFIG_RELPATH = "etc/check_mk/multisite.d/wato/user_connections.mk"
+CONFIG = "etc/check_mk/multisite.d/wato/user_connections.mk"
 
-SCOPES = {
-    "sub": ldap.SCOPE_SUBTREE,
-    "base": ldap.SCOPE_BASE,
-    "one": ldap.SCOPE_ONELEVEL,
+# The rule cannot use the key "from" of the built-in mail plug-in ("from" is no
+# Python identifier), so it offers "sender" and we rename it back here.
+SENDER = {
+    "PARAMETER_SENDER_ADDRESS": "PARAMETER_FROM_ADDRESS",
+    "PARAMETER_SENDER_DISPLAY_NAME": "PARAMETER_FROM_DISPLAY_NAME",
 }
 
-GROUP_OBJECTCLASSES = ("group", "groupOfNames", "groupOfUniqueNames", "posixGroup")
 
-MEMBER_ATTRIBUTES = ("member", "uniqueMember", "memberUid")
-
-# A DN starts with an attribute type followed by "=" - anything else is treated
-# as a plain group name.
-DN_PATTERN = re.compile(r"^[A-Za-z][\w-]*=")
-
-
-class ResolveError(Exception):
-    """Raised when a group cannot be turned into at least one address."""
-
-
-def omd_root():
+def ldap_connections():
     """
-    Root of the site the notification runs in
+    The enabled LDAP connections of this site
     """
-    return Path(os.environ.get("OMD_ROOT", ""))
-
-
-def replace_macros(template):
-    """
-    Same macros the LDAP connector itself supports
-    """
-    return template.replace("$OMD_SITE$", os.environ.get("OMD_SITE", ""))
-
-
-def load_ldap_connections(only_id):
-    """
-    Read the LDAP connections configured in this site
-
-    The connections live in a plain Python file written by the setup, keyed
-    ``user_connections``. Disabled connections are skipped.
-    """
-    path = omd_root() / CONFIG_RELPATH
-    # The file appends to the variable, so it has to exist beforehand - that is
-    # how Checkmk itself reads its .mk files.
+    # The file appends to the variable, so it has to exist beforehand
     variables = {"user_connections": []}
-    if path.exists():
-        exec(  # pylint: disable=exec-used
-            compile(path.read_text(encoding="utf-8"), str(path), "exec"), variables
-        )
+    path = os.path.join(os.environ["OMD_ROOT"], CONFIG)
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as config:
+            exec(config.read(), variables)  # pylint: disable=exec-used
 
-    connections = [
+    return [
         connection
-        for connection in variables.get("user_connections", [])
-        if connection.get("type") == "ldap" and not connection.get("disabled")
+        for connection in variables["user_connections"]
+        if connection["type"] == "ldap" and not connection.get("disabled")
     ]
-
-    if only_id:
-        connections = [c for c in connections if c.get("id") == only_id]
-        if not connections:
-            raise ResolveError(
-                f"No enabled LDAP connection with ID {only_id!r} configured in this site"
-            )
-    elif not connections:
-        raise ResolveError("No enabled LDAP connection configured in this site")
-
-    return connections
-
-
-def servers_of(config):
-    """
-    Server list of a connection, primary first
-
-    "Discover nearest DC" needs the GUI's AD locator, which is not available
-    here; fall back to the domain name, exactly like the connector does when
-    the discovery fails.
-    """
-    connect_to = config["directory_type"][1]["connect_to"]
-    if connect_to[0] == "discover":
-        return [connect_to[1]["domain"]]
-    return [connect_to[1]["server"]] + list(connect_to[1].get("failover_servers", []))
-
-
-def uri_of(config, server):
-    """
-    Build the LDAP URI for one server of a connection
-    """
-    scheme = "ldaps://" if "use_ssl" in config else "ldap://"
-    port = f":{config['port']}" if "port" in config else ""
-    return scheme + server.rstrip(".") + port
 
 
 def connect(config):
     """
     Connect and bind with the credentials stored in the connection
     """
-    errors = []
-    for server in servers_of(config):
-        uri = uri_of(config, server)
-        try:
-            conn = ldap.ldapobject.ReconnectLDAPObject(uri)
-            conn.protocol_version = config.get("version", 3)
-            conn.network_timeout = config.get("connect_timeout", 2.0)
-            conn.timeout = config.get("response_timeout", 5)
-            conn.retry_delay = 0.5
+    connect_to = config["directory_type"][1]["connect_to"][1]
+    server = connect_to.get("server") or connect_to["domain"]
+    scheme = "ldaps" if "use_ssl" in config else "ldap"
 
-            if config["directory_type"][0] == "ad":
-                # Subtree searches on the domain top level stumble over referrals
-                conn.set_option(ldap.OPT_REFERRALS, 0)
-
-            if "use_ssl" in config:
-                conn.set_option(ldap.OPT_X_TLS_CACERTFILE, str(paths.trusted_ca_file))
-                for option, value in (
-                    (ldap.OPT_X_TLS_CRLCHECK, ldap.OPT_X_TLS_CRL_NONE),
-                    (ldap.OPT_X_TLS_NEWCTX, 0),
-                ):
-                    try:
-                        conn.set_option(option, value)
-                    except ValueError:
-                        pass
-
-            bind_dn, password_id = config.get("bind", ("", ("password", "")))
-            conn.simple_bind_s(replace_macros(bind_dn), password_store.extract(password_id))
-            return conn
-        except ldap.LDAPError as error:
-            errors.append(f"{uri}: {error}")
-
-    raise ResolveError(
-        "Cannot connect to LDAP connection {}: {}".format(config["id"], ", ".join(errors))
-    )
+    conn = ldap.initialize(f"{scheme}://{server}")
+    conn.set_option(ldap.OPT_REFERRALS, 0)
+    bind_dn, password = config.get("bind", ("", ("password", "")))
+    conn.simple_bind_s(bind_dn, password_store.extract(password))
+    return conn
 
 
-def search(conn, base, scope, ldap_filter, attributes):
+def group_mail(group):
     """
-    Search and decode the result, dropping referrals
+    The mail address of an LDAP group, from the first connection knowing it
     """
-    try:
-        result = conn.search_s(base, scope, ldap_filter, attributes)
-    except ldap.NO_SUCH_OBJECT:
-        return []
-
-    entries = []
-    for dn, raw_entry in result:
-        if dn is None:
-            continue
-        entry = {
-            key.lower(): [value.decode("utf-8", "replace") for value in values]
-            for key, values in raw_entry.items()
-        }
-        entries.append((dn, entry))
-    return entries
+    name = ldap.filter.escape_filter_chars(group)
+    for config in ldap_connections():
+        conn = connect(config)
+        entries = conn.search_s(
+            config["group_dn"],
+            ldap.SCOPE_SUBTREE,
+            f"(|(cn={name})(sAMAccountName={name}))",
+            ["mail"],
+        )
+        for _dn, entry in entries:
+            for address in entry.get("mail", []):
+                return address.decode("utf-8")
+    return None
 
 
-def group_filter(group, custom_filter):
+def resolve(recipients):
     """
-    Filter matching the group by its common name or account name
-    """
-    escaped = ldap.filter.escape_filter_chars(group)
-    if custom_filter:
-        return custom_filter.replace("$GROUP$", escaped)
-    classes = "".join(f"(objectclass={objectclass})" for objectclass in GROUP_OBJECTCLASSES)
-    return f"(&(|{classes})(|(cn={escaped})(sAMAccountName={escaped})))"
+    Replace the group names of a recipient list by their mail address
 
-
-def member_addresses(conn, config, entry, mail_attribute):
-    """
-    Collect the addresses of the group members
-
-    ``member`` / ``uniqueMember`` hold DNs and are read directly, ``memberUid``
-    holds account names which are looked up below the user DN.
+    Entries containing an "@" are mailboxes and stay untouched, so groups and
+    plain addresses can be mixed.
     """
     addresses = []
-    configured = config.get("group_member")
-    attributes = (configured,) + MEMBER_ATTRIBUTES if configured else MEMBER_ATTRIBUTES
-
-    for attribute in attributes:
-        for member in entry.get(attribute.lower(), []):
-            if is_dn(member):
-                found = search(
-                    conn, member, ldap.SCOPE_BASE, "(objectclass=*)", [mail_attribute]
-                )
-            else:
-                escaped = ldap.filter.escape_filter_chars(member)
-                found = search(
-                    conn,
-                    replace_macros(config["user_dn"]),
-                    SCOPES[config.get("user_scope", "sub")],
-                    f"(|(uid={escaped})(sAMAccountName={escaped}))",
-                    [mail_attribute],
-                )
-            for _dn, member_entry in found:
-                addresses += member_entry.get(mail_attribute.lower(), [])
-
-    return addresses
-
-
-def resolve_group(group, params):
-    """
-    Turn one LDAP group into the addresses stored at it
-
-    Tries every configured (or the selected) LDAP connection and returns the
-    addresses of the first connection that knows the group.
-    """
-    mail_attribute = params["mail_attribute"]
-    wanted = [mail_attribute] + list(MEMBER_ATTRIBUTES)
-    if configured := params.get("group_member"):
-        wanted.append(configured)
-
-    errors = []
-    for config in load_ldap_connections(params["connection"]):
-        try:
-            conn = connect(config)
-        except ResolveError as error:
-            errors.append(str(error))
+    for entry in recipients.replace(";", ",").split(","):
+        entry = entry.strip()
+        if not entry:
             continue
-
-        if is_dn(group):
-            entries = search(conn, group, ldap.SCOPE_BASE, "(objectclass=*)", wanted)
+        if "@" in entry:
+            addresses.append(entry)
+        elif address := group_mail(entry):
+            addresses.append(address)
         else:
-            entries = search(
-                conn,
-                replace_macros(config["group_dn"]),
-                SCOPES[config.get("group_scope", "sub")],
-                group_filter(group, params["group_filter"]),
-                wanted,
-            )
+            sys.stderr.write(f"No mail address found for LDAP group {entry!r}\n")
 
-        addresses = []
-        for _dn, entry in entries:
-            found = entry.get(mail_attribute.lower(), [])
-            if not found and params["expand_members"]:
-                found = member_addresses(conn, config, entry, mail_attribute)
-            addresses += found
-
-        if addresses:
-            return dedup(addresses)
-
-        if entries:
-            errors.append(
-                f"group found in connection {config['id']!r} but no "
-                f"{mail_attribute!r} attribute set"
-            )
-
-    if errors:
-        raise ResolveError(f"Cannot resolve LDAP group {group!r}: " + "; ".join(errors))
-    raise ResolveError(f"Cannot resolve LDAP group {group!r}: group not found")
+    if not addresses:
+        sys.stderr.write("No recipient left after resolving LDAP groups\n")
+        # Permanent problem, a retry would hit the same LDAP answer
+        sys.exit(2)
+    return ", ".join(addresses)
 
 
-def is_dn(value):
+def rewrite(line):
     """
-    Whether a recipient is a distinguished name instead of a group name
+    Rewrite one line of a bulk notification context
     """
-    if not DN_PATTERN.match(value):
-        return False
-    try:
-        ldap.dn.str2dn(value)
-    except ldap.DECODING_ERROR:
-        return False
-    return True
-
-
-def split_recipients(recipients):
-    """
-    Split a recipient list into single entries
-
-    A DN contains commas itself, so entries are separated by ";" first and only
-    what is no DN is split on "," as well. Within such a part, consecutive
-    fragments that look like RDNs are joined back together, so a single DN
-    survives a comma separated list.
-    """
-    entries = []
-    for segment in recipients.split(";"):
-        segment = segment.strip()
-        if not segment:
-            continue
-        if is_dn(segment):
-            entries.append(segment)
-            continue
-
-        parts = []
-        for part in segment.split(","):
-            part = part.strip()
-            if not part:
-                continue
-            if parts and DN_PATTERN.match(part) and DN_PATTERN.match(parts[-1]):
-                parts[-1] += "," + part
-            else:
-                parts.append(part)
-        entries += parts
-    return entries
-
-
-def dedup(addresses):
-    """
-    Unique addresses, order preserved
-    """
-    seen = {}
-    for address in addresses:
-        seen.setdefault(address.strip(), None)
-    return [address for address in seen if address]
-
-
-# The rule cannot offer the built-in "from" element under its own key ("from"
-# is no Python identifier), so it is offered as "sender" and translated back
-# to what the built-in mail plug-in reads.
-SENDER_KEYS = {
-    "PARAMETER_SENDER_ADDRESS": "PARAMETER_FROM_ADDRESS",
-    "PARAMETER_SENDER_DISPLAY_NAME": "PARAMETER_FROM_DISPLAY_NAME",
-}
-
-
-def read_params(context):
-    """
-    Our own parameters out of the notification context
-    """
-    expand = context.get("PARAMETER_LDAP_EXPAND_MEMBERS", "")
-    return {
-        "connection": context.get("PARAMETER_LDAP_CONNECTION", "").strip(),
-        "mail_attribute": context.get("PARAMETER_LDAP_MAIL_ATTRIBUTE", "").strip() or "mail",
-        "group_filter": context.get("PARAMETER_LDAP_GROUP_FILTER", "").strip(),
-        "group_member": context.get("PARAMETER_LDAP_MEMBER_ATTRIBUTE", "").strip(),
-        "expand_members": expand.lower() in ("true", "yes", "on", "1"),
-    }
-
-
-def resolve_recipients(recipients, params, cache):
-    """
-    Rewrite a recipient list, resolving everything that is not an address
-
-    Entries containing an "@" are mailboxes and are passed through untouched,
-    so a contact can mix groups and plain addresses.
-    """
-    resolved = []
-    problems = []
-    for entry in split_recipients(recipients):
-        if "@" in entry and not is_dn(entry):
-            resolved.append(entry)
-            continue
-        if entry not in cache:
-            try:
-                cache[entry] = resolve_group(entry, params)
-            except ResolveError as error:
-                cache[entry] = []
-                problems.append(str(error))
-        resolved += cache[entry]
-
-    for problem in problems:
-        sys.stderr.write(problem + "\n")
-
-    if not resolved and problems:
-        raise ResolveError("No recipient left after resolving LDAP groups")
-
-    return ", ".join(dedup(resolved))
-
-
-def rewrite_sender(context, setter):
-    """
-    Hand the sender to the built-in plug-in under the key it expects
-    """
-    for own_key, mail_key in SENDER_KEYS.items():
-        if (value := context.get(own_key)) and mail_key not in context:
-            setter(mail_key, value)
-
-
-def rewrite_bulk(raw, cache):
-    """
-    Rewrite the recipient of every context of a bulk notification
-
-    The parameters come as first section, the single notification contexts
-    follow - both as "KEY=VALUE" lines separated by empty lines.
-    """
-    header, _, rest = raw.partition("\n\n")
-    context = dict(line.split("=", 1) for line in header.splitlines() if "=" in line)
-    params = read_params(context)
-
-    added = []
-    rewrite_sender(context, lambda key, value: added.append(f"{key}={value}"))
-    header = "\n".join(header.splitlines() + added)
-
-    lines = []
-    for line in (header + "\n\n" + rest).splitlines(True):
-        if line.startswith("CONTACTEMAIL="):
-            recipients = resolve_recipients(line.split("=", 1)[1].strip(), params, cache)
-            line = f"CONTACTEMAIL={recipients}\n"
-        lines.append(line)
-    return "".join(lines)
+    if line.startswith("CONTACTEMAIL="):
+        return "CONTACTEMAIL=%s\n" % resolve(line.split("=", 1)[1].strip())
+    for own_key, mail_key in SENDER.items():
+        if line.startswith(f"{own_key}="):
+            return line.replace(own_key, mail_key, 1)
+    return line
 
 
 def main():
     """
     Resolve the recipients, then run the built-in mail plug-in
     """
-    cache = {}
     try:
         if "--bulk" in sys.argv:
-            sys.stdin = io.StringIO(rewrite_bulk(sys.stdin.read(), cache))
+            sys.stdin = io.StringIO("".join(rewrite(line) for line in sys.stdin))
         else:
-            context = {
-                key[7:]: value
-                for key, value in os.environ.items()
-                if key.startswith("NOTIFY_")
-            }
-            os.environ["NOTIFY_CONTACTEMAIL"] = resolve_recipients(
-                context.get("CONTACTEMAIL", ""), read_params(context), cache
+            os.environ["NOTIFY_CONTACTEMAIL"] = resolve(
+                os.environ.get("NOTIFY_CONTACTEMAIL", "")
             )
-            rewrite_sender(
-                context, lambda key, value: os.environ.__setitem__(f"NOTIFY_{key}", value)
-            )
-    except ResolveError as error:
-        sys.stderr.write(f"{error}\n")
-        # Permanent problem - a retry would hit the same LDAP answer
+            for own_key, mail_key in SENDER.items():
+                if value := os.environ.get(f"NOTIFY_{own_key}"):
+                    os.environ[f"NOTIFY_{mail_key}"] = value
+    except ldap.LDAPError as error:
+        sys.stderr.write(f"LDAP error: {error}\n")
         sys.exit(2)
 
     from cmk.notification_plugins import mail  # pylint: disable=import-outside-toplevel
