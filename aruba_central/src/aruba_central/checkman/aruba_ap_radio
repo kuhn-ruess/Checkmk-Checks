@@ -1,0 +1,22 @@
+title: Aruba Central: Access Point Radios
+agents: linux, windows
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Monitors the radios of an Aruba access point. A radio that is down is
+ WARN by default, because a disabled band is a normal configuration on
+ many sites.
+
+ The channel utilization is checked against levels of 80%/90% by default.
+ TX power is recorded as a metric, channel, radio type, spatial stream
+ and radio MAC address are shown in the service details.
+
+perfdata:
+ Two values: the channel utilization in percent and the TX power in dBm.
+
+item:
+ The radio name reported by Aruba Central, for example {Radio 5 GHz}.
+
+inventory:
+ One service per radio of the access point.

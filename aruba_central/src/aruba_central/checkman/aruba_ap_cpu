@@ -1,0 +1,15 @@
+title: Aruba Central: Access Point CPU Utilization
+agents: linux, windows
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ CPU utilization of an Aruba access point as reported by Aruba Central.
+ The default levels are 80%/90% and can be changed with the rule "Aruba
+ access point CPU utilization".
+
+perfdata:
+ One value: the CPU utilization in percent.
+
+inventory:
+ One service per access point that reports a CPU value.

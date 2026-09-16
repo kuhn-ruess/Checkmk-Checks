@@ -1,0 +1,18 @@
+title: Aruba Central: Access Point Memory
+agents: linux, windows
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Memory usage of an Aruba access point. Aruba Central reports total and
+ free memory as strings such as {920.39 MB}; the check derives the used
+ memory from both values.
+
+ The default levels are 80%/90% of the total memory and can be changed
+ with the rule "Aruba access point memory".
+
+perfdata:
+ Two values: the used memory in percent and in bytes.
+
+inventory:
+ One service per access point that reports its memory.

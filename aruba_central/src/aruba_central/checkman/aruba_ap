@@ -1,0 +1,20 @@
+title: Aruba Central: Access Point Status
+agents: linux, windows
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Monitors the status an Aruba access point reports to Aruba Central. The
+ data reaches Checkmk as a piggyback section of the agent plug-in
+ {aruba_central}, so the access point is a host of its own.
+
+ {Up} is OK, {Down} is CRIT and any other status is WARN by default, both
+ configurable. Model and firmware version are part of the summary, serial
+ number, MAC address, IP address, group, site, mode and the number of
+ SSIDs are shown in the service details.
+
+ The section also creates the host labels {aruba/group}, {aruba/site} and
+ {aruba/model}, which can be used to sort the access points into folders.
+
+inventory:
+ One service per access point.

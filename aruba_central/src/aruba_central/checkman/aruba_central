@@ -1,0 +1,25 @@
+title: Aruba Central: Collector Status
+agents: linux, windows
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Monitors the summary lines the Aruba Central CLI prints next to its JSON
+ output, for example {Counts: ap: 393 (386:7), clients: 242} and
+ {API Rate Limit: 11964 of 11970 remaining}.
+
+ The service runs on the host the agent plug-in {aruba_central} is
+ deployed to, not on the access points. It is CRIT when the number of
+ access points that are down exceeds the levels, and it warns before the
+ daily API rate limit of Aruba Central is used up, because no fresh data
+ arrives once the limit is reached.
+
+ If the plug-in cannot find any JSON in the output of cencli, the check
+ is CRIT and reports the error.
+
+perfdata:
+ Four values: access points up, access points down, wireless clients and
+ the remaining API calls.
+
+inventory:
+ One service per host that runs the agent plug-in.

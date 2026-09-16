@@ -1,0 +1,17 @@
+title: Aruba Central: Access Point Uptime
+agents: linux, windows
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Uptime of an Aruba access point. Aruba Central reports it as a string
+ such as {15w 3d 15m}, which the check turns into seconds so a reboot is
+ visible in the graph.
+
+ The check has no parameters and is always OK.
+
+perfdata:
+ One value: the uptime in seconds.
+
+inventory:
+ One service per access point that reports an uptime.

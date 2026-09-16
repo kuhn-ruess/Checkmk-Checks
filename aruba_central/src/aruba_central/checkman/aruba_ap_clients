@@ -1,0 +1,16 @@
+title: Aruba Central: Access Point Clients
+agents: linux, windows
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Number of wireless clients associated with an Aruba access point.
+
+ Without a rule the check only records the metric and stays OK. Upper
+ levels can be configured with the rule "Aruba access point clients".
+
+perfdata:
+ One value: the number of connected clients.
+
+inventory:
+ One service per access point that reports a client count.
