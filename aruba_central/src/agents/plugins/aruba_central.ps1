@@ -11,14 +11,15 @@ $TempDir = if ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
 $ErrorFile = Join-Path $TempDir "aruba_central_cencli.err"
 
 function Get-CencliOutput {
-    <# Run cencli and return its stdout and stderr. #>
+    <# Run cencli and return its exit code, stdout and stderr. #>
     $out = & $Cencli show aps -v --json 2> $ErrorFile | Out-String
+    $code = $LASTEXITCODE
     $err = ""
     if (Test-Path $ErrorFile) {
         $err = Get-Content $ErrorFile -Raw -ErrorAction SilentlyContinue
         Remove-Item $ErrorFile -ErrorAction SilentlyContinue
     }
-    return @{ Stdout = $out; Stderr = $err }
+    return @{ ExitCode = $code; Stdout = $out; Stderr = $err }
 }
 
 function Split-Json {
@@ -84,7 +85,11 @@ if ($null -eq $parsed.Data) {
 $aps = $parsed.Data
 $status = Get-Status -Text $rest
 if ($null -eq $aps) {
-    $status["error"] = "no JSON in the output of cencli"
+    $status["error"] = if ($null -ne $output.ExitCode) {
+        "no JSON in the output of cencli (exit code $($output.ExitCode))"
+    } else {
+        "cencli could not be started"
+    }
 }
 
 Write-Output "<<<aruba_central:sep(0)>>>"

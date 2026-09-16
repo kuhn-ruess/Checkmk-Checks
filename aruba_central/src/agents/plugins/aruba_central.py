@@ -25,7 +25,7 @@ RATE_LIMIT = re.compile(r"API Rate Limit:\s*(\d+)\s+of\s+(\d+)\s+remaining")
 
 
 def run_cencli():
-    """Return stdout and stderr of the cencli call."""
+    """Return exit code, stdout and stderr of the cencli call."""
     proc = subprocess.run(
         COMMAND,
         stdout=subprocess.PIPE,
@@ -38,6 +38,12 @@ def run_cencli():
         proc.stdout.decode("utf-8", "replace"),
         proc.stderr.decode("utf-8", "replace"),
     )
+
+
+def print_status(status):
+    """Print the status section."""
+    print("<<<aruba_central:sep(0)>>>")
+    print(json.dumps(status))
 
 
 def split_json(text):
@@ -85,7 +91,7 @@ def main():
     try:
         returncode, stdout, stderr = run_cencli()
     except Exception as error:
-        sys.stderr.write(f"aruba_central: {error}\n")
+        print_status({"error": f"cencli could not be started: {error}"})
         return 1
 
     aps, rest = split_json(stdout)
@@ -99,8 +105,7 @@ def main():
     if aps is None:
         status["error"] = f"no JSON in the output of cencli (exit code {returncode})"
 
-    print("<<<aruba_central:sep(0)>>>")
-    print(json.dumps(status))
+    print_status(status)
 
     for name, ap in sorted((aps or {}).items()):
         if not isinstance(ap, dict):
