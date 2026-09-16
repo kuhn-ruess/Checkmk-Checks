@@ -1,0 +1,23 @@
+title: IBM TS4300: Cleaning Cartridges
+agents: snmp
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Counts the cartridges of an IBM TS4300 library that the library marks
+ as cleaning media (storageMediaLocation-PhysicalMedia-CleanerMedia,
+ .1.3.6.1.4.1.14851.3.1.13.3.1.17).
+
+ Without a cleaning cartridge the library cannot answer the cleaning
+ request of a drive, so the check is CRIT when no cleaning media is
+ left. The lower levels are configurable.
+
+ The barcode and the location of every cleaning cartridge are shown in
+ the service details, which also makes it visible when the cleaning
+ media sits in the I/O station instead of a storage slot.
+
+perfdata:
+ One value: the number of cleaning cartridges in the library.
+
+inventory:
+ One service per host.

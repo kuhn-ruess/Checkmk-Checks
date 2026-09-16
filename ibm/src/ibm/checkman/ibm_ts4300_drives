@@ -1,0 +1,32 @@
+title: IBM TS4300: Tape Drives
+agents: snmp
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Monitors the tape drives of an IBM TS4300 library. Availability and
+ operational status come from the SNIA mediaAccessDevice table
+ (.1.3.6.1.4.1.14851.3.1.6.2.1), and are mapped the same way as in
+ {ibm_tl_media_access_devices}.
+
+ The check also reports the cleaning request of the drive, its mount
+ count and its total operating time. Drive type, LTO generation,
+ firmware level, control path flag and the link state of both drive
+ ports are read from the IBM Automation Query MIB
+ (.1.3.6.1.4.1.2.6.257.1.5.2.1) and shown in the service details. Both
+ tables are joined by drive index and verified against the world wide
+ name, so the details are left out if the tables do not match.
+
+ The state for a pending cleaning request and optional levels on the
+ total operating time are configurable.
+
+perfdata:
+ Two values: the number of tape mounts and the total operating time of
+ the drive in seconds.
+
+item:
+ The name the library reports for the drive, with the padding removed,
+ for example {IBM ULT3580-TD9 1234567890}.
+
+inventory:
+ One service per drive of the library.

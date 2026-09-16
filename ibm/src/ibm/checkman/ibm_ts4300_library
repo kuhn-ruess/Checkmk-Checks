@@ -1,0 +1,20 @@
+title: IBM TS4300: Library Status
+agents: snmp
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Monitors the operational status the library reports for itself
+ (computerSystem-OperationalStatus, .1.3.6.1.4.1.14851.3.1.10.2.0) and
+ for every chassis of the SNIA subChassis table
+ (.1.3.6.1.4.1.14851.3.1.4.10.1).
+
+ The CIM status values are mapped as follows: {ok} is OK, {error},
+ {non-recoverable error}, {aborted} and {supporting entity in error} are
+ CRIT, {unknown}, {no contact} and {lost communication} are UNKNOWN,
+ every other value is WARN.
+
+ The library sends its state itself, the check has no parameters.
+
+inventory:
+ One service per host.

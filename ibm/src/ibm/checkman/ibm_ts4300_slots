@@ -1,0 +1,29 @@
+title: IBM TS4300: Media Slots
+agents: snmp
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Monitors how many media locations of an IBM TS4300 library hold a
+ cartridge. The data comes from the SNIA storageMediaLocation table
+ (.1.3.6.1.4.1.14851.3.1.13.3.1), grouped by location type.
+
+ Storage slots are discovered with upper levels on the utilization
+ (90%/95% by default) so a library running out of free slots is noticed
+ before a backup fails. The I/O station is discovered without levels,
+ because cartridges waiting in the mail slot are a normal state on many
+ sites. Levels for both can be set with the rule "IBM TS4300 media
+ slots".
+
+ The drive locations of the table are skipped, they are covered by
+ {ibm_ts4300_drives}.
+
+perfdata:
+ Three values: the utilization in percent, and the number of used and
+ free slots.
+
+item:
+ The location type, {Storage}, {Magazine} or {I/O station}.
+
+inventory:
+ One service per location type the library reports.

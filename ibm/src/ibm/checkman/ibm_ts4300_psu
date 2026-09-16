@@ -1,0 +1,23 @@
+title: IBM TS4300: Power Supplies
+agents: snmp
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Monitors both power supply slots of every chassis of an IBM TS4300 tape
+ library. The data comes from the IBM Automation Query MIB
+ (chassis-PS1Status / chassis-PS2Status, .1.3.6.1.4.1.2.6.257.1.3.2.1.3
+ and .4), which the SNIA-SML-MIB does not cover.
+
+ A power supply reported as {ok} is OK, {not ok} is CRIT. A slot that
+ turns {not installed} after discovery is WARN, because the redundancy
+ the library was discovered with is gone.
+
+ The serial number of the chassis is shown in the service details.
+
+item:
+ Chassis index and power supply number, separated by a slash, for
+ example {1/2} for the second power supply of the first chassis.
+
+inventory:
+ One service per power supply slot that is populated at discovery time.
