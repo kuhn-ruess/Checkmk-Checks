@@ -64,6 +64,6 @@ check_plugin_cmdb_syncer_service = CheckPlugin(
     service_name = "Service %s",
     discovery_function = discover_service,
     check_function = check_service,
-    check_default_parameters = {'levels': None},
+    check_default_parameters = {'levels': ('no_levels', None)},
     check_ruleset_name="service_metric_counter",
 )

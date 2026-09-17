@@ -35,7 +35,7 @@ def _form_active_check_videotext():
                 parameter_form = RegularExpression(
                     title = Title("RegEx search pattern"),
                     help_text = Help("Regular expressio for searching timestamp. Timestamp must be saved as group."),
-                    prefill = DefaultValue("Stand:.*?(\d+:\d+)"),
+                    prefill = DefaultValue(r"Stand:.*?(\d+:\d+)"),
                     predefined_help_text = MatchingScope.INFIX,
                 ),
                 required = True,
