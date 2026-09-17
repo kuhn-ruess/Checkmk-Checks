@@ -54,8 +54,12 @@ def _valuespec_special_agent_dell_powermax():
             }
         )
 
-rule_spec_semu_agent = SpecialAgent(
-    name = "agent_dellpmax",
+# The name must match the SpecialAgentConfig in server_side_calls/agent_pmax.py:
+# the rule spec creates the ruleset "special_agents:<name>" that the special
+# agent reads its parameters from. With a different name here, a configured rule
+# never reaches the agent.
+rule_spec_dellpmax_agent = SpecialAgent(
+    name = "dellpmax",
     topic = Topic.STORAGE,
     parameter_form = _valuespec_special_agent_dell_powermax,
     title = Title("Dell Powermax"),

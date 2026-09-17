@@ -22,7 +22,6 @@ def generate_powermanx_command(params: AgentDellPowermaxParams, host_config: Hos
     """
     Define the Arguements
     """
-    print(host_config)
     args = []
     args.append("-u")
     args.append(params.username)
@@ -36,7 +35,7 @@ def generate_powermanx_command(params: AgentDellPowermaxParams, host_config: Hos
     )
 
 
-special_agent_semu = SpecialAgentConfig(
+special_agent_dellpmax = SpecialAgentConfig(
     name = "dellpmax",
     parameter_parser = AgentDellPowermaxParams.model_validate,
     commands_function = generate_powermanx_command,

@@ -28,8 +28,19 @@ Each SRP produces three services (`Subscribed Capacity <srp>`, `Snapshot Capacit
 | `src/dell_pmax/agent_based/dellpmax_alerts_server.py` | `Server alerts` service. |
 | `src/dell_pmax/agent_based/dellpmax_alerts_symm.py` | `Array alerts` and `Performance alerts` services. |
 | `src/dell_pmax/agent_based/dellpmax_storage_pools.py` | `Subscribed Capacity`, `Snapshot Capacity`, `Usable Capacity` per SRP. |
-| `src/dell_pmax/rulesets/agent_dellpmax.py` | Special agent rule (username, password). |
+| `src/dell_pmax/rulesets/agent_dellpmax.py` | Special agent rule (username, password), ruleset `special_agents:dellpmax`. |
 | `src/dell_pmax/server_side_calls/agent_pmax.py` | Command line generation. |
+
+## Upgrading to 2.1.0
+
+Versions up to 2.0.3 registered the rule spec under the name `agent_dellpmax`
+while the special agent read its parameters from `dellpmax`. A rule configured
+in the GUI therefore never reached the agent — the host simply produced no
+data. 2.1.0 renames the rule spec to `dellpmax` so both ends match.
+
+The rule itself is not migrated: after the update, open **Setup -> Agents ->
+Other integrations -> Dell Powermax** and create the rule again. The old,
+orphaned rule can be deleted (Setup -> search for `agent_dellpmax`).
 
 ## Installation
 
