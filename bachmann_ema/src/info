@@ -5,6 +5,6 @@
                                  'bachmann_ema/agent_based/bachmann_gpio_sensor.py']},
  'name': 'bachmann_ema',
  'title': 'Bachmann Ema Monitoring',
- 'version': '1.2.0',
+ 'version': '1.2.1',
  'version.min_required': '2.3.0p1',
  'version.packaged': '2.3.0p25'}

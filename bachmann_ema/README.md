@@ -17,6 +17,8 @@ The plugin [`bachmann_ema.py`](src/bachmann_ema/agent_based/bachmann_ema.py) reg
 
 Services are discovered only where the mode is `enabled` (2) or `s0` (6). The check maps raw integer modes to human readable strings (`disabled`, `enabled`, `s0`, `undefined`), likewise for switch state (`on`, `off`, `switchable`, ...) and entity state (`ok`, `alarm`, `warning`, `armed`, `disarmed`, ...). An entity state of `39` (`armed`) is reported as CRIT; all other states are reported as OK.
 
+The summary holds the status only (`Status: armed`); mode and switch are emitted as notices and therefore show up in the service details, not in the one-line output. That keeps the text short where it is rendered small — NagVis / OrbVis hover menus and map captions — without dropping the information.
+
 ## GPIO sensor state
 
 The plugin [`bachmann_gpio_sensor.py`](src/bachmann_ema/agent_based/bachmann_gpio_sensor.py) registers an SNMP section `bluenet_gpio_sensor` for devices whose `sysObjectID` is below the Bachmann enterprise OID `.1.3.6.1.4.1.31770`. While `bluenet_ema` looks at the individual contacts of a GPIO sensor, this check reports the state of the sensor module itself, so a lost or switched off sensor is noticed even when no contact is wired.
@@ -47,6 +49,7 @@ State mapping (BlueNet2 `EntityState`): `on`, `ok`, `expected` are OK; `off`, `l
 ## Services & metrics
 
 - **Service:** `EMA %s` (GPIO pair)
+- **Summary:** `Status: <entity state>`; mode and switch are in the service details.
 - **State logic:** CRIT when the entity state is `armed` (39); otherwise OK.
 - **Metrics:** none.
 - **Service:** `GPIO Sensor %s` (item: `<device> <sensor>`, e.g. `Master GPIO S1`, `Slave-2 GPIO Internal`)

@@ -64,7 +64,10 @@ def check_bluenet_ema(item, section):
         '6': 's0',
         '7': 'undefined',
     }
-    yield Result(state=state, summary=f"Mode: {gpio_mode[mode]}")
+    # Mode and switch stay out of the summary: the service output is rendered in
+    # NagVis/OrbVis hover menus, where only the status is wanted. As a notice
+    # they remain visible in the service details.
+    yield Result(state=state, notice=f"Mode: {gpio_mode[mode]}")
     gpio_switch = {
         '0': 'undefined',
         '3': 'switchable',
@@ -72,7 +75,7 @@ def check_bluenet_ema(item, section):
         '1': 'on',
         '2': 'off',
     }
-    yield Result(state=state, summary=f"Switch: {gpio_switch[switch]}")
+    yield Result(state=state, notice=f"Switch: {gpio_switch[switch]}")
 
     entity_states = {
        '0': 'expected',
