@@ -50,12 +50,26 @@ Bakery rule: **Agent rules -> HCI Cluster Monitoring (Windows)**
 
 | Parameter | Type | Meaning |
 | --- | --- | --- |
+| `deployment` | `sync` / `cached` (interval) / `do_not_deploy` | Whether the plugin is deployed and whether it runs synchronously or cached. |
 | `domain` | text | AD domain to run the cluster query against. |
-| `filter_type` | `None` / `Inclusion` / `Exclusion` | How `filter_pattern` is applied when enumerating cluster objects. |
+| `filter_type` | `no_filter` / `inclusion` / `exclusion` | How `filter_pattern` is applied when enumerating cluster objects. |
 | `filter_pattern` | text | Pattern used together with `filter_type` (e.g. `HCI`). Optional. |
+
+## Upgrading to 2.1.0
+
+The Bakery ruleset was ported from the pre-2.3 WATO API to `cmk.rulesets.v1`.
+On Checkmk 2.5 the old file could not be imported at all
+(`ModuleNotFoundError: No module named 'cmk.gui.cee'`), which made the whole
+rule spec loading of the site fail — not just this package.
+
+Existing rules keep working: the bakery plugin still accepts the old value
+shape (a plain dict, or `None` for "do not deploy") and the capitalized
+`None` / `Inclusion` / `Exclusion` filter values. As soon as a rule is opened
+and saved in the GUI it is written in the new shape, which adds the
+`deployment` choice and spells the filter types `no_filter` / `inclusion` /
+`exclusion` (the PowerShell plugin receives the capitalized value either way).
 
 ## Known limitations
 
-- The Bakery ruleset still uses the legacy pre-2.3 WATO API (`cmk.gui.plugins.wato` / `rulespec_registry`) while the checks themselves are on `cmk.agent_based.v2`.
 - `hci_storage_jobs` intentionally reports CRIT whenever any job is listed, including `Completed`, because the Windows API keeps completed jobs visible.
 - `hci_s2d_volume_performance` uses `render.timespan` for IOPS-like metrics — a cosmetic quirk kept from the original implementation.
