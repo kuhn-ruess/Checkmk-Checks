@@ -1,9 +1,10 @@
 {'author': 'Kuhn & Ruess GmbH',
- 'description': 'Monitor for Switch States of Bachman EMA\n',
+ 'description': 'Monitor for Switch States of Bachman EMA and the overall state of its GPIO sensors\n',
  'download_url': 'https://kuhn-ruess.de',
- 'files': {'cmk_addons_plugins': ['bachmann_ema/agent_based/bachmann_ema.py']},
+ 'files': {'cmk_addons_plugins': ['bachmann_ema/agent_based/bachmann_ema.py',
+                                 'bachmann_ema/agent_based/bachmann_gpio_sensor.py']},
  'name': 'bachmann_ema',
  'title': 'Bachmann Ema Monitoring',
- 'version': '1.1.2',
+ 'version': '1.2.0',
  'version.min_required': '2.3.0p1',
  'version.packaged': '2.3.0p25'}
