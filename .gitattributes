@@ -1,0 +1,11 @@
+# Keep line endings stable across checkouts: everything git considers text is
+# normalized to LF in the repository.
+* text=auto
+
+# Windows agent plugins stay CRLF — they are shipped to and executed on Windows.
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Packed plugin archives and snmpwalks are binary / verbatim.
+*.mkp binary
