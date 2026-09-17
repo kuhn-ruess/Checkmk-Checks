@@ -1,5 +1,9 @@
 # Hitachi HNAS via REST API
 
+<!-- compatibility-badges:start -->
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0-2f4f4f) ![packaged](https://img.shields.io/badge/packaged-2.4.0p18-blue)
+<!-- compatibility-badges:end -->
+
 Special agent based monitoring of Hitachi NAS (HNAS) systems using the
 NAS File Storage REST API (v8, TCP port 8444).
 
