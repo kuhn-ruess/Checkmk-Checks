@@ -10,58 +10,85 @@ https://kuhn-ruess.de
 
 import json
 import os
+import pwd
 import re
+import shlex
 import subprocess
 import sys
 
-COMMAND = os.environ.get("ARUBA_CENCLI", "cencli").split() + [
-    "show", "aps", "-v", "--json",
-]
-TIMEOUT = int(os.environ.get("ARUBA_CENCLI_TIMEOUT", "300"))
+CONFIG_FILE = os.path.join(os.environ.get("MK_CONFDIR", "/etc/check_mk"), "aruba_central.cfg")
 
 COUNTS = re.compile(r"ap:\s*(\d+)\s*\((\d+):(\d+)\)")
 CLIENTS = re.compile(r"clients:\s*(\d+)")
 RATE_LIMIT = re.compile(r"API Rate Limit:\s*(\d+)\s+of\s+(\d+)\s+remaining")
 
 
+def read_config():
+    """Read the config file the bakery writes, KEY=VALUE per line."""
+    config = {}
+    try:
+        with open(CONFIG_FILE, encoding="utf-8", errors="replace") as config_file:
+            for line in config_file:
+                key, sep, value = line.strip().partition("=")
+                if sep and not key.startswith("#"):
+                    config[key.strip()] = value.strip().strip("\"'")
+    except OSError:
+        pass
+    return config
+
+
+CONFIG = read_config()
+CENCLI = CONFIG.get("CENCLI") or "cencli"
+RUN_AS = CONFIG.get("RUN_AS") or ""
+TIMEOUT = int(CONFIG.get("TIMEOUT") or 300)
+
+
+def cencli_command():
+    """The cencli call, wrapped into su or sudo when another user is configured."""
+    command = shlex.split(CENCLI) + ["show", "aps", "-v", "--json"]
+
+    if not RUN_AS or RUN_AS == pwd.getpwuid(os.geteuid()).pw_name:
+        return command
+    if os.geteuid() == 0:
+        return ["su", "-", RUN_AS, "-c", shlex.join(command)]
+    return ["sudo", "--non-interactive", "--login", "--user", RUN_AS] + command
+
+
+def decode(data):
+    """Decode cencli output as UTF-8, fall back to the Windows ANSI code page."""
+    try:
+        return data.decode("utf-8")
+    except UnicodeDecodeError:
+        return data.decode("cp1252", "replace")
+
+
 def run_cencli():
     """Return exit code, stdout and stderr of the cencli call."""
     proc = subprocess.run(
-        COMMAND,
+        cencli_command(),
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         timeout=TIMEOUT,
         check=False,
     )
-    return (
-        proc.returncode,
-        proc.stdout.decode("utf-8", "replace"),
-        proc.stderr.decode("utf-8", "replace"),
-    )
+    return proc.returncode, decode(proc.stdout), decode(proc.stderr)
 
 
-def print_status(status):
-    """Print the status section."""
-    print("<<<aruba_central:sep(0)>>>")
-    print(json.dumps(status))
-
-
-def split_json(text):
-    """Split the JSON document from the status lines cencli mixes into its output."""
+def find_json(text):
+    """The JSON document cencli prints between its status lines."""
     start = text.find("{")
-    if start < 0:
-        return None, text
+    end = text.rfind("}")
+    if start < 0 or end < start:
+        return None
 
     try:
-        data, end = json.JSONDecoder().raw_decode(text[start:])
+        return json.loads(text[start:end + 1])
     except ValueError:
-        return None, text
-
-    return data, text[:start] + text[start + end:]
+        return None
 
 
 def parse_status(text):
-    """Pick the AP counts and the API rate limit out of the remaining output."""
+    """Pick the AP counts and the API rate limit out of the status lines."""
     status = {}
 
     if match := COUNTS.search(text):
@@ -88,24 +115,23 @@ def host_name(name, ap):
 
 def main():
     """Print one status section and one piggyback section per access point."""
+    aps = None
+
     try:
         returncode, stdout, stderr = run_cencli()
     except Exception as error:
-        print_status({"error": f"cencli could not be started: {error}"})
-        return 1
-
-    aps, rest = split_json(stdout)
-    if aps is None:
-        aps, rest = split_json(stderr)
-        rest = stdout + rest
+        status = {"error": f"cencli could not be started: {error}"}
     else:
-        rest = rest + stderr
+        # cencli mixes its status lines into both streams, the JSON is on one of them
+        status = parse_status(stdout + stderr)
+        aps = find_json(stdout)
+        if aps is None:
+            aps = find_json(stderr)
+        if aps is None:
+            status["error"] = f"no JSON in the output of cencli (exit code {returncode})"
 
-    status = parse_status(rest)
-    if aps is None:
-        status["error"] = f"no JSON in the output of cencli (exit code {returncode})"
-
-    print_status(status)
+    print("<<<aruba_central:sep(0)>>>")
+    print(json.dumps(status))
 
     for name, ap in sorted((aps or {}).items()):
         if not isinstance(ap, dict):
@@ -116,7 +142,7 @@ def main():
         print(json.dumps(ap))
         print("<<<<>>>>")
 
-    return 0
+    return 0 if aps is not None else 1
 
 
 if __name__ == "__main__":

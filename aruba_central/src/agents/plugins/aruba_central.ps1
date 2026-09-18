@@ -6,43 +6,65 @@
 
 $ErrorActionPreference = "Continue"
 
-$Cencli = if ($env:ARUBA_CENCLI) { $env:ARUBA_CENCLI } else { "cencli" }
-$TempDir = if ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
-$ErrorFile = Join-Path $TempDir "aruba_central_cencli.err"
+# UTF-8 for the cencli output we read and for the sections we write.
+try { [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false) } catch { }
 
-function Get-CencliOutput {
-    <# Run cencli and return its exit code, stdout and stderr. #>
-    $out = & $Cencli show aps -v --json 2> $ErrorFile | Out-String
-    $code = $LASTEXITCODE
-    $err = ""
-    if (Test-Path $ErrorFile) {
-        $err = Get-Content $ErrorFile -Raw -ErrorAction SilentlyContinue
-        Remove-Item $ErrorFile -ErrorAction SilentlyContinue
+$ConfDir = if ($env:MK_CONFDIR) { $env:MK_CONFDIR } else { "C:\ProgramData\checkmk\agent\config" }
+$TempDir = if ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
+
+function Read-Config {
+    <# Read the config file the bakery writes, KEY=VALUE per line. #>
+    $config = @{}
+    $file = Join-Path $ConfDir "aruba_central.cfg"
+    if (Test-Path $file) {
+        foreach ($line in (Get-Content $file -ErrorAction SilentlyContinue)) {
+            $key, $value = $line.Trim().Split("=", 2)
+            if ($value -and -not $key.StartsWith("#")) {
+                $config[$key.Trim()] = $value.Trim().Trim('"').Trim("'")
+            }
+        }
     }
-    return @{ ExitCode = $code; Stdout = $out; Stderr = $err }
+    return $config
 }
 
-function Split-Json {
-    <# Split the JSON document from the status lines cencli mixes into its output. #>
+$Cencli = (Read-Config)["CENCLI"]
+if (-not $Cencli) { $Cencli = "cencli" }
+
+function Invoke-Cencli {
+    <# Run cencli and return its exit code, stdout and stderr. #>
+    # cencli is a Python program, this pins its output encoding to the one we read with.
+    $env:PYTHONIOENCODING = "utf-8"
+
+    $errFile = Join-Path $TempDir "aruba_central_cencli.err"
+    $out = & $Cencli show aps -v --json 2> $errFile | Out-String -Width 65535
+    $code = $LASTEXITCODE
+
+    $err = ""
+    if (Test-Path $errFile) {
+        $err = Get-Content $errFile -Raw
+        Remove-Item $errFile -ErrorAction SilentlyContinue
+    }
+
+    return @{ ExitCode = $code; Stdout = [string]$out; Stderr = [string]$err }
+}
+
+function Find-Json {
+    <# The JSON document cencli prints between its status lines. #>
     param([string]$Text)
 
     $start = $Text.IndexOf("{")
     $end = $Text.LastIndexOf("}")
-    if ($start -lt 0 -or $end -lt $start) {
-        return @{ Data = $null; Rest = $Text }
-    }
+    if ($start -lt 0 -or $end -lt $start) { return $null }
 
     try {
-        $data = $Text.Substring($start, $end - $start + 1) | ConvertFrom-Json
+        return $Text.Substring($start, $end - $start + 1) | ConvertFrom-Json
     } catch {
-        return @{ Data = $null; Rest = $Text }
+        return $null
     }
-
-    return @{ Data = $data; Rest = $Text.Substring(0, $start) + $Text.Substring($end + 1) }
 }
 
 function Get-Status {
-    <# Pick the AP counts and the API rate limit out of the remaining output. #>
+    <# Pick the AP counts and the API rate limit out of the status lines. #>
     param([string]$Text)
 
     $status = [ordered]@{}
@@ -73,22 +95,17 @@ function Get-ApHostName {
     return $Name
 }
 
-$output = Get-CencliOutput
-$parsed = Split-Json -Text $output.Stdout
-if ($null -eq $parsed.Data) {
-    $parsed = Split-Json -Text $output.Stderr
-    $rest = $output.Stdout + $parsed.Rest
-} else {
-    $rest = $parsed.Rest + $output.Stderr
-}
+$output = Invoke-Cencli
 
-$aps = $parsed.Data
-$status = Get-Status -Text $rest
+# cencli mixes its status lines into both streams, the JSON is on one of them
+$status = Get-Status -Text ($output.Stdout + $output.Stderr)
+$aps = Find-Json -Text $output.Stdout
+if ($null -eq $aps) { $aps = Find-Json -Text $output.Stderr }
 if ($null -eq $aps) {
-    $status["error"] = if ($null -ne $output.ExitCode) {
-        "no JSON in the output of cencli (exit code $($output.ExitCode))"
-    } else {
+    $status["error"] = if ($null -eq $output.ExitCode) {
         "cencli could not be started"
+    } else {
+        "no JSON in the output of cencli (exit code $($output.ExitCode))"
     }
 }
 

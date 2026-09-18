@@ -9,9 +9,11 @@ description:
  {aruba_central}, so the access point is a host of its own.
 
  {Up} is OK, {Down} is CRIT and any other status is WARN by default, both
- configurable. Model and firmware version are part of the summary, serial
- number, MAC address, IP address, group, site, mode and the number of
- SSIDs are shown in the service details.
+ configurable. Model and firmware version are part of the summary, and so
+ is the reason Aruba Central gives for an access point that is down.
+ Serial number, MAC address, IP address, group, site, mode, the number of
+ SSIDs and the notes kept in Aruba Central are shown in the service
+ details.
 
  The section also creates the host labels {aruba/group}, {aruba/site} and
  {aruba/model}, which can be used to sort the access points into folders.

@@ -86,6 +86,8 @@ def parse_aruba_ap(string_table):
     return {
         "name": raw.get("name"),
         "status": raw.get("status"),
+        "down_reason": raw.get("down_reason"),
+        "notes": raw.get("notes"),
         "model": raw.get("model"),
         "serial": raw.get("serial"),
         "mac": raw.get("mac"),
@@ -96,7 +98,7 @@ def parse_aruba_ap(string_table):
         "mode": raw.get("mode"),
         "swarm_master": raw.get("swarm_master"),
         "ssid_count": raw.get("ssid_count"),
-        "clients": raw.get("clients", raw.get("client1")),
+        "clients": raw.get("clients", raw.get("client1", 0)),
         "cpu": parse_percent(raw.get("cpu_%")),
         "mem_total": total,
         "mem_used": total - free if total is not None and free is not None else None,
@@ -143,6 +145,9 @@ def check_aruba_ap(params, section):
 
     yield Result(state=state, summary=f"Status: {status}")
 
+    if status != "Up" and (reason := section.get("down_reason")):
+        yield Result(state=State.OK, summary=f"Reason: {reason}")
+
     for label, key in (("Model", "model"), ("Version", "version")):
         if value := section.get(key):
             yield Result(state=State.OK, summary=f"{label}: {value}")
@@ -155,6 +160,7 @@ def check_aruba_ap(params, section):
         ("Site", "site"),
         ("Mode", "mode"),
         ("SSIDs", "ssid_count"),
+        ("Notes", "notes"),
     ):
         if (value := section.get(key)) is not None:
             yield Result(state=State.OK, notice=f"{label}: {value}")
@@ -172,6 +178,7 @@ def discover_aruba_ap_clients(section):
 def check_aruba_ap_clients(params, section):
     """Check"""
     if (clients := section.get("clients")) is None:
+        yield Result(state=State.OK, summary="No client count reported")
         return
 
     yield from check_levels(
@@ -193,6 +200,7 @@ def discover_aruba_ap_cpu(section):
 def check_aruba_ap_cpu(params, section):
     """Check"""
     if (cpu := section.get("cpu")) is None:
+        yield Result(state=State.OK, summary="No CPU utilization reported")
         return
 
     yield from check_levels(
@@ -216,6 +224,7 @@ def check_aruba_ap_memory(params, section):
     used = section.get("mem_used")
     total = section.get("mem_total")
     if used is None or not total:
+        yield Result(state=State.OK, summary="No memory usage reported")
         return
 
     yield from check_levels(
@@ -242,6 +251,7 @@ def discover_aruba_ap_uptime(section):
 def check_aruba_ap_uptime(section):
     """Check"""
     if (uptime := section.get("uptime")) is None:
+        yield Result(state=State.OK, summary="No uptime reported")
         return
 
     yield from check_levels(

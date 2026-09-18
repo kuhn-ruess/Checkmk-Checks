@@ -9,7 +9,8 @@ description:
  {API Rate Limit: 11964 of 11970 remaining}.
 
  The service runs on the host the agent plug-in {aruba_central} is
- deployed to, not on the access points. It is CRIT when the number of
+ deployed to, not on the access points. The number of access points, the
+ clients and the remaining API calls are part of the summary. It is CRIT when the number of
  access points that are down exceeds the levels, and it warns before the
  daily API rate limit of Aruba Central is used up, because no fresh data
  arrives once the limit is reached.

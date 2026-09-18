@@ -5,6 +5,8 @@ license: GPL
 distribution: none
 description:
  Number of wireless clients associated with an Aruba access point.
+ cencli leaves the client count out when an access point has no clients,
+ which the check reports as zero.
 
  Without a rule the check only records the metric and stays OK. Upper
  levels can be configured with the rule "Aruba access point clients".
@@ -13,4 +15,4 @@ perfdata:
  One value: the number of connected clients.
 
 inventory:
- One service per access point that reports a client count.
+ One service per access point.

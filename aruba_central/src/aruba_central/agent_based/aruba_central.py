@@ -78,7 +78,6 @@ def check_aruba_central(params, section):
             metric_name="aruba_api_rate_remaining",
             label="API calls left",
             render_func=lambda v: f"{int(v)}" + (f" of {limit}" if limit else ""),
-            notice_only=True,
         )
         if limit:
             yield Result(
