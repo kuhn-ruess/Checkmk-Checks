@@ -1,0 +1,312 @@
+#!/usr/bin/env python3
+"""
+Service Group States Special Agent
+
+Queries the local (or remote) Livestatus socket for all service groups matching
+the configured patterns and reports their state distribution plus the list of
+services which are currently not OK, stale or pending.
+
+The whole data collection needs exactly two Livestatus queries per site,
+independent of the number of matching service groups.
+
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+import argparse
+import json
+import os
+import re
+import socket
+import sys
+
+
+GROUP_COLUMNS = [
+    "name",
+    "alias",
+    "num_services",
+    "num_services_ok",
+    "num_services_warn",
+    "num_services_crit",
+    "num_services_unknown",
+    "num_services_pending",
+]
+
+SERVICE_COLUMNS = [
+    "host_name",
+    "description",
+    "state",
+    "state_type",
+    "staleness",
+    "acknowledged",
+    "scheduled_downtime_depth",
+    "host_scheduled_downtime_depth",
+    "has_been_checked",
+    "groups",
+    "plugin_output",
+]
+
+OUTPUT_TRUNCATE = 120
+
+# Checkmk state markers of the member service, they would only clutter the
+# details of our own service
+STATE_MARKERS = re.compile(r"\((?:!!|!|\?)\)")
+
+
+class LivestatusError(RuntimeError):
+    """
+    Raised when a Livestatus query could not be answered
+    """
+
+
+class LivestatusConnection:
+    """
+    Minimal Livestatus client, deliberately without any Checkmk imports so that
+    the agent also runs outside of a site context.
+    """
+
+    def __init__(self, address, timeout=30):
+        self.address = address
+        self.timeout = timeout
+
+    def _connect(self):
+        """
+        Open either a unix or a tcp socket
+        """
+        if self.address.startswith("tcp:"):
+            _scheme, host, port = self.address.split(":", 2)
+            sock = socket.create_connection((host, int(port)), timeout=self.timeout)
+        else:
+            sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            sock.settimeout(self.timeout)
+            sock.connect(self.address)
+        return sock
+
+    @staticmethod
+    def _read_exactly(sock, size):
+        """
+        Read size bytes or raise
+        """
+        chunks = []
+        missing = size
+        while missing > 0:
+            chunk = sock.recv(missing)
+            if not chunk:
+                raise LivestatusError("Connection closed by Livestatus")
+            chunks.append(chunk)
+            missing -= len(chunk)
+        return b"".join(chunks)
+
+    def query(self, query):
+        """
+        Run a query and return the decoded json payload
+        """
+        payload = (
+            query
+            + "\nOutputFormat: json"
+            + "\nColumnHeaders: off"
+            + "\nResponseHeader: fixed16"
+            + "\nKeepAlive: off"
+            + "\n\n"
+        )
+        sock = self._connect()
+        try:
+            sock.sendall(payload.encode("utf-8"))
+            sock.shutdown(socket.SHUT_WR)
+            header = self._read_exactly(sock, 16)
+            code = header[0:3].decode("ascii")
+            length = int(header[4:15])
+            body = self._read_exactly(sock, length) if length else b""
+        finally:
+            sock.close()
+
+        if code != "200":
+            raise LivestatusError(f"Livestatus returned {code}: {body.decode('utf-8', 'replace').strip()}")
+
+        return json.loads(body.decode("utf-8"))
+
+
+def build_filter(column, patterns):
+    """
+    Build an OR combined regex filter for the given column
+    """
+    lines = [f"Filter: {column} ~ {pattern}" for pattern in patterns]
+    if len(lines) > 1:
+        lines.append(f"Or: {len(lines)}")
+    return lines
+
+
+class AgentServiceGroupStates:
+    """
+    Agent Service Group States
+    """
+
+    def __init__(self, patterns, sockets, staleness, timeout):
+        self.patterns = patterns
+        self.sockets = sockets
+        self.staleness = staleness
+        self.timeout = timeout
+
+    def fetch_groups(self, connection):
+        """
+        First query: all matching service groups with their state distribution
+        """
+        query = "\n".join(
+            [
+                "GET servicegroups",
+                "Columns: " + " ".join(GROUP_COLUMNS),
+            ]
+            + build_filter("name", self.patterns)
+        )
+        return [dict(zip(GROUP_COLUMNS, row)) for row in connection.query(query)]
+
+    def fetch_services(self, connection):
+        """
+        Second query: every service of a matching group which is not OK, stale
+        or still pending. The group filter is pushed down to Livestatus so that
+        only relevant rows travel over the socket.
+        """
+        query = "\n".join(
+            [
+                "GET services",
+                "Columns: " + " ".join(SERVICE_COLUMNS),
+                "Filter: state != 0",
+                f"Filter: staleness >= {self.staleness}",
+                "Filter: has_been_checked = 0",
+                "Or: 3",
+            ]
+            + build_filter("groups", self.patterns)
+            + ["And: 2"]
+        )
+        return [dict(zip(SERVICE_COLUMNS, row)) for row in connection.query(query)]
+
+    def collect_site(self, address, groups):
+        """
+        Collect one site into the given group accumulator
+        """
+        connection = LivestatusConnection(address, self.timeout)
+        multi_site = len(self.sockets) > 1
+
+        for row in self.fetch_groups(connection):
+            entry = groups.setdefault(
+                row["name"],
+                {
+                    "name": row["name"],
+                    "alias": row["alias"],
+                    "total": 0,
+                    "counts": {"ok": 0, "warn": 0, "crit": 0, "unknown": 0, "pending": 0},
+                    "services": [],
+                },
+            )
+            entry["total"] += row["num_services"]
+            entry["counts"]["ok"] += row["num_services_ok"]
+            entry["counts"]["warn"] += row["num_services_warn"]
+            entry["counts"]["crit"] += row["num_services_crit"]
+            entry["counts"]["unknown"] += row["num_services_unknown"]
+            entry["counts"]["pending"] += row["num_services_pending"]
+
+        for row in self.fetch_services(connection):
+            service = {
+                "host": row["host_name"],
+                "service": row["description"],
+                "state": row["state"],
+                "hard": row["state_type"] == 1,
+                "stale": row["staleness"] >= self.staleness,
+                "ack": bool(row["acknowledged"]),
+                "downtime": bool(
+                    row["scheduled_downtime_depth"] or row["host_scheduled_downtime_depth"]
+                ),
+                "pending": not row["has_been_checked"],
+                "output": STATE_MARKERS.sub("", row["plugin_output"]).strip()[:OUTPUT_TRUNCATE],
+            }
+            if multi_site:
+                service["site"] = address
+            for group_name in row["groups"]:
+                if group_name in groups:
+                    groups[group_name]["services"].append(service)
+
+    def run(self):
+        """
+        Print the section
+        """
+        groups = {}
+        errors = []
+        for address in self.sockets:
+            try:
+                self.collect_site(address, groups)
+            except (LivestatusError, OSError, ValueError) as error:
+                errors.append(f"{address}: {error}")
+
+        if errors and not groups:
+            sys.stderr.write("Livestatus error: " + "; ".join(errors) + "\n")
+            return 1
+
+        print("<<<servicegroup_states:sep(0)>>>")
+        for entry in groups.values():
+            print(json.dumps(entry))
+
+        if errors:
+            sys.stderr.write("Livestatus error: " + "; ".join(errors) + "\n")
+        return 0
+
+
+def parse_arguments(argv=None):
+    """
+    Command line
+    """
+    parser = argparse.ArgumentParser(description="Checkmk service group states")
+    parser.add_argument(
+        "--pattern",
+        required=True,
+        action="append",
+        help="Regular expression matching the service group names to monitor. "
+             "Can be given multiple times.",
+    )
+    parser.add_argument(
+        "--socket",
+        action="append",
+        default=None,
+        help="Livestatus socket, either a path or tcp:<host>:<port>. "
+             "Can be given multiple times. Defaults to the local site socket.",
+    )
+    parser.add_argument(
+        "--staleness",
+        type=float,
+        default=1.5,
+        help="Staleness factor from which on a service counts as stale (default: 1.5)",
+    )
+    parser.add_argument(
+        "--timeout",
+        type=int,
+        default=30,
+        help="Livestatus socket timeout in seconds (default: 30)",
+    )
+    return parser.parse_args(argv)
+
+
+def main():
+    """
+    Entry point
+    """
+    args = parse_arguments()
+
+    sockets = args.socket
+    if not sockets:
+        omd_root = os.environ.get("OMD_ROOT")
+        if not omd_root:
+            sys.stderr.write("No --socket given and OMD_ROOT is not set\n")
+            return 1
+        sockets = [f"{omd_root}/tmp/run/live"]
+
+    patterns = [pattern.replace("\n", "").strip() for pattern in args.pattern]
+    patterns = [pattern for pattern in patterns if pattern]
+    if not patterns:
+        sys.stderr.write("No usable service group pattern given\n")
+        return 1
+
+    agent = AgentServiceGroupStates(patterns, sockets, args.staleness, args.timeout)
+    return agent.run()
+
+
+if __name__ == "__main__":
+    sys.exit(main())

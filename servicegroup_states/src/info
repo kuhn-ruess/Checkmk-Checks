@@ -1,0 +1,27 @@
+{'author': 'Kuhn & Rueß GmbH',
+ 'description': 'Monitors Checkmk service groups via Livestatus. Every service group matching one '
+                'of the configured patterns becomes its own service. The service alarms when a '
+                'single member, a configurable amount of members or all members of the group are '
+                'in a problem state and/or stale. Problem state and staleness are configured '
+                'independently.\n'
+                '\n'
+                'The special agent runs on the Checkmk server and needs exactly two Livestatus '
+                'queries per site, independent of the number of monitored service groups. Only '
+                'service groups and services which are actually affected are transferred.\n'
+                '\n'
+                'Assign the special agent rule to a host representing the Checkmk site. For '
+                'distributed setups several Livestatus sockets can be configured, their results '
+                'are merged per service group.\n',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks',
+ 'files': {'cmk_addons_plugins': ['servicegroup_states/agent_based/servicegroup_states.py',
+                                  'servicegroup_states/checkman/servicegroup_states',
+                                  'servicegroup_states/graphing/servicegroup_states.py',
+                                  'servicegroup_states/libexec/agent_servicegroup_states',
+                                  'servicegroup_states/rulesets/agent.py',
+                                  'servicegroup_states/rulesets/check_parameters.py',
+                                  'servicegroup_states/server_side_calls/agent.py']},
+ 'name': 'servicegroup_states',
+ 'title': 'Checkmk Service Group States',
+ 'version': '1.0.0',
+ 'version.min_required': '2.4.0',
+ 'version.packaged': '2.5.0p13'}

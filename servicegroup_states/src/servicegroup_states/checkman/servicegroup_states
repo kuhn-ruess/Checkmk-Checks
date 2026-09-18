@@ -1,0 +1,36 @@
+title: Checkmk: Service Group States
+agents: servicegroup_states
+catalog: app/checkmk
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Turns a Checkmk service group into a single service. The special agent
+ {agent_servicegroup_states} reads the state of every service group whose
+ name matches one of the configured patterns from Livestatus and reports
+ the group size, the state distribution and the members which are not OK,
+ stale or pending.
+
+ The service evaluates two independent triggers. The first one counts the
+ members in a problem state, by default {CRIT} and {UNKNOWN}, the second
+ one counts the stale members. For each trigger you configure whether a
+ single member, a given number of members, a given share of the members or
+ all members have to be affected, and which state the service takes. Both
+ triggers can be switched off separately, and the worse of the two results
+ wins.
+
+ Members in a soft state are ignored by default, so are members in a
+ scheduled downtime. Acknowledged members can be ignored as well.
+
+ The details list the state distribution of the group and up to 25
+ affected members with host, service, state, flags and plug-in output.
+
+ The whole data collection needs two Livestatus queries per site,
+ independent of the number of monitored service groups. Only service
+ groups and members which are actually affected are transferred.
+
+item:
+ The name of the service group.
+
+inventory:
+ One service per service group matching one of the configured patterns.
