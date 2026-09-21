@@ -87,7 +87,7 @@ The bakery writes `aruba_central.cfg` into the agent configuration directory
 | Key | Meaning |
 | --- | --- |
 | `CENCLI` | Path to cencli, when it is not in the PATH. |
-| `TIMEOUT` | Maximum runtime of the cencli call, Linux only. |
+| `TIMEOUT` | Maximum runtime of the cencli call. The Windows plug-in stops cencli 15 seconds earlier, so that the reason still reaches the section. |
 | `RUN_AS` | User the cencli call is run as, Linux only. |
 
 On Windows the user context is not part of the config file — the bakery writes
@@ -98,6 +98,47 @@ contain spaces.
 
 Without the bakery the file can simply be written by hand, all keys are
 optional.
+
+## Troubleshooting
+
+Both plug-ins write the section header `<<<aruba_central:sep(0)>>>` before
+anything else and report every failure as the service `Aruba Central` in CRIT,
+with the last lines of the cencli output, the plug-in version, the cencli that
+was called, the user it ran as, the timeout and the configuration file that was
+found. An empty section is reported as well, so a crashed run does not make the
+service disappear.
+
+**No `Aruba Central` service at all, no `<<<aruba_central>>>` in the agent
+output.** Then the plug-in never ran, or the agent discarded its output because
+it killed the plug-in — output of a plug-in that runs into its timeout is
+thrown away, so not even the section header survives. Check, in this order:
+
+1. Which version is on the host. The agent reports it in the section
+   `<<<checkmk_agent_plugins_win>>>` / `<<<checkmk_agent_plugins_lnx>>>` as
+   `aruba_central.ps1:CMK_VERSION = "..."`. `unversioned` means a package older
+   than 1.1.2 — those versions cannot say why they deliver nothing.
+2. Which execution entry the Windows agent really applies. Patterns are matched
+   in the order `check_mk.user.yml`, then the baked `check_mk.install.yml`, then
+   the built-in `check_mk.yml`, and the first matching pattern wins. A
+   `plugins: execution:` list in `check_mk.user.yml` therefore overrides the
+   baked entry — the example file that ships with the agent contains
+   `$CUSTOM_PLUGINS_PATH$\*.*` with `timeout: 30`, and with that the plug-in is
+   killed long before cencli is done. The baked entry looks like this:
+
+   ```yaml
+   plugins:
+     enabled: true
+     execution:
+     - pattern: $CUSTOM_PLUGINS_PATH$\aruba_central.ps1
+       run: true
+       async: true
+       cache_age: 900
+       timeout: 300
+   ```
+
+3. Whether the agent can start the plug-in as the configured user: the password
+   must not contain a space, and the user needs the right "Log on as a batch
+   job" on the host.
 
 **Encoding:** the Linux plug-in reads the cencli output as UTF-8 and falls back
 to the Windows ANSI code page when that fails. The Windows plug-in sets

@@ -24,7 +24,7 @@ def parse_aruba_central(string_table):
     if not string_table:
         return {
             "error": "the agent plug-in produced no data, it was aborted or it crashed "
-            "(Windows: check the runtime against the timeout of the plug-in)"
+            "(check the runtime of the plug-in against the timeout of the agent)"
         }
 
     try:
@@ -88,11 +88,25 @@ def check_aruba_central(params, section):
                 notice=f"API rate limit used: {render.percent(100.0 * (limit - remaining) / limit)}",
             )
 
+    if version := section.get("version"):
+        yield Result(state=State.OK, notice=f"Agent plug-in version: {version}")
+
     if cencli := section.get("cencli"):
         yield Result(state=State.OK, notice=f"cencli: {cencli}")
 
     if user := section.get("user"):
         yield Result(state=State.OK, notice=f"Runs as: {user}")
+
+    if timeout := section.get("timeout"):
+        yield Result(state=State.OK, notice=f"Timeout of the plug-in: {int(timeout)} s")
+
+    if "config" in section:
+        config = section["config"]
+        yield Result(
+            state=State.OK,
+            notice=f"Configuration file: {config}" if config else
+            "Configuration file: none found, the plug-in uses its defaults",
+        )
 
 
 agent_section_aruba_central = AgentSection(

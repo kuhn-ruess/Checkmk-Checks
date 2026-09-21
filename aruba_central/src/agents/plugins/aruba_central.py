@@ -16,6 +16,10 @@ import shlex
 import subprocess
 import sys
 
+# Read by the agent for the <<<checkmk_agent_plugins_lnx>>> section, so that the
+# agent output names the version of this plug-in.
+CMK_VERSION = "1.1.2"
+
 CONFIG_FILE = os.path.join(os.environ.get("MK_CONFDIR", "/etc/check_mk"), "aruba_central.cfg")
 
 COUNTS = re.compile(r"ap:\s*(\d+)\s*\((\d+):(\d+)\)")
@@ -23,8 +27,12 @@ CLIENTS = re.compile(r"clients:\s*(\d+)")
 RATE_LIMIT = re.compile(r"API Rate Limit:\s*(\d+)\s+of\s+(\d+)\s+remaining")
 
 
+CONFIG_FOUND = ""
+
+
 def read_config():
     """Read the config file the bakery writes, KEY=VALUE per line."""
+    global CONFIG_FOUND  # pylint: disable=global-statement
     config = {}
     try:
         with open(CONFIG_FILE, encoding="utf-8", errors="replace") as config_file:
@@ -32,6 +40,7 @@ def read_config():
                 key, sep, value = line.strip().partition("=")
                 if sep and not key.startswith("#"):
                     config[key.strip()] = value.strip().strip("\"'")
+        CONFIG_FOUND = CONFIG_FILE
     except OSError:
         pass
     return config
@@ -146,9 +155,13 @@ def main():
                 f"{excerpt(stderr) or excerpt(stdout)}"
             )
 
-    # Both are in the section so that the service can show which cencli ran as whom.
+    # All of this is in the section so that the service can show which plug-in
+    # version ran, which cencli it called, as whom, with which budget and config.
+    status["version"] = CMK_VERSION
     status["cencli"] = CENCLI
     status["user"] = RUN_AS or pwd.getpwuid(os.geteuid()).pw_name
+    status["timeout"] = TIMEOUT
+    status["config"] = CONFIG_FOUND
 
     print(json.dumps(status))
 

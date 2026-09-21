@@ -4,6 +4,10 @@
 # Consulting and Development
 # https://kuhn-ruess.de
 
+# Read by the agent for the <<<checkmk_agent_plugins_win>>> section, so that the
+# agent output names the version of this plug-in.
+$CMK_VERSION = "1.1.2"
+
 $ErrorActionPreference = "Continue"
 
 # UTF-8 for the cencli output we read and for the sections we write.
@@ -29,6 +33,9 @@ function Read-Config {
     }
     return $config
 }
+
+$ConfigFile = Join-Path $ConfDir "aruba_central.cfg"
+if (-not (Test-Path $ConfigFile)) { $ConfigFile = "" }
 
 $Config = Read-Config
 $Cencli = if ($Config["CENCLI"]) { $Config["CENCLI"] } else { "cencli" }
@@ -147,9 +154,13 @@ try {
     $status["error"] = "cencli failed: $($_.Exception.Message)"
 }
 
-# Both are in the section so that the service can show which cencli ran as whom.
+# All of this is in the section so that the service can show which plug-in version
+# ran, which cencli it called, as whom, with which budget and which config.
+$status["version"] = $CMK_VERSION
 $status["cencli"] = [string]$Cencli
 $status["user"] = if ($env:USERNAME) { "$env:USERDOMAIN\$env:USERNAME" } else { "" }
+$status["timeout"] = $Timeout
+$status["config"] = [string]$ConfigFile
 
 Write-Output ($status | ConvertTo-Json -Compress)
 
