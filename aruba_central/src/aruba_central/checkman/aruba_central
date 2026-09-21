@@ -16,7 +16,14 @@ description:
  arrives once the limit is reached.
 
  If the plug-in cannot find any JSON in the output of cencli, the check
- is CRIT and reports the error.
+ is CRIT and reports the error together with the last lines cencli wrote.
+ The details also show which cencli was called and which user the plug-in
+ ran as, which is what usually goes wrong on Windows.
+
+ When the section arrives empty, the plug-in was aborted or it crashed -
+ on Windows this is normally the runtime of the call exceeding the
+ timeout of the plug-in. The check is CRIT in that case as well instead
+ of the service disappearing.
 
 perfdata:
  Four values: access points up, access points down, wireless clients and

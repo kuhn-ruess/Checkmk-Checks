@@ -22,12 +22,15 @@ from cmk.agent_based.v2 import (
 def parse_aruba_central(string_table):
     """Parse the counts and the API rate limit of the cencli call."""
     if not string_table:
-        return None
+        return {
+            "error": "the agent plug-in produced no data, it was aborted or it crashed "
+            "(Windows: check the runtime against the timeout of the plug-in)"
+        }
 
     try:
         return json.loads("".join(line[0] for line in string_table))
     except ValueError:
-        return None
+        return {"error": "the agent plug-in did not produce valid JSON"}
 
 
 def discover_aruba_central(section):
@@ -84,6 +87,12 @@ def check_aruba_central(params, section):
                 state=State.OK,
                 notice=f"API rate limit used: {render.percent(100.0 * (limit - remaining) / limit)}",
             )
+
+    if cencli := section.get("cencli"):
+        yield Result(state=State.OK, notice=f"cencli: {cencli}")
+
+    if user := section.get("user"):
+        yield Result(state=State.OK, notice=f"Runs as: {user}")
 
 
 agent_section_aruba_central = AgentSection(

@@ -7,10 +7,13 @@
 $ErrorActionPreference = "Continue"
 
 # UTF-8 for the cencli output we read and for the sections we write.
-try { [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false) } catch { }
+try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false } catch { }
+
+# Written before anything else, so that Checkmk sees the section even when the
+# agent kills the plug-in or PowerShell aborts it.
+Write-Output "<<<aruba_central:sep(0)>>>"
 
 $ConfDir = if ($env:MK_CONFDIR) { $env:MK_CONFDIR } else { "C:\ProgramData\checkmk\agent\config" }
-$TempDir = if ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
 
 function Read-Config {
     <# Read the config file the bakery writes, KEY=VALUE per line. #>
@@ -27,40 +30,69 @@ function Read-Config {
     return $config
 }
 
-$Cencli = (Read-Config)["CENCLI"]
-if (-not $Cencli) { $Cencli = "cencli" }
+$Config = Read-Config
+$Cencli = if ($Config["CENCLI"]) { $Config["CENCLI"] } else { "cencli" }
+$Timeout = if ($Config["TIMEOUT"]) { [int]$Config["TIMEOUT"] } else { 300 }
 
 function Invoke-Cencli {
     <# Run cencli and return its exit code, stdout and stderr. #>
+    $info = New-Object System.Diagnostics.ProcessStartInfo
+    $info.FileName = $Cencli
+    $info.Arguments = "show aps -v --json"
+    $info.UseShellExecute = $false
+    $info.RedirectStandardOutput = $true
+    $info.RedirectStandardError = $true
+    $info.StandardOutputEncoding = New-Object System.Text.UTF8Encoding $false
+    $info.StandardErrorEncoding = New-Object System.Text.UTF8Encoding $false
     # cencli is a Python program, this pins its output encoding to the one we read with.
-    $env:PYTHONIOENCODING = "utf-8"
+    $info.EnvironmentVariables["PYTHONIOENCODING"] = "utf-8"
 
-    $errFile = Join-Path $TempDir "aruba_central_cencli.err"
-    $out = & $Cencli show aps -v --json 2> $errFile | Out-String -Width 65535
-    $code = $LASTEXITCODE
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $info
+    [void]$process.Start()
 
-    $err = ""
-    if (Test-Path $errFile) {
-        $err = Get-Content $errFile -Raw
-        Remove-Item $errFile -ErrorAction SilentlyContinue
+    # Both pipes are read before waiting, a full pipe buffer would block cencli.
+    $stdout = $process.StandardOutput.ReadToEndAsync()
+    $stderr = $process.StandardError.ReadToEndAsync()
+
+    # Stopping a little before the agent does keeps the reason in the section.
+    $budget = [Math]::Max(10, $Timeout - 15)
+    if (-not $process.WaitForExit($budget * 1000)) {
+        try { $process.Kill() } catch { }
+        throw "cencli did not finish within $budget seconds"
     }
 
-    return @{ ExitCode = $code; Stdout = [string]$out; Stderr = [string]$err }
+    return @{ ExitCode = $process.ExitCode; Stdout = $stdout.Result; Stderr = $stderr.Result }
+}
+
+function Get-Excerpt {
+    <# The last lines of the cencli output, for the error message. #>
+    param([string]$Text)
+
+    $lines = @($Text -split '\r?\n' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+    if ($lines.Count -eq 0) { return "" }
+
+    $tail = ($lines[[Math]::Max(0, $lines.Count - 3)..($lines.Count - 1)]) -join " | "
+    if ($tail.Length -gt 200) { $tail = $tail.Substring(0, 200) }
+    return $tail
 }
 
 function Find-Json {
     <# The JSON document cencli prints between its status lines. #>
     param([string]$Text)
 
-    $start = $Text.IndexOf("{")
     $end = $Text.LastIndexOf("}")
-    if ($start -lt 0 -or $end -lt $start) { return $null }
+    $start = $Text.IndexOf("{")
 
-    try {
-        return $Text.Substring($start, $end - $start + 1) | ConvertFrom-Json
-    } catch {
-        return $null
+    # A stray brace in an error message may sit in front of the document.
+    for ($attempt = 0; $attempt -lt 5 -and $start -ge 0 -and $start -lt $end; $attempt++) {
+        try {
+            return $Text.Substring($start, $end - $start + 1) | ConvertFrom-Json
+        } catch {
+            $start = $Text.IndexOf("{", $start + 1)
+        }
     }
+    return $null
 }
 
 function Get-Status {
@@ -95,21 +127,30 @@ function Get-ApHostName {
     return $Name
 }
 
-$output = Invoke-Cencli
+$aps = $null
 
-# cencli mixes its status lines into both streams, the JSON is on one of them
-$status = Get-Status -Text ($output.Stdout + $output.Stderr)
-$aps = Find-Json -Text $output.Stdout
-if ($null -eq $aps) { $aps = Find-Json -Text $output.Stderr }
-if ($null -eq $aps) {
-    $status["error"] = if ($null -eq $output.ExitCode) {
-        "cencli could not be started"
-    } else {
-        "no JSON in the output of cencli (exit code $($output.ExitCode))"
+try {
+    $output = Invoke-Cencli
+
+    # cencli mixes its status lines into both streams, the JSON is on one of them
+    $status = Get-Status -Text ($output.Stdout + $output.Stderr)
+    $aps = Find-Json -Text $output.Stdout
+    if ($null -eq $aps) { $aps = Find-Json -Text $output.Stderr }
+    if ($null -eq $aps) {
+        $excerpt = Get-Excerpt -Text $output.Stderr
+        if (-not $excerpt) { $excerpt = Get-Excerpt -Text $output.Stdout }
+        $status["error"] = "no JSON in the output of cencli " +
+            "(exit code $($output.ExitCode)): $excerpt"
     }
+} catch {
+    $status = [ordered]@{}
+    $status["error"] = "cencli failed: $($_.Exception.Message)"
 }
 
-Write-Output "<<<aruba_central:sep(0)>>>"
+# Both are in the section so that the service can show which cencli ran as whom.
+$status["cencli"] = [string]$Cencli
+$status["user"] = if ($env:USERNAME) { "$env:USERDOMAIN\$env:USERNAME" } else { "" }
+
 Write-Output ($status | ConvertTo-Json -Compress)
 
 if ($null -ne $aps) {

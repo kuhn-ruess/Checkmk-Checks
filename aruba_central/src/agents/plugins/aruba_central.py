@@ -76,15 +76,24 @@ def run_cencli():
 
 def find_json(text):
     """The JSON document cencli prints between its status lines."""
-    start = text.find("{")
     end = text.rfind("}")
-    if start < 0 or end < start:
-        return None
+    start = text.find("{")
 
-    try:
-        return json.loads(text[start:end + 1])
-    except ValueError:
-        return None
+    # A stray brace in an error message may sit in front of the document.
+    for _attempt in range(5):
+        if start < 0 or start >= end:
+            return None
+        try:
+            return json.loads(text[start:end + 1])
+        except ValueError:
+            start = text.find("{", start + 1)
+    return None
+
+
+def excerpt(text):
+    """The last lines of the cencli output, for the error message."""
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    return " | ".join(lines[-3:])[:200]
 
 
 def parse_status(text):
@@ -117,10 +126,14 @@ def main():
     """Print one status section and one piggyback section per access point."""
     aps = None
 
+    # Written before anything else, so that Checkmk sees the section even when
+    # the agent kills the plug-in.
+    print("<<<aruba_central:sep(0)>>>")
+
     try:
         returncode, stdout, stderr = run_cencli()
     except Exception as error:
-        status = {"error": f"cencli could not be started: {error}"}
+        status = {"error": f"cencli failed: {error}"}
     else:
         # cencli mixes its status lines into both streams, the JSON is on one of them
         status = parse_status(stdout + stderr)
@@ -128,9 +141,15 @@ def main():
         if aps is None:
             aps = find_json(stderr)
         if aps is None:
-            status["error"] = f"no JSON in the output of cencli (exit code {returncode})"
+            status["error"] = (
+                f"no JSON in the output of cencli (exit code {returncode}): "
+                f"{excerpt(stderr) or excerpt(stdout)}"
+            )
 
-    print("<<<aruba_central:sep(0)>>>")
+    # Both are in the section so that the service can show which cencli ran as whom.
+    status["cencli"] = CENCLI
+    status["user"] = RUN_AS or pwd.getpwuid(os.geteuid()).pw_name
+
     print(json.dumps(status))
 
     for name, ap in sorted((aps or {}).items()):
