@@ -18,7 +18,7 @@ import sys
 
 # Read by the agent for the <<<checkmk_agent_plugins_lnx>>> section, so that the
 # agent output names the version of this plug-in.
-CMK_VERSION = "1.1.2"
+CMK_VERSION = "1.1.3"
 
 CONFIG_FILE = os.path.join(os.environ.get("MK_CONFDIR", "/etc/check_mk"), "aruba_central.cfg")
 

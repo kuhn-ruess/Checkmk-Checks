@@ -1,12 +1,15 @@
 # Aruba Central access point data via cencli
 #
-# Kuhn & Rueß GmbH
+# Kuhn & Ruess GmbH
 # Consulting and Development
 # https://kuhn-ruess.de
+#
+# The file stays pure ASCII: the agent starts it with Windows PowerShell 5.1,
+# which reads a file without a BOM as ANSI, not as UTF-8.
 
 # Read by the agent for the <<<checkmk_agent_plugins_win>>> section, so that the
 # agent output names the version of this plug-in.
-$CMK_VERSION = "1.1.2"
+$CMK_VERSION = "1.1.3"
 
 $ErrorActionPreference = "Continue"
 

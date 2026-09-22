@@ -117,13 +117,27 @@ thrown away, so not even the section header survives. Check, in this order:
    `<<<checkmk_agent_plugins_win>>>` / `<<<checkmk_agent_plugins_lnx>>>` as
    `aruba_central.ps1:CMK_VERSION = "..."`. `unversioned` means a package older
    than 1.1.2 — those versions cannot say why they deliver nothing.
-2. Which execution entry the Windows agent really applies. Patterns are matched
-   in the order `check_mk.user.yml`, then the baked `check_mk.install.yml`, then
-   the built-in `check_mk.yml`, and the first matching pattern wins. A
-   `plugins: execution:` list in `check_mk.user.yml` therefore overrides the
-   baked entry — the example file that ships with the agent contains
-   `$CUSTOM_PLUGINS_PATH$\*.*` with `timeout: 30`, and with that the plug-in is
-   killed long before cencli is done. The baked entry looks like this:
+2. Which execution entry the Windows agent really applies. This does not have to
+   be guessed from the configuration files, the agent prints the merged,
+   effective configuration:
+
+   ```
+   cd "C:\Program Files (x86)\checkmk\service"
+   check_mk_agent.exe showconfig plugins
+   ```
+
+   The entry whose `pattern` matches `aruba_central.ps1` first is the one that
+   counts. Patterns are matched in the order `check_mk.user.yml`
+   (`%ProgramData%\checkmk\agent\`), then the baked
+   `%ProgramData%\checkmk\agent\bakery\check_mk.bakery.yml`, then the built-in
+   `check_mk.yml` (`%ProgramFiles(x86)%\checkmk\service\`), and the first
+   matching pattern wins. A `plugins: execution:` list in `check_mk.user.yml`
+   therefore overrides the baked entry — the example file that ships with the
+   agent contains `$CUSTOM_PLUGINS_PATH$\*.*` with `timeout: 30`, and with that
+   the plug-in is killed long before cencli is done. (The MSI delivers the baked
+   configuration as `%ProgramData%\checkmk\agent\install\check_mk.install.yml`
+   and the agent turns it into the bakery file above.) The baked entry looks
+   like this:
 
    ```yaml
    plugins:
@@ -139,9 +153,36 @@ thrown away, so not even the section header survives. Check, in this order:
 3. Whether the agent can start the plug-in as the configured user: the password
    must not contain a space, and the user needs the right "Log on as a batch
    job" on the host.
+4. What the agent itself says. With `logging: debug: yes` in
+   `check_mk.user.yml` (`global:` section) and after
+   `check_mk_agent.exe reload_config`, the agent writes to
+   `%ProgramData%\checkmk\agent\log\check_mk.log`, among others:
+   `To plugin '...aruba_central.ps1' to be applied rule '...'` (which pattern
+   won), `... is ... with age:<cache_age> timeout:<timeout> retry:<n>` (the
+   values in effect), `Killing process '...'` (timeout reached),
+   `Failed to impersonate` / `Failed CreateProcessWithLogonW` (the user could
+   not be logged on) and `perf: In [...] milliseconds process '...' - generated
+   [n] bytes of data` (the plug-in ran and how much it delivered).
+
+**`check_mk_agent.exe test` shows nothing for an asynchronous plug-in on the
+first run.** The agent starts an asynchronous plug-in in the background and
+delivers its output from the cache, which is empty in a freshly started test
+run. Run the command a second time about a minute later, or check the plug-in
+directly with `powershell.exe -NoProfile -File ...\aruba_central.ps1`. Note that
+both run as the logged-on administrator, not as the service user of the agent
+and not as the user from `user:`.
+
+**A synchronously deployed plug-in has at most `max_wait` seconds**, 60 by
+default for all synchronous plug-ins together (`plugins: max_wait:` in
+`check_mk.yml`) — the "Maximum runtime" of the rule cannot extend that. cencli
+alone needs about 30 seconds for a few hundred access points, so the plug-in
+belongs into the asynchronous deployment. The agent also raises a `cache_age`
+below 120 seconds to its minimum by itself.
 
 **Encoding:** the Linux plug-in reads the cencli output as UTF-8 and falls back
 to the Windows ANSI code page when that fails. The Windows plug-in sets
 `PYTHONIOENCODING=utf-8` for the call instead, because PowerShell decodes the
 output before the plug-in sees it — if cencli ignores that and writes ANSI, only
-umlauts in free text fields are lost, the rest of the data is unaffected.
+umlauts in free text fields are lost, the rest of the data is unaffected. The
+`.ps1` itself stays pure ASCII, because Windows PowerShell 5.1 — the interpreter
+the agent uses for `.ps1` — reads a file without a BOM as ANSI.

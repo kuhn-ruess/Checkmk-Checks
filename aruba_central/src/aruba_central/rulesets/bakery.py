@@ -6,7 +6,7 @@ Kuhn & Rueß GmbH
 Consulting and Development
 https://kuhn-ruess.de
 """
-from cmk.rulesets.v1 import Help, Title
+from cmk.rulesets.v1 import Help, Label, Title
 from cmk.rulesets.v1.form_specs import (
     CascadingSingleChoice,
     CascadingSingleChoiceElement,
@@ -83,7 +83,9 @@ def _agent_config_aruba_central() -> Dictionary:
                                 title=Title("Cache age"),
                                 help_text=Help(
                                     "The plug-in is only run again when the cached "
-                                    "data is older than this."
+                                    "data is older than this. The Windows agent "
+                                    "raises values below two minutes to its own "
+                                    "minimum of 120 seconds."
                                 ),
                                 displayed_magnitudes=(
                                     TimeMagnitude.HOUR,
@@ -95,7 +97,16 @@ def _agent_config_aruba_central() -> Dictionary:
                         CascadingSingleChoiceElement(
                             name="sync",
                             title=Title("Deploy the plug-in and run it synchronously"),
-                            parameter_form=FixedValue(value=None),
+                            parameter_form=FixedValue(
+                                value=None,
+                                label=Label(
+                                    "Only for very few access points: the Windows "
+                                    "agent waits at most 60 seconds for all "
+                                    "synchronous plug-ins together and throws the "
+                                    "output away afterwards, no matter what is set "
+                                    "as the maximum runtime below."
+                                ),
+                            ),
                         ),
                         CascadingSingleChoiceElement(
                             name="do_not_deploy",
