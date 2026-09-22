@@ -27,13 +27,15 @@ def _sudoers() -> Dictionary:
     return Dictionary(
         title=Title("Deploy the sudo rule"),
         help_text=Help(
-            "Writes <tt>/etc/sudoers.d/check_mk_mk_logsudo</tt> with the one "
-            "line the agent user needs to start the wrapper as the configured user. "
-            "Leave this out when the sudo configuration is managed elsewhere, the "
-            "rule is then expected on the host as "
-            "<tt>&lt;agent user&gt; ALL=(&lt;user&gt;) NOPASSWD: "
-            "&lt;plug-in directory&gt;/mk_logsudo.py --run</tt>. "
-            "An agent that runs as root needs no sudo rule at all."
+            "Writes <tt>/etc/sudoers.d/check_mk_mk_logsudo</tt> with the one line the "
+            "agent user needs to start the wrapper as the configured user. sudo only "
+            "accepts an absolute command, and the bakery does not know the "
+            "installation directory of the agent, so the directory has to be given "
+            "here.<br>"
+            "Leave this section out when the sudo configuration is managed elsewhere, "
+            "or when the agent runs as root and needs no sudo rule at all. "
+            "<tt>mk_logsudo.py --diag</tt> prints the line that is really needed on a "
+            "host, with the path the plug-in actually has."
         ),
         elements={
             "agent_user": DictElement(
@@ -46,6 +48,24 @@ def _sudoers() -> Dictionary:
                     ),
                     custom_validate=(LengthInRange(min_value=1),),
                     prefill=DefaultValue("cmk-agent"),
+                ),
+            ),
+            "plugin_dir": DictElement(
+                required=True,
+                parameter_form=String(
+                    title=Title("Agent plug-in directory on the host"),
+                    help_text=Help(
+                        "<tt>/usr/lib/check_mk_agent/plugins</tt> in a normal "
+                        "installation. With the rule <i>Customize agent package "
+                        "(Linux)</i> it is <tt>&lt;installation directory&gt;/default/"
+                        "package/plugins</tt>, so for an installation directory of "
+                        "<tt>/opt/checkmk/agent</tt> it is "
+                        "<tt>/opt/checkmk/agent/default/package/plugins</tt>. The "
+                        "wrapper itself does not use this path, it finds its "
+                        "directories on its own."
+                    ),
+                    custom_validate=(LengthInRange(min_value=1),),
+                    prefill=DefaultValue("/usr/lib/check_mk_agent/plugins"),
                 ),
             ),
         },
@@ -77,7 +97,12 @@ def _agent_config_mk_logwatch_sudo() -> Dictionary:
             "the file, the wrapper reports that as a warning of the log file "
             "<tt>mk_logsudo</tt> instead.<br>"
             "Deploy the wrapper synchronously. With a cache age it may run after the "
-            "shipped plug-in, which delays the takeover."
+            "shipped plug-in, which delays the takeover.<br>"
+            "All paths are determined on the host at runtime, a custom installation "
+            "directory of <i>Customize agent package (Linux)</i> therefore needs no "
+            "configuration here. <tt>mk_logsudo.py --diag</tt> on the host prints the "
+            "directories it found, the mk_logwatch it would call, its mode and the "
+            "sudo rule that is needed."
         ),
         elements={
             "deployment": DictElement(
@@ -150,21 +175,6 @@ def _agent_config_mk_logwatch_sudo() -> Dictionary:
                         TimeMagnitude.SECOND,
                     ),
                     prefill=DefaultValue(120.0),
-                ),
-            ),
-            "plugins_dir": DictElement(
-                parameter_form=String(
-                    title=Title("Agent plug-in directory on the host"),
-                    help_text=Help(
-                        "Only needed for the sudo rule, the wrapper itself finds its "
-                        "directories on its own. Default is "
-                        "<tt>/usr/lib/check_mk_agent/plugins</tt>; "
-                        "with a single directory deployment of the rule <i>Customize "
-                        "agent package (Linux)</i> it is "
-                        "<tt>&lt;installation directory&gt;/default/package/plugins</tt>, "
-                        "<tt>/opt/checkmk/agent/default/package/plugins</tt> by default."
-                    ),
-                    prefill=InputHint("/usr/lib/check_mk_agent/plugins"),
                 ),
             ),
             "plugin_path": DictElement(

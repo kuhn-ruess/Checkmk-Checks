@@ -35,10 +35,14 @@ The child sets `MK_LIBDIR`, `MK_CONFDIR` and `MK_VARDIR` again — sudo drops th
 environment — looks for mk_logwatch and executes it. The output is passed through
 unchanged, so the normal `LOG ...` services keep working.
 
-Both agent layouts are derived from the location of the wrapper itself: the classic
-one with `/etc/check_mk` and `/var/lib/check_mk_agent`, and the single directory
-deployment of *Customize agent package (Linux)*, where the library directory is
-`<installation directory>/default/package`. mk_logwatch is searched for as
+**Every path is determined at runtime**, from `MK_LIBDIR`, `MK_CONFDIR` and
+`MK_VARDIR` of the agent and, where sudo has dropped them, from the place this file
+was installed to. A custom installation directory of *Customize agent package
+(Linux)* therefore needs no configuration: for an installation directory of
+`/opt/kr/cmkagent` the wrapper finds `/opt/kr/cmkagent/default/package` as library
+directory, `.../package/config` as configuration and `/opt/kr/cmkagent/default/runtime`
+as state directory. Without a single directory deployment it uses the defaults of
+the agent itself, `/etc/check_mk` and `/var/lib/check_mk_agent`. mk_logwatch is searched for as
 `mk_logwatch.py` and `mk_logwatch`, in the plug-in directory and in the interval
 subdirectories below it, so a *Text logfiles* rule with a cache age is found too.
 The key `PLUGIN` in the configuration file overrides the search.
@@ -71,8 +75,9 @@ twice. The wrapper therefore takes care of that itself, no manual step is needed
   2026-09-22 12:25:57 took the execute bit from /opt/checkmk/agent/default/package/plugins/mk_logwatch.py (was 0755, undo: chmod 0755 /opt/checkmk/agent/default/package/plugins/mk_logwatch.py)
   ```
 
-* The chmod is done by the **configured user**, not by the agent user, because the
-  file normally belongs to root. If that user may not change it, nothing is touched
+* The chmod is done by whoever can: first the agent itself, which is enough when it
+  runs as root, and otherwise the **configured user** through sudo, because the file
+  normally belongs to root. If that user may not change it, nothing is touched
   and the wrapper reports it as a warning of the log file `mk_logsudo`, with the
   command to run by hand. That is the safety net: logwatch still works, it is only
   reported twice until the warning is dealt with.
@@ -93,12 +98,22 @@ of that one file.
 
 ## sudo
 
-The agent user needs one sudo rule. The bakery writes it as
-`/etc/sudoers.d/check_mk_mk_logsudo` when the section *Deploy the sudo rule*
-is filled with the name of the agent user:
+The agent user needs one sudo rule. sudo only accepts an absolute command and the
+bakery does not know the installation directory of the agent, so the section
+*Deploy the sudo rule* asks for the agent user **and** the plug-in directory. It
+then writes `/etc/sudoers.d/check_mk_mk_logsudo`:
 
 ```
-cmk-agent ALL=(root) NOPASSWD: /opt/checkmk/agent/default/package/plugins/mk_logsudo.py --run
+cmk-agent ALL=(root) NOPASSWD: /opt/kr/cmkagent/default/package/plugins/mk_logsudo.py --run
+```
+
+If that path does not match where the agent really put the plug-in, sudo refuses
+the call, the takeover does not happen and logwatch is reported twice. The wrapper
+says so in the agent output and names the line that is really needed:
+
+```
+C mk_logwatch failed as user root: sudo: a password is required. Needed sudo rule:
+  cmk-agent ALL=(root) NOPASSWD: /opt/kr/cmkagent/default/package/plugins/mk_logsudo.py --run
 ```
 
 An agent that runs as root needs no sudo rule. When mk_logwatch is to run as an
@@ -143,6 +158,25 @@ mk_logwatch, `C` for a failed call, with the last lines of the error.
 C Cannot create the state directory /var/lib/check_mk_agent/logwatch_sudo: [Errno 13] Permission denied
 ```
 
+Called with `--diag` on the host, the wrapper prints everything it found — the
+directories, the config it read, the mk_logwatch it would call and its mode, and
+whether sudo lets the call through:
+
+```
+# /opt/kr/cmkagent/default/package/plugins/mk_logsudo.py --diag
+mk_logsudo 1.0.1
+running as         : cmk-agent (euid 999)
+MK_LIBDIR          : /opt/kr/cmkagent/default/package (derived)
+MK_CONFDIR         : /opt/kr/cmkagent/default/package/config (derived)
+MK_VARDIR          : /opt/kr/cmkagent/default/runtime (derived)
+mk_logwatch        : /opt/kr/cmkagent/default/package/plugins/mk_logwatch.py (mode 0755, the agent runs it too, the execute bit has to go)
+needed sudo rule   : cmk-agent ALL=(root) NOPASSWD: /opt/kr/cmkagent/default/package/plugins/mk_logsudo.py --run
+sudo allows it     : yes
+```
+
+An unexpected error is reported as a logwatch message as well instead of being
+dropped with the plug-in output.
+
 The agent reports the version of the wrapper in the section
 `<<<checkmk_agent_plugins_lnx>>>` as `mk_logsudo.py:CMK_VERSION = "..."`.
 
@@ -159,4 +193,5 @@ several servers share one state.
 | `src/lib/python3/cmk/base/cee/plugins/bakery/mk_logwatch_sudo.py` | Bakery deployment and the sudoers file. |
 | `src/mk_logwatch_sudo/rulesets/bakery.py` | The bakery rule. |
 | `testdata/agent_output.txt` | Agent output of a run through the wrapper. |
-| `testdata/agent_output_error.txt` | Agent output of a failed run and of the safety net. |
+| `testdata/agent_output_error.txt` | Agent output of a refused sudo call and of the safety net. |
+| `testdata/diag_output.txt` | Output of `mk_logsudo.py --diag` on a custom installation directory. |

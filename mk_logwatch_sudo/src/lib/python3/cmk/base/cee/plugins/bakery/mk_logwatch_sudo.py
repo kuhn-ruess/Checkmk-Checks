@@ -20,7 +20,6 @@ from cmk.base.cee.plugins.bakery.bakery_api.v1 import (
 
 # Sorted before mk_logwatch.py on purpose, see the plug-in itself.
 PLUGIN = "mk_logsudo.py"
-DEFAULT_PLUGINS_DIR = "/usr/lib/check_mk_agent/plugins"
 DEFAULT_TIMEOUT = 120
 SUDOERS_FILE = "check_mk_mk_logsudo"
 
@@ -38,11 +37,6 @@ def get_deployment(conf: Any) -> tuple[bool, int | None]:
 def get_user(conf: Any) -> str:
     """The user mk_logwatch is run as."""
     return conf.get("user") or "root"
-
-
-def get_plugins_dir(conf: Any) -> str:
-    """The agent plug-in directory on the host, needed for the sudo rule."""
-    return (conf.get("plugins_dir") or DEFAULT_PLUGINS_DIR).rstrip("/")
 
 
 def get_config(conf: Any) -> list[str]:
@@ -85,21 +79,27 @@ def get_files(conf: Any) -> FileGenerator:
         include_header=True,
     )
 
-    if agent_user := conf.get("sudoers", {}).get("agent_user"):
+    if sudoers := conf.get("sudoers"):
         yield SystemConfig(
             base_os=OS.LINUX,
-            lines=get_sudoers(conf, agent_user, interval),
+            lines=get_sudoers(conf, sudoers, interval),
             target=Path("sudoers.d") / SUDOERS_FILE,
             include_header=True,
         )
 
 
-def get_sudoers(conf: Any, agent_user: str, interval: int | None) -> list[str]:
-    """The sudo rule that lets the agent user start the wrapper as the other user."""
-    wrapper = "/".join(part for part in (get_plugins_dir(conf), str(interval or ""), PLUGIN) if part)
+def get_sudoers(conf: Any, sudoers: Any, interval: int | None) -> list[str]:
+    """The sudo rule that lets the agent user start the wrapper as the other user.
+
+    sudo needs the absolute path of the command, and the bakery plug-in does not
+    know the installation directory of the agent, so the rule has to name the
+    plug-in directory. 'mk_logsudo.py --diag' prints the needed line on the host.
+    """
+    plugin_dir = sudoers["plugin_dir"].rstrip("/")
+    wrapper = "/".join(part for part in (plugin_dir, str(interval or ""), PLUGIN) if part)
     return [
         "# Lets the Checkmk agent run mk_logwatch as another user.",
-        f"{agent_user} ALL=({get_user(conf)}) NOPASSWD: {wrapper} --run",
+        f"{sudoers['agent_user']} ALL=({get_user(conf)}) NOPASSWD: {wrapper} --run",
     ]
 
 

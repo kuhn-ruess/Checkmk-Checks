@@ -1,0 +1,17 @@
+mk_logsudo 1.0.1
+running as         : cmk-agent (euid 999)
+this file          : /opt/kr/cmkagent/default/package/plugins/mk_logsudo.py
+MK_LIBDIR          : /opt/kr/cmkagent/default/package (derived)
+MK_CONFDIR         : /opt/kr/cmkagent/default/package/config (derived)
+MK_VARDIR          : /opt/kr/cmkagent/default/runtime (derived)
+config file        : /opt/kr/cmkagent/default/package/config/mk_logsudo.cfg (found)
+config             : {'USER': 'root', 'TIMEOUT': '90'}
+state directory    : /opt/kr/cmkagent/default/runtime
+change log         : /opt/kr/cmkagent/default/runtime/mk_logsudo.log
+run mk_logwatch as : root
+searched for       : /opt/kr/cmkagent/default/package/plugins/mk_logwatch.py, /opt/kr/cmkagent/default/package/plugins/mk_logwatch
+mk_logwatch        : /opt/kr/cmkagent/default/package/plugins/mk_logwatch.py (mode 0755, the agent runs it too, the execute bit has to go)
+sudo available     : yes
+needed sudo rule   : cmk-agent ALL=(root) NOPASSWD: /opt/kr/cmkagent/default/package/plugins/mk_logsudo.py --run
+call               : sudo --non-interactive --user root /opt/kr/cmkagent/default/package/plugins/mk_logsudo.py --run
+sudo allows it     : yes
