@@ -1,0 +1,18 @@
+{'author': 'Kuhn & Rueß GmbH',
+ 'description': 'Runs the mk_logwatch of the agent as another user through '
+                'sudo.\n'
+                '\n'
+                'A bakery rule deploys a wrapper that calls the mk_logwatch of '
+                'the rule "Text logfiles" as the configured user and keeps the '
+                'agent from running it a second time. The logwatch '
+                'configuration stays untouched and the output reaches the '
+                'agent unchanged, so the logwatch services keep working.\n',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
+ 'files': {'agents': ['plugins/mk_logsudo.py'],
+           'cmk_addons_plugins': ['mk_logwatch_sudo/rulesets/bakery.py'],
+           'lib': ['python3/cmk/base/cee/plugins/bakery/mk_logwatch_sudo.py']},
+ 'name': 'mk_logwatch_sudo',
+ 'title': 'mk_logwatch via sudo',
+ 'version': '1.0.0',
+ 'version.min_required': '2.4.0b1',
+ 'version.packaged': '2.5.0p13'}

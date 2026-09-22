@@ -1,0 +1,4 @@
+<<<logwatch>>>
+[[[/var/log/secret.log]]]
+BATCH: 1790079957-083011246043085242100039224132045000250003164234
+C ERROR message one

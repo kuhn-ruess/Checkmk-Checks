@@ -1,0 +1,6 @@
+<<<logwatch>>>
+[[[mk_logsudo]]]
+W /usr/lib/check_mk_agent/plugins/mk_logwatch.py is still executable, logreader may not change its mode. The agent runs it as well and logwatch reports everything twice. Do it by hand: chmod a-x /usr/lib/check_mk_agent/plugins/mk_logwatch.py
+<<<logwatch>>>
+[[[mk_logsudo]]]
+C Cannot create the state directory /var/lib/check_mk_agent/logwatch_sudo: [Errno 13] Permission denied: '/var/lib/check_mk_agent/logwatch_sudo'
