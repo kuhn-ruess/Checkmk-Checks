@@ -35,7 +35,7 @@ import traceback
 
 # Read by the agent for the <<<checkmk_agent_plugins_lnx>>> section, so that the
 # agent output names the version of this plug-in.
-CMK_VERSION = "1.0.2"
+CMK_VERSION = "1.0.3"
 
 CONFIG_NAME = "mk_logsudo.cfg"
 LOG_NAME = "mk_logsudo.log"
@@ -223,7 +223,17 @@ def interpreter(plugin):
     except OSError:
         first_line = ""
     if first_line.startswith("#!"):
-        return first_line[2:].split() + [plugin]
+        parts = first_line[2:].split()
+        # '/usr/bin/env python3' would look the interpreter up in PATH, and under
+        # sudo that is secure_path. This process already runs on a working one.
+        if (
+            len(parts) > 1
+            and os.path.basename(parts[0]) == "env"
+            and parts[1].startswith("python")
+            and sys.executable
+        ):
+            return [sys.executable, plugin]
+        return parts + [plugin]
     return [sys.executable or "python3", plugin]
 
 

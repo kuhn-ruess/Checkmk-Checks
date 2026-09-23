@@ -27,11 +27,21 @@ def _sudoers() -> Dictionary:
     return Dictionary(
         title=Title("Deploy the sudo rule"),
         help_text=Help(
-            "Writes <tt>/etc/sudoers.d/check_mk_mk_logsudo</tt> with the one line the "
+            "Writes <tt>/etc/sudoers.d/check_mk_mk_logsudo</tt> with the line the "
             "agent user needs to start the wrapper as the configured user. sudo only "
             "accepts an absolute command, and the bakery does not know the "
             "installation directory of the agent, so the directory has to be given "
             "here.<br>"
+            "<b>The chain is:</b> the agent starts <tt>mk_logsudo.py</tt> as the agent "
+            "user and without arguments, <tt>mk_logsudo.py</tt> calls itself as "
+            "<tt>sudo -u &lt;user&gt; &lt;path&gt;/mk_logsudo.py --run</tt>, and that "
+            "second call reads the log files and starts mk_logwatch. The sudo rule "
+            "therefore names the call <i>with</i> <tt>--run</tt>: sudoers compares the "
+            "whole command line, so the rule allows exactly this one call and nothing "
+            "else - not even the same file without arguments.<br>"
+            "The file also switches <tt>requiretty</tt> off for this one command, "
+            "because the agent has no terminal and a host that still sets it globally "
+            "would refuse the call.<br>"
             "Leave this section out when the sudo configuration is managed elsewhere, "
             "or when the agent runs as root and needs no sudo rule at all. "
             "<tt>mk_logsudo.py --diag</tt> prints the line that is really needed on a "

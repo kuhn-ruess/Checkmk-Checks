@@ -13,6 +13,6 @@
            'lib': ['python3/cmk/base/cee/plugins/bakery/mk_logwatch_sudo.py']},
  'name': 'mk_logwatch_sudo',
  'title': 'mk_logwatch via sudo',
- 'version': '1.0.2',
+ 'version': '1.0.3',
  'version.min_required': '2.4.0b1',
  'version.packaged': '2.5.0p13'}

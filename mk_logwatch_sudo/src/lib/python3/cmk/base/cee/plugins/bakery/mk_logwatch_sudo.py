@@ -94,12 +94,26 @@ def get_sudoers(conf: Any, sudoers: Any, interval: int | None) -> list[str]:
     sudo needs the absolute path of the command, and the bakery plug-in does not
     know the installation directory of the agent, so the rule has to name the
     plug-in directory. 'mk_logsudo.py --diag' prints the needed line on the host.
+
+    The '--run' belongs into the rule: the agent starts the plug-in without
+    arguments, the plug-in then calls itself with '--run' through sudo, and that
+    second call is the one sudo checks. sudoers compares the whole command line,
+    so the rule allows exactly that call and nothing else.
     """
-    plugin_dir = sudoers["plugin_dir"].rstrip("/")
-    wrapper = "/".join(part for part in (plugin_dir, str(interval or ""), PLUGIN) if part)
+    # sudoers wants a space in a path escaped.
+    wrapper = "/".join(
+        part for part in (sudoers["plugin_dir"].rstrip("/"), str(interval or ""), PLUGIN) if part
+    ).replace(" ", "\\ ")
+    agent_user = sudoers["agent_user"]
+
     return [
-        "# Lets the Checkmk agent run mk_logwatch as another user.",
-        f"{sudoers['agent_user']} ALL=({get_user(conf)}) NOPASSWD: {wrapper} --run",
+        "# Lets the Checkmk agent run mk_logwatch as another user. The agent calls",
+        f"# {PLUGIN} without arguments, {PLUGIN} calls itself with --run through sudo.",
+        f"{agent_user} ALL=({get_user(conf)}) NOPASSWD: {wrapper} --run",
+        "",
+        "# The agent has no terminal. Hosts that still set requiretty globally would",
+        "# refuse the call, so it is switched off for this one command.",
+        f"Defaults!{wrapper} !requiretty",
     ]
 
 

@@ -120,18 +120,52 @@ of that one file.
 
 ## sudo
 
-The agent user needs one sudo rule. sudo only accepts an absolute command and the
-bakery does not know the installation directory of the agent, so the section
-*Deploy the sudo rule* asks for the agent user **and** the plug-in directory. It
-then writes `/etc/sudoers.d/check_mk_mk_logsudo`:
+The chain is:
 
 ```
-cmk-agent ALL=(root) NOPASSWD: /opt/kr/cmkagent/default/package/plugins/mk_logsudo.py --run
+agent  --(as the agent user, no arguments)-->  mk_logsudo.py
+mk_logsudo.py  --(sudo -u <user> ... --run)-->  mk_logsudo.py --run  --(exec)-->  mk_logwatch.py
 ```
+
+The agent starts the wrapper as the **agent user**. The wrapper does the `sudo`
+itself and calls *itself* again with `--run`; that second process runs as the
+**configured user**, takes the execute bit from the shipped mk_logwatch and
+executes it. So the command sudo has to allow is the wrapper with `--run`, not
+mk_logwatch and not the wrapper without arguments.
+
+sudo only accepts an absolute command and the bakery does not know the
+installation directory of the agent, so the section *Deploy the sudo rule* asks
+for the agent user **and** the plug-in directory. It then writes
+`/etc/sudoers.d/check_mk_mk_logsudo`:
+
+```
+# Lets the Checkmk agent run mk_logwatch as another user. The agent calls
+# mk_logsudo.py without arguments, mk_logsudo.py calls itself with --run through sudo.
+cmk-agent ALL=(root) NOPASSWD: /opt/kr/cmkagent/default/package/plugins/mk_logsudo.py --run
+
+# The agent has no terminal. Hosts that still set requiretty globally would
+# refuse the call, so it is switched off for this one command.
+Defaults!/opt/kr/cmkagent/default/package/plugins/mk_logsudo.py !requiretty
+```
+
+* **`--run` belongs in the line.** sudoers compares the whole command line: a
+  rule with `--run` allows exactly that call and denies everything else,
+  including the same file without arguments. A rule that names only the path
+  would allow the wrapper with *any* argument, which is the more permissive
+  form.
+* **`NOPASSWD`** is required, the agent cannot answer a password prompt — the
+  wrapper calls sudo with `--non-interactive`.
+* **The path must be the one the agent really uses.** With a cache age the
+  wrapper lives in the interval subdirectory, and the rule writes that path.
+  `mk_logsudo.py --diag` prints the line that is needed on the host.
+* **`env_reset`/`secure_path` are not a problem.** sudo drops `MK_LIBDIR`,
+  `MK_CONFDIR` and `MK_VARDIR`, which is why the second process determines them
+  again from its own location, and mk_logwatch is started with the interpreter
+  of the running process instead of through a `PATH` lookup.
 
 If that path does not match where the agent really put the plug-in, sudo refuses
-the call, the takeover does not happen and logwatch is reported twice. The wrapper
-says so in the agent output and names the line that is really needed:
+the call, the takeover does not happen and logwatch is reported twice. The
+wrapper says so in the agent output and names the line that is really needed:
 
 ```
 C mk_logwatch failed as user root: sudo: a password is required. Needed sudo rule:
@@ -186,7 +220,7 @@ whether sudo lets the call through:
 
 ```
 # /opt/kr/cmkagent/default/package/plugins/mk_logsudo.py --diag
-mk_logsudo 1.0.2
+mk_logsudo 1.0.3
 running as         : cmk-agent (euid 999)
 MK_LIBDIR          : /opt/kr/cmkagent/default/package (derived)
 MK_CONFDIR         : /opt/kr/cmkagent/default/package/config (derived)
