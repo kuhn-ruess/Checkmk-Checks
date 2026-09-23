@@ -50,6 +50,28 @@ The key `PLUGIN` in the configuration file overrides the search.
 **The logwatch configuration is not touched.** `logwatch.cfg` and `logwatch.d` are
 read as usual, the wrapper only changes *who* reads the log files.
 
+## Python on the monitored host
+
+The wrapper is an agent plug-in, so it has to start on the Python the monitored
+host brings, not on the one of the Checkmk site. It is written for **Python 3.6**
+and parses down to 3.4: no walrus operator, no f-strings, no annotations, nothing
+that a newer interpreter introduced. A construct from a newer version is not a
+runtime error but a **syntax error**, which kills the plug-in before its first
+line runs — the agent then delivers no section at all and nothing says why.
+
+`check_agent_plugins.py` in the repository root keeps it that way:
+
+```
+./check_agent_plugins.py mk_logwatch_sudo
+./check_agent_plugins.py --floor 3.4 mk_logwatch_sudo
+./check_agent_plugins.py --python /usr/bin/python3.6 mk_logwatch_sudo
+```
+
+It walks the syntax tree for constructs above the floor and also looks for calls
+that only exist in newer versions (`shlex.join`, `str.removeprefix`,
+`subprocess.run(capture_output=)` and friends). With `--python` the file is
+additionally compiled by that interpreter, which is the real proof.
+
 ## What the wrapper changes on the host
 
 The rule *Text logfiles* deploys plug-in and configuration together, the plug-in
@@ -164,7 +186,7 @@ whether sudo lets the call through:
 
 ```
 # /opt/kr/cmkagent/default/package/plugins/mk_logsudo.py --diag
-mk_logsudo 1.0.1
+mk_logsudo 1.0.2
 running as         : cmk-agent (euid 999)
 MK_LIBDIR          : /opt/kr/cmkagent/default/package (derived)
 MK_CONFDIR         : /opt/kr/cmkagent/default/package/config (derived)

@@ -1,4 +1,4 @@
-mk_logsudo 1.0.1
+mk_logsudo 1.0.2
 running as         : cmk-agent (euid 999)
 this file          : /opt/kr/cmkagent/default/package/plugins/mk_logsudo.py
 MK_LIBDIR          : /opt/kr/cmkagent/default/package (derived)

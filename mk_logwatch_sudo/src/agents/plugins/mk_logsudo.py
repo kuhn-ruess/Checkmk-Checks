@@ -14,6 +14,11 @@ mk_logwatch out of that same run.
 
 Call it with --diag on a host to see what it found.
 
+Runs on Python 3.4 and newer: agent plug-ins have to start on whatever
+interpreter the monitored host brings, so no walrus operator, no f-strings and
+nothing else that an old interpreter cannot even parse. ../../../check_agent_plugins.py
+keeps it that way.
+
 Kuhn & Rueß GmbH
 Consulting and Development
 https://kuhn-ruess.de
@@ -21,6 +26,7 @@ https://kuhn-ruess.de
 
 import os
 import pwd
+import shlex
 import stat
 import subprocess
 import sys
@@ -29,7 +35,7 @@ import traceback
 
 # Read by the agent for the <<<checkmk_agent_plugins_lnx>>> section, so that the
 # agent output names the version of this plug-in.
-CMK_VERSION = "1.0.1"
+CMK_VERSION = "1.0.2"
 
 CONFIG_NAME = "mk_logsudo.cfg"
 LOG_NAME = "mk_logsudo.log"
@@ -49,7 +55,8 @@ DEFAULT_TIMEOUT = 120
 
 def get_libdir():
     """The agent library directory, from the environment or from our own path."""
-    if libdir := os.environ.get("MK_LIBDIR"):
+    libdir = os.environ.get("MK_LIBDIR")
+    if libdir:
         return libdir.rstrip("/")
 
     # <libdir>/plugins/mk_logsudo.py, or <libdir>/plugins/<interval>/... when the
@@ -129,7 +136,8 @@ def logwatch_candidates(libdir):
 
 def find_plugin(config, libdir):
     """Path of the original mk_logwatch, wherever the agent package put it."""
-    if plugin := config.get("PLUGIN"):
+    plugin = config.get("PLUGIN")
+    if plugin:
         return plugin
 
     for candidate in logwatch_candidates(libdir):
@@ -223,7 +231,8 @@ def run_child(config, dirs):
     """Replace this process with mk_logwatch, with the agent directories set."""
     libdir, confdir, vardir = dirs
 
-    if not (plugin := find_plugin(config, libdir)):
+    plugin = find_plugin(config, libdir)
+    if not plugin:
         report(
             "No mk_logwatch found in %s. It is deployed by the rule 'Text logfiles "
             "(Linux, UNIX, Windows)'." % os.path.join(libdir, "plugins")
@@ -274,7 +283,7 @@ def build_command(user):
     if have_sudo():
         return ["sudo", "--non-interactive", "--user", user] + child
     if os.geteuid() == 0:
-        return ["su", "-s", "/bin/sh", user, "-c", " ".join(child)]
+        return ["su", "-s", "/bin/sh", user, "-c", " ".join(shlex.quote(part) for part in child)]
     return []
 
 
@@ -287,13 +296,15 @@ def run_parent(config, dirs):
     # When the agent itself may change the mode, the takeover does not depend on
     # sudo at all. Failing is the normal case for a non-root agent and is left to
     # the child, which runs as the other user, so it is not written down here.
-    if plugin := find_plugin(config, libdir):
+    plugin = find_plugin(config, libdir)
+    if plugin:
         take_execute_bit(plugin, config.get("STATE_DIR") or vardir, note_failure=False)
 
     if user == current_user():
         return run_child(config, dirs)
 
-    if not (command := build_command(user)):
+    command = build_command(user)
+    if not command:
         report("sudo is not available, cannot run mk_logwatch as %s" % user)
         return 1
 
