@@ -124,10 +124,7 @@ check_plugin_arista_fan = CheckPlugin(
     sections=["arista"],
     discovery_function=discover_arista_fan,
     check_function=check_arista_fan,
-    check_default_parameters={
-        "lower": (2000, 1000),
-        "upper": (9000, 9500),
-    },
+    check_default_parameters={},
     check_ruleset_name="hw_fans",
 )
 
