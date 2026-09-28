@@ -1,0 +1,37 @@
+title: AIDE: File Integrity Check
+agents: linux
+author: Kuhn & Rueß GmbH <info@kuhn-ruess.de>
+license: GPL
+distribution: none
+description:
+ Evaluates the results of {aide --check} for one AIDE configuration (a job).
+ {cmk-aide-run} runs AIDE, either from a systemd timer or from the agent
+ plug-in {aide} itself, and stores the exit code, the start and end time
+ and the output in a result file. The agent plug-in hands this file to
+ Checkmk, so a long AIDE run never blocks the agent.
+
+ The service is CRIT by default when AIDE reports added, removed or
+ changed entries. The details list the affected paths with the AIDE flags
+ and the detailed old and new attributes. A legitimate change has to be
+ reviewed and then either reverted, or accepted by updating the AIDE
+ database on the host ({aide --update} and moving the new database in
+ place). The next run is OK again.
+
+ The service is also CRIT by default when AIDE could not run (missing or
+ unreadable database or configuration, timeout, aide not installed), when
+ the result file is missing or not readable by the agent, and when
+ cmk-aide-run failed in the inline mode. The age of the result is checked
+ against configurable levels, so a stopped timer is detected as well.
+
+ All states and the maximum age can be set in the rule {AIDE file integrity}.
+ Deployment is done with the bakery rule {AIDE file integrity (Linux)}.
+
+item:
+ The name of the job from the bakery rule.
+
+perfdata:
+ The runtime of AIDE and, when differences are found, the number of added,
+ removed and changed entries.
+
+inventory:
+ One service per job configured in {/etc/cmk-aide.cfg}.

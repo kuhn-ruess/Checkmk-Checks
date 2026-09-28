@@ -1,0 +1,52 @@
+#!/bin/sh
+# Checkmk agent plug-in: reports the AIDE results written by cmk-aide-run
+#
+# Kuhn & Rueß GmbH
+# Consulting and Development
+# https://kuhn-ruess.de
+#
+# With MODE=inline in /etc/cmk-aide.cfg the plug-in starts cmk-aide-run itself
+# on every call, otherwise it only reads the results a systemd timer left behind.
+
+CONFIG=${CMK_AIDE_CONFIG:-/etc/cmk-aide.cfg}
+[ -r "$CONFIG" ] || exit 0
+
+setting() {
+    sed -n "s/^[[:space:]]*$1=//p" "$CONFIG" | tail -n 1
+}
+
+RESULT_DIR=$(setting RESULT_DIR)
+RESULT_DIR=${RESULT_DIR:-/var/lib/cmk-aide}
+MODE=$(setting MODE)
+MODE=${MODE:-timer}
+
+runner_error=""
+if [ "$MODE" = inline ]; then
+    runner=$(command -v cmk-aide-run 2>/dev/null)
+    [ -z "$runner" ] && [ -x /usr/bin/cmk-aide-run ] && runner=/usr/bin/cmk-aide-run
+    if [ -z "$runner" ]; then
+        runner_error="cmk-aide-run not found"
+    else
+        runner_error=$("$runner" --config "$CONFIG" 2>&1 >/dev/null | tr '\n' ' ' | sed 's/ *$//')
+    fi
+fi
+
+echo "<<<aide:sep(0)>>>"
+echo "now=$(date +%s)"
+echo "mode=$MODE"
+[ -n "$runner_error" ] && echo "runner_error=$runner_error"
+
+sed -n 's/^[[:space:]]*JOB[[:space:]][[:space:]]*//p' "$CONFIG" | while read -r name aide_config _; do
+    [ -n "$name" ] || continue
+    echo "[[[$name]]]"
+    result="$RESULT_DIR/$name.result"
+    if [ -r "$result" ]; then
+        cat "$result"
+    elif [ -e "$result" ]; then
+        echo "config=$aide_config"
+        echo "error=result file $result is not readable by the agent"
+    else
+        echo "config=$aide_config"
+        echo "missing=$result"
+    fi
+done

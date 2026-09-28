@@ -1,0 +1,66 @@
+<<<aide:sep(0)>>>
+now=1790612376
+mode=timer
+[[[test]]]
+job=test
+config=/etc/aide-test.conf
+started=1790612369
+finished=1790612369
+exit=7
+timeout=600
+[output]
+Start timestamp: 2026-09-28 16:19:29 +0000 (AIDE 0.19.2)
+AIDE found differences between database and filesystem!!
+
+Summary:
+  Total number of entries:	4
+  Added entries:		1
+  Removed entries:		1
+  Changed entries:		2
+
+---------------------------------------------------
+Added entries:
+---------------------------------------------------
+
+f+++++++++++++++++: /srv/watch/new
+
+---------------------------------------------------
+Removed entries:
+---------------------------------------------------
+
+f-----------------: /srv/watch/a/f1
+
+---------------------------------------------------
+Changed entries:
+---------------------------------------------------
+
+d   .u.      ..   : /srv/watch/a
+f   p..      A.   : /srv/watch/f2
+
+---------------------------------------------------
+Detailed information about changes:
+---------------------------------------------------
+
+Directory: /srv/watch/a
+ Uid       : 0                                | 65534
+
+File: /srv/watch/f2
+ Perm      : -rw-r--r--                       | -rw-------
+ ACL       : A: user::rw-                     | A: user::rw-
+             A: group::r--                    | A: group::---
+             A: other::r--                    | A: other::---
+
+
+---------------------------------------------------
+[[[system]]]
+job=system
+config=/etc/aide.conf
+started=1790612369
+finished=1790612369
+exit=18
+timeout=600
+[output]
+  ERROR: /etc/aide.conf:7: open (read-only) failed for file '/var/lib/aide/aide.db.gz': No such file or directory (line: 'database_in=file:@@{DBDIR}/aide.db.gz')
+[[[never]]]
+config=/etc/aide-never.conf
+missing=/var/lib/cmk-aide/never.result

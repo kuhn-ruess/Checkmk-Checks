@@ -1,0 +1,20 @@
+{'author': 'Kuhn & Rueß GmbH',
+ 'description': 'Monitoring of AIDE file integrity checks.\n'
+                '\n'
+                'cmk-aide-run runs "aide --check" for every configured AIDE '
+                'configuration, from a systemd timer or from the agent plug-in, '
+                'and stores the result. The agent plug-in hands the results to '
+                'Checkmk, one service per job. Differences to the AIDE database, '
+                'failed runs and missing or outdated results are detected.\n',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
+ 'files': {'agents': ['plugins/aide', 'aide/cmk-aide-run'],
+           'cmk_addons_plugins': ['aide/agent_based/aide.py',
+                                  'aide/checkman/aide',
+                                  'aide/rulesets/aide.py',
+                                  'aide/rulesets/bakery.py'],
+           'lib': ['python3/cmk/base/cee/plugins/bakery/aide.py']},
+ 'name': 'aide',
+ 'title': 'AIDE File Integrity',
+ 'version': '1.0.0',
+ 'version.min_required': '2.4.0b1',
+ 'version.packaged': '2.5.0p13'}

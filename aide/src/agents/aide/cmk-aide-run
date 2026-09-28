@@ -1,0 +1,124 @@
+#!/bin/sh
+# cmk-aide-run - runs the configured AIDE checks and keeps their results for Checkmk
+#
+# Kuhn & Rueß GmbH
+# Consulting and Development
+# https://kuhn-ruess.de
+#
+# Reads the jobs from /etc/cmk-aide.cfg, runs "aide --check" for each of them and
+# writes the result to <RESULT_DIR>/<job>.result. The agent plug-in "aide" only
+# reads these files, so a long AIDE run never blocks the agent.
+#
+# Configuration (written by the agent bakery):
+#   RESULT_DIR=/var/lib/cmk-aide
+#   TIMEOUT=600
+#   MAX_LINES=2000
+#   JOB <name> <path of the aide configuration>
+
+CONFIG=/etc/cmk-aide.cfg
+RESULT_DIR=/var/lib/cmk-aide
+TIMEOUT=600
+MAX_LINES=2000
+
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+LC_ALL=C
+export LC_ALL
+
+usage() {
+    echo "Usage: cmk-aide-run [--config FILE] [JOB ...]"
+    echo
+    echo "Runs 'aide --check' for all jobs of the configuration, or only for the"
+    echo "given ones, and stores the results for the Checkmk agent."
+}
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --config) CONFIG=$2; shift 2 ;;
+        -h|--help) usage; exit 0 ;;
+        --) shift; break ;;
+        -*) usage >&2; exit 2 ;;
+        *) break ;;
+    esac
+done
+
+if [ ! -r "$CONFIG" ]; then
+    echo "cmk-aide-run: cannot read $CONFIG" >&2
+    exit 2
+fi
+
+setting() {
+    sed -n "s/^[[:space:]]*$1=//p" "$CONFIG" | tail -n 1
+}
+
+jobs() {
+    sed -n 's/^[[:space:]]*JOB[[:space:]][[:space:]]*//p' "$CONFIG"
+}
+
+value=$(setting RESULT_DIR); [ -n "$value" ] && RESULT_DIR=$value
+value=$(setting TIMEOUT); [ -n "$value" ] && TIMEOUT=$value
+value=$(setting MAX_LINES); [ -n "$value" ] && MAX_LINES=$value
+
+umask 022
+if ! mkdir -p "$RESULT_DIR" 2>/dev/null || [ ! -w "$RESULT_DIR" ]; then
+    echo "cmk-aide-run: cannot write to $RESULT_DIR" >&2
+    exit 2
+fi
+
+if command -v flock >/dev/null 2>&1; then
+    exec 9>"$RESULT_DIR/.lock"
+    if ! flock -n 9; then
+        echo "cmk-aide-run: another run is still active"
+        exit 0
+    fi
+fi
+
+wanted() {
+    [ -z "$SELECTED" ] && return 0
+    for selected in $SELECTED; do
+        [ "$selected" = "$1" ] && return 0
+    done
+    return 1
+}
+
+run_job() {
+    name=$1
+    aide_config=$2
+    result="$RESULT_DIR/$name.result"
+    output="$RESULT_DIR/.$name.out.$$"
+    tmp="$RESULT_DIR/.$name.result.$$"
+
+    started=$(date +%s)
+    if command -v timeout >/dev/null 2>&1; then
+        timeout "$TIMEOUT" aide --config="$aide_config" --check >"$output" 2>&1
+    else
+        aide --config="$aide_config" --check >"$output" 2>&1
+    fi
+    rc=$?
+    finished=$(date +%s)
+
+    {
+        echo "job=$name"
+        echo "config=$aide_config"
+        echo "started=$started"
+        echo "finished=$finished"
+        echo "exit=$rc"
+        echo "timeout=$TIMEOUT"
+        echo "[output]"
+        # The database checksums at the end are of no use for the check.
+        sed '/^The attributes of the (uncompressed) database/,$d' "$output" | head -n "$MAX_LINES"
+    } >"$tmp" && mv -f "$tmp" "$result"
+    rm -f "$output" "$tmp"
+}
+
+SELECTED="$*"
+jobs | while read -r name aide_config _; do
+    case "$name" in
+        ""|*[!A-Za-z0-9_.-]*)
+            echo "cmk-aide-run: invalid job name '$name'" >&2
+            continue
+            ;;
+    esac
+    wanted "$name" || continue
+    run_job "$name" "$aide_config"
+done
