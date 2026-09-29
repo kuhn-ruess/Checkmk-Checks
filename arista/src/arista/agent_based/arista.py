@@ -131,7 +131,7 @@ check_plugin_arista_fan = CheckPlugin(
 
 def discover_arista_voltage(section: dict) -> DiscoveryResult:
     for key, value in section.items():
-        if value["unit"] == "Volts":
+        if value["unit"] == "Volts" and "This rail isn't monitored" not in key:
             yield Service(item=key)
 
 
