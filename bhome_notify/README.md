@@ -4,11 +4,11 @@
 ![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0b1-2f4f4f) ![packaged](https://img.shields.io/badge/packaged-2.5.0-blue)
 <!-- compatibility-badges:end -->
 
-Notification script that forwards Checkmk host and service events to a BHome events API. Each notification is posted as a JSON payload to `https://<portal_domain>/events-service/api/v1.0/events` using a JWT obtained from `auth_api.login`.
+Notification script that forwards Checkmk host and service events to a BHome events API. Each notification is posted as a JSON payload to `https://<portal_domain>/events-service/api/v1.0/events` using a JWT obtained from `auth_api.login`. The port can be set in the rule (default 443).
 
 ## How it works
 
-The script [`notifications/bhome_notify`](src/notifications/bhome_notify) collects the Checkmk notification context and builds a payload containing severity, message, source identifier, hostname, Checkmk problem ID, service level and a tag derived from the first contact group ending in `_ALARM`. For host notifications `DOWN` is mapped to `CRITICAL` and `UP` to `OK`. The script retries on failure with exponential backoff (up to 5 attempts, capped at 60 s).
+The script [`notifications/bhome_notify`](src/notifications/bhome_notify) collects the Checkmk notification context and builds a payload containing severity, message, source identifier, hostname, Checkmk problem ID, service level and a tag derived from the first contact group ending in `_ALARM`. For host notifications `DOWN` is mapped to `CRITICAL` and `UP` to `OK`. The script retries on failure with exponential backoff (up to 5 attempts, capped at 60 s). The final output line, which ends up in the Checkmk notification log, states how long the whole operation took, e.g. `Event sent successfully in 0.84s: ...` or `All send attempts failed after 30.12s.`
 
 Authentication uses the credentials from the notification rule (`id`, `access`, `secret`) and is handled by a separate `auth_api` module that must be importable at runtime.
 
@@ -32,6 +32,7 @@ Rule: **Setup -> Notifications -> Notification rule -> Notification Method: BHom
 | Parameter | Type | Meaning |
 | --- | --- | --- |
 | `portal_domain` | String | Domain of the BHome events portal without scheme (e.g. `events.example.com`). |
+| `port` | Integer (optional) | TCP port of the portal, default `443`. Also passed to `auth_api.login` as `config['port']`. |
 | `id` | String | Client ID for authentication. |
 | `access` | Password | Access key. |
 | `secret` | Password | Secret. |
