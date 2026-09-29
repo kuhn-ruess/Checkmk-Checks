@@ -124,17 +124,14 @@ check_plugin_arista_fan = CheckPlugin(
     sections=["arista"],
     discovery_function=discover_arista_fan,
     check_function=check_arista_fan,
-    check_default_parameters={
-        "lower": (2000, 1000),
-        "upper": (9000, 9500),
-    },
+    check_default_parameters={"lower": (2000, 1000)},
     check_ruleset_name="hw_fans",
 )
 
 
 def discover_arista_voltage(section: dict) -> DiscoveryResult:
     for key, value in section.items():
-        if value["unit"] == "Volts":
+        if value["unit"] == "Volts" and "This rail isn't monitored" not in key:
             yield Service(item=key)
 
 
