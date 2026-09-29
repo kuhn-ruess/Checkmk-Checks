@@ -51,8 +51,9 @@ _ARISTA_SNMP_TREE = [
 _ARISTA_DETECT = startswith(".1.3.6.1.2.1.1.1.0", "Arista Networks")
 
 arista_state_maps = {
-    "1": (State.OK, "OK"),
-    "2": (State.WARN, "warning"),
+    "1": (State.OK, "ok"),
+    "2": (State.WARN, "unavailable"),
+    "3": (State.CRIT, "nonoperational"),
 }
 
 
@@ -77,7 +78,7 @@ def discover_arista_temp(section: dict) -> DiscoveryResult:
 def check_arista_temp(item: str, params: TempParamDict, section: dict) -> CheckResult:
     if item not in section:
         return
-    state, state_readable = arista_state_maps[section[item]["status"]]
+    state, state_readable = arista_state_maps.get(section[item]["status"], (State.UNKNOWN, "unknown"))
     temperature = float(section[item]["value"]) / 10
 
     yield Result(state=state, summary="Status: %s" % state_readable)
@@ -108,7 +109,7 @@ def discover_arista_fan(section: dict) -> DiscoveryResult:
 def check_arista_fan(item: str, params, section: dict) -> CheckResult:
     if item not in section:
         return
-    state, state_readable = arista_state_maps[section[item]["status"]]
+    state, state_readable = arista_state_maps.get(section[item]["status"], (State.UNKNOWN, "unknown"))
     try:
         rpm = int(section[item]["value"])
     except (TypeError, ValueError):
@@ -138,7 +139,7 @@ def discover_arista_voltage(section: dict) -> DiscoveryResult:
 def check_arista_voltage(item: str, params, section: dict) -> CheckResult:
     if item not in section:
         return
-    state, state_readable = arista_state_maps[section[item]["status"]]
+    state, state_readable = arista_state_maps.get(section[item]["status"], (State.UNKNOWN, "unknown"))
     try:
         power = int(section[item]["value"])
     except (TypeError, ValueError):

@@ -9,8 +9,10 @@ description:
  fans.
 
  Lower and upper levels for the fan speed can be configured via the rule
- "Fans". The sensor's own status is evaluated as well: status 1 is {OK},
- status 2 is {WARN}.
+ "Fans" (default: lower levels 2000 / 1000 RPM, no upper levels). The
+ sensor's own status is evaluated as well: status 1 (ok) is {OK}, status 2
+ (unavailable) is {WARN}, status 3 (nonoperational) is {CRIT}, any other
+ status is {UNKNOWN}.
 
 discovery:
  One service is created for each sensor reporting its unit as RPM.

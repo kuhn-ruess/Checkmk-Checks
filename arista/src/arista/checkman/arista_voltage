@@ -10,10 +10,12 @@ description:
 
  Lower warning and critical levels can be configured via the rule "Arista
  Voltage" (default 50 V / 50 V). The sensor's own status is evaluated as
- well: status 1 is {OK}, status 2 is {WARN}.
+ well: status 1 (ok) is {OK}, status 2 (unavailable) is {WARN}, status 3
+ (nonoperational) is {CRIT}, any other status is {UNKNOWN}.
 
 discovery:
  One service is created for each sensor reporting its unit as Volts.
+ Sensors named "This rail isn't monitored" are skipped.
 
 item:
  The entity description of the sensor.

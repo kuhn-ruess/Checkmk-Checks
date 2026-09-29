@@ -10,8 +10,9 @@ description:
  monitored.
 
  In addition to the configurable temperature levels (rule "Temperature")
- the sensor's own status is evaluated: status 1 is {OK}, status 2 is
- {WARN}.
+ the sensor's own status is evaluated: status 1 (ok) is {OK}, status 2
+ (unavailable) is {WARN}, status 3 (nonoperational) is {CRIT}, any other
+ status is {UNKNOWN}.
 
 discovery:
  One service is created for each Celsius sensor that reports a value.
