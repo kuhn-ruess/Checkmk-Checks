@@ -101,6 +101,24 @@ class CMDBSYncer():
             }]
         print(json.dumps(response))
 
+    def get_eda(self):
+        """
+        Get the Event Driven Ansible summary. Syncers without EDA answer
+        404, then no section is written and no service gets discovered.
+        """
+        response = self.request('syncer/eda')
+        if isinstance(response, dict) and response.get('status_code') == 404:
+            return
+        print("<<<cmdb_syncer_eda:sep(0)>>>")
+        print(json.dumps(response))
+
+
+def is_enabled(value):
+    """
+    Command line flags arrive as "True" or "False"
+    """
+    return str(value).lower() in ('1', 'true', 'yes')
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="CMDBSyncer Special Agent")
@@ -110,6 +128,7 @@ if __name__ == "__main__":
     parser.add_argument("--timeout")
     parser.add_argument("--services")
     parser.add_argument("--fetch_cron")
+    parser.add_argument("--fetch_eda")
 
     args = parser.parse_args()
 
@@ -119,6 +138,8 @@ if __name__ == "__main__":
         print("<<<cmdb_syncer_service:sep(0)>>>")
         for service in args.services.split(';'):
             syncer.get_service(service)
-    if args.fetch_cron:
+    if is_enabled(args.fetch_cron):
         print("<<<cmdb_syncer_cron:sep(0)>>>")
         syncer.get_cron()
+    if is_enabled(args.fetch_eda):
+        syncer.get_eda()

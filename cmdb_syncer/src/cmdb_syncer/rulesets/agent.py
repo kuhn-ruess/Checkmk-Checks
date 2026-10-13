@@ -6,7 +6,7 @@ Consulting and Development
 https://kuhn-ruess.de
 """
 
-from cmk.rulesets.v1 import Title, Help
+from cmk.rulesets.v1 import Title, Help, Label
 from cmk.rulesets.v1.form_specs import (
     Dictionary,
     DictElement,
@@ -74,6 +74,19 @@ def _parameter_form_special_agents_cmdb_syncer():
                 parameter_form=BooleanChoice(
                     title=Title("Fetch Cronjobs"),
                     label=Title("Fetch and Monitor Cronjobs"),
+                ),
+                required=False,
+            ),
+            'fetch_eda': DictElement(
+                parameter_form=BooleanChoice(
+                    title=Title("Fetch Event Driven Ansible events"),
+                    label=Label("Monitor events that are sent again and again without effect"),
+                    help_text=Help(
+                        "Creates the service <i>EDA Events</i> from the Syncer endpoint "
+                        "<tt>syncer/eda</tt>. The API user needs the role <tt>syncer</tt> "
+                        "(or <tt>all</tt>), like for the cronjobs. Syncer versions without "
+                        "Event Driven Ansible answer 404, then no service is created."
+                    ),
                 ),
                 required=False,
             ),

@@ -27,7 +27,8 @@ class CMDBSyncerParams(BaseModel):
     password: Secret
     timeout: str
     services: Sequence[str] = Field(default_factory=list)
-    fetch_cron: bool
+    fetch_cron: bool = False
+    fetch_eda: bool = False
 
 def generate_cmdbsyncer_command(params: CMDBSyncerParams, host_config: HostConfig):
     """
@@ -40,6 +41,7 @@ def generate_cmdbsyncer_command(params: CMDBSyncerParams, host_config: HostConfi
         "--timeout", params.timeout,
         "--services", ";".join(params.services),
         "--fetch_cron", str(params.fetch_cron),
+        "--fetch_eda", str(params.fetch_eda),
     ]
     yield SpecialAgentCommand(command_arguments=args)
 

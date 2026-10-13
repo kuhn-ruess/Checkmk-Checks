@@ -1,0 +1,36 @@
+title: CMDB Syncer: Event Driven Ansible events
+agents: cmdb_syncer
+catalog: app/cmdb_syncer
+license: GPLv2
+distribution: check_mk
+description:
+ This check monitors the Event Driven Ansible (EDA) events a CMDB Syncer
+ installation sends, queried via the CMDB Syncer special agent from the
+ endpoint syncer/eda. It shows whether events are sent again and again
+ without effect.
+
+ An event streak starts when a host matches an EDA Event Rule and counts
+ every send of that event. It ends when the host no longer gets the event.
+ A streak that is still open after the repeat threshold of its EDA account
+ is repeating, a streak whose last send was rejected is failing.
+
+ By default the check becomes WARN with one repeating event and CRIT with
+ ten, and CRIT as soon as one event is failing. Levels on repeating events,
+ hosts with repeating events, rejected events in the last 24 hours and the
+ most sends of a single event, as well as the state for failing events, can
+ be configured via the rule "CMDB Syncer Event Driven Ansible".
+
+ The counters per EDA account and the repeating events (host, event, rule,
+ sends, failures, last status) are listed in the details. The check becomes
+ CRIT if the API request fails. Syncer versions without Event Driven Ansible
+ answer 404, then no service is discovered.
+
+discovery:
+ One service is created if fetching EDA events is enabled in the special
+ agent rule and the Syncer offers the endpoint.
+
+perfdata:
+ cmdb_syncer_eda_repeating, cmdb_syncer_eda_repeating_hosts,
+ cmdb_syncer_eda_failing, cmdb_syncer_eda_pending,
+ cmdb_syncer_eda_events_24h, cmdb_syncer_eda_failed_24h,
+ cmdb_syncer_eda_max_sends.
