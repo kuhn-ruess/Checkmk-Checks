@@ -1,0 +1,170 @@
+<<<dnf_update:sep(0)>>>
+[[[info]]]
+now=1792569484
+today=2026-10-21
+iso_week=43
+veto_file=/etc/dnf.veto
+veto=0
+timer=dnf-automatic-install.timer
+last_run=1792042440
+last_run_day=2026-10-15
+next_run=1795059540
+[[[check_update]]]
+exit=100
+Last metadata expiration check: 0:03:06 ago on Wed Oct 21 07:54:58 2026.
+
+acl.aarch64                            2.4.0-1.el8_10                     baseos
+audit-libs.aarch64                     3.1.2-1.el8_10.1                   baseos
+bash.aarch64                           4.4.20-6.el8_10                    baseos
+binutils.aarch64                       2.30-128.el8_10                    baseos
+bzip2-libs.aarch64                     1.0.6-28.el8_10                    baseos
+ca-certificates.noarch                 2025.2.80_v9.0.304-80.2.el8_10     baseos
+coreutils-single.aarch64               8.30-21.el8_10                     baseos
+curl.aarch64                           7.61.1-34.el8_10.13                baseos
+dbus.aarch64                           1:1.12.8-28.el8_10                 baseos
+dbus-common.noarch                     1:1.12.8-28.el8_10                 baseos
+dbus-daemon.aarch64                    1:1.12.8-28.el8_10                 baseos
+dbus-libs.aarch64                      1:1.12.8-28.el8_10                 baseos
+dbus-tools.aarch64                     1:1.12.8-28.el8_10                 baseos
+device-mapper.aarch64                  8:1.02.181-15.el8_10.3             baseos
+device-mapper-libs.aarch64             8:1.02.181-15.el8_10.3             baseos
+dnf.noarch                             4.7.0-21.el8_10                    baseos
+dnf-data.noarch                        4.7.0-21.el8_10                    baseos
+elfutils-default-yama-scope.noarch     0.190-2.el8                        baseos
+elfutils-libelf.aarch64                0.190-2.el8                        baseos
+elfutils-libs.aarch64                  0.190-2.el8                        baseos
+expat.aarch64                          2.5.0-4.el8_10                     baseos
+file-libs.aarch64                      5.33-27.el8_10                     baseos
+gawk.aarch64                           4.2.1-5.el8_10                     baseos
+glib2.aarch64                          2.56.4-178.el8_10                  baseos
+glibc.aarch64                          2.28-251.el8_10.48                 baseos
+glibc-common.aarch64                   2.28-251.el8_10.48                 baseos
+glibc-minimal-langpack.aarch64         2.28-251.el8_10.48                 baseos
+gmp.aarch64                            1:6.1.2-12.el8                     baseos
+gnupg2.aarch64                         2.2.20-4.el8_10                    baseos
+gnutls.aarch64                         3.6.16-8.el8_10.6                  baseos
+gpgme.aarch64                          1.13.1-12.el8                      baseos
+gzip.aarch64                           1.9-15.el8_10                      baseos
+kmod-libs.aarch64                      25-20.el8                          baseos
+krb5-libs.aarch64                      1.18.2-34.el8_10                   baseos
+less.aarch64                           530-3.el8_10                       baseos
+libacl.aarch64                         2.4.0-1.el8_10                     baseos
+libarchive.aarch64                     3.3.3-7.el8_10                     baseos
+libattr.aarch64                        2.6.0-1.el8_10                     baseos
+libblkid.aarch64                       2.32.1-48.el8_10                   baseos
+libcap.aarch64                         2.48-6.el8_10.1                    baseos
+libcom_err.aarch64                     1.45.6-7.el8_10                    baseos
+libcurl-minimal.aarch64                7.61.1-34.el8_10.13                baseos
+libdnf.aarch64                         0.63.0-21.el8_10                   baseos
+libfdisk.aarch64                       2.32.1-48.el8_10                   baseos
+libgcc.aarch64                         8.5.0-29.el8_10                    baseos
+libgcrypt.aarch64                      1.8.5-8.el8_10                     baseos
+libmount.aarch64                       2.32.1-48.el8_10                   baseos
+libnghttp2.aarch64                     1.33.0-6.el8_10.3                  baseos
+librepo.aarch64                        1.14.2-5.el8                       baseos
+libselinux.aarch64                     2.9-11.el8_10                      baseos
+libsemanage.aarch64                    2.9-12.el8_10                      baseos
+libsmartcols.aarch64                   2.32.1-48.el8_10                   baseos
+libsolv.aarch64                        0.7.20-7.el8_10                    baseos
+libstdc++.aarch64                      8.5.0-29.el8_10                    baseos
+libtasn1.aarch64                       4.13-6.el8_10                      baseos
+libtirpc.aarch64                       1.1.4-12.el8_10                    baseos
+libusbx.aarch64                        1.0.30-1.el8_10                    baseos
+libuuid.aarch64                        2.32.1-48.el8_10                   baseos
+libxml2.aarch64                        2.9.7-21.el8_10.10                 baseos
+lz4-libs.aarch64                       1.8.3-5.el8_10                     baseos
+openldap.aarch64                       2.4.46-21.el8_10                   baseos
+openssl-libs.aarch64                   1:1.1.1k-17.el8_10                 baseos
+p11-kit.aarch64                        0.23.22-2.el8                      baseos
+p11-kit-trust.aarch64                  0.23.22-2.el8                      baseos
+pam.aarch64                            1.3.1-40.el8_10                    baseos
+pcre2.aarch64                          10.32-4.el8_10                     baseos
+platform-python.aarch64                3.6.8-78.el8_10.rocky.0            baseos
+platform-python-setuptools.noarch      39.2.0-9.el8_10                    baseos
+python3-dnf.noarch                     4.7.0-21.el8_10                    baseos
+python3-gpg.aarch64                    1.13.1-12.el8                      baseos
+python3-hawkey.aarch64                 0.63.0-21.el8_10                   baseos
+python3-libdnf.aarch64                 0.63.0-21.el8_10                   baseos
+python3-libs.aarch64                   3.6.8-78.el8_10.rocky.0            baseos
+python3-pip-wheel.noarch               9.0.3-24.el8.rocky.0               baseos
+python3-rpm.aarch64                    4.14.3-32.el8_10                   baseos
+python3-setuptools-wheel.noarch        39.2.0-9.el8_10                    baseos
+rocky-gpg-keys.noarch                  8.10-1.14.el8                      baseos
+rocky-release.noarch                   8.10-1.14.el8                      baseos
+rocky-repos.noarch                     8.10-1.14.el8                      baseos
+rpm.aarch64                            4.14.3-32.el8_10                   baseos
+rpm-build-libs.aarch64                 4.14.3-32.el8_10                   baseos
+rpm-libs.aarch64                       4.14.3-32.el8_10                   baseos
+setup.noarch                           2.12.2-11.el8                      baseos
+shadow-utils.aarch64                   2:4.6-23.el8_10                    baseos
+sqlite-libs.aarch64                    3.26.0-21.el8_10                   baseos
+systemd.aarch64                        239-82.el8_10.19                   baseos
+systemd-libs.aarch64                   239-82.el8_10.19                   baseos
+systemd-pam.aarch64                    239-82.el8_10.19                   baseos
+tar.aarch64                            2:1.30-13.el8_10                   baseos
+tpm2-tss.aarch64                       2.3.2-6.el8                        baseos
+tzdata.noarch                          2026e-1.el8_10                     baseos
+util-linux.aarch64                     2.32.1-48.el8_10                   baseos
+vim-minimal.aarch64                    2:8.0.1763-32.el8_10               baseos
+yum.noarch                             4.7.0-21.el8_10                    baseos
+zlib.aarch64                           1.2.11-26.el8                      baseos
+[[[check_update_stderr]]]
+[[[security]]]
+exit=100
+
+acl.aarch64                               2.4.0-1.el8_10                  baseos
+binutils.aarch64                          2.30-128.el8_10                 baseos
+bzip2-libs.aarch64                        1.0.6-28.el8_10                 baseos
+coreutils-single.aarch64                  8.30-21.el8_10                  baseos
+curl.aarch64                              7.61.1-34.el8_10.13             baseos
+expat.aarch64                             2.5.0-4.el8_10                  baseos
+gawk.aarch64                              4.2.1-5.el8_10                  baseos
+glib2.aarch64                             2.56.4-178.el8_10               baseos
+glibc.aarch64                             2.28-251.el8_10.48              baseos
+glibc-common.aarch64                      2.28-251.el8_10.48              baseos
+glibc-minimal-langpack.aarch64            2.28-251.el8_10.48              baseos
+gnupg2.aarch64                            2.2.20-4.el8_10                 baseos
+gnutls.aarch64                            3.6.16-8.el8_10.6               baseos
+gzip.aarch64                              1.9-15.el8_10                   baseos
+krb5-libs.aarch64                         1.18.2-34.el8_10                baseos
+less.aarch64                              530-3.el8_10                    baseos
+libacl.aarch64                            2.4.0-1.el8_10                  baseos
+libarchive.aarch64                        3.3.3-7.el8_10                  baseos
+libattr.aarch64                           2.6.0-1.el8_10                  baseos
+libblkid.aarch64                          2.32.1-48.el8_10                baseos
+libcap.aarch64                            2.48-6.el8_10.1                 baseos
+libcurl-minimal.aarch64                   7.61.1-34.el8_10.13             baseos
+libfdisk.aarch64                          2.32.1-48.el8_10                baseos
+libgcc.aarch64                            8.5.0-29.el8_10                 baseos
+libgcrypt.aarch64                         1.8.5-8.el8_10                  baseos
+libmount.aarch64                          2.32.1-48.el8_10                baseos
+libnghttp2.aarch64                        1.33.0-6.el8_10.3               baseos
+libsmartcols.aarch64                      2.32.1-48.el8_10                baseos
+libsolv.aarch64                           0.7.20-7.el8_10                 baseos
+libstdc++.aarch64                         8.5.0-29.el8_10                 baseos
+libtasn1.aarch64                          4.13-6.el8_10                   baseos
+libuuid.aarch64                           2.32.1-48.el8_10                baseos
+libxml2.aarch64                           2.9.7-21.el8_10.10              baseos
+lz4-libs.aarch64                          1.8.3-5.el8_10                  baseos
+openldap.aarch64                          2.4.46-21.el8_10                baseos
+openssl-libs.aarch64                      1:1.1.1k-17.el8_10              baseos
+pam.aarch64                               1.3.1-40.el8_10                 baseos
+pcre2.aarch64                             10.32-4.el8_10                  baseos
+platform-python.aarch64                   3.6.8-78.el8_10.rocky.0         baseos
+platform-python-setuptools.noarch         39.2.0-9.el8_10                 baseos
+python3-libs.aarch64                      3.6.8-78.el8_10.rocky.0         baseos
+python3-rpm.aarch64                       4.14.3-32.el8_10                baseos
+python3-setuptools-wheel.noarch           39.2.0-9.el8_10                 baseos
+rpm.aarch64                               4.14.3-32.el8_10                baseos
+rpm-build-libs.aarch64                    4.14.3-32.el8_10                baseos
+rpm-libs.aarch64                          4.14.3-32.el8_10                baseos
+sqlite-libs.aarch64                       3.26.0-21.el8_10                baseos
+systemd.aarch64                           239-82.el8_10.19                baseos
+systemd-libs.aarch64                      239-82.el8_10.19                baseos
+systemd-pam.aarch64                       239-82.el8_10.19                baseos
+tar.aarch64                               2:1.30-13.el8_10                baseos
+util-linux.aarch64                        2.32.1-48.el8_10                baseos
+vim-minimal.aarch64                       2:8.0.1763-32.el8_10            baseos
+[[[kernel]]]
+running=4.18.0-553.el8_10.aarch64
+latest=4.18.0-553.80.1.el8_10.aarch64

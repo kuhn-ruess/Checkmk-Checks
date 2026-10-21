@@ -1,0 +1,82 @@
+#!/bin/sh
+# Checkmk agent plug-in: pending dnf updates, reboot state, veto file and dnf-automatic timer
+#
+# Kuhn & Rueß GmbH
+# Consulting and Development
+# https://kuhn-ruess.de
+#
+# Run it asynchronously (e.g. plugins/7200/dnf_update), dnf may take a while.
+# Optional configuration in $MK_CONFDIR/dnf_update.cfg:
+#   VETO_FILE=/etc/dnf.veto
+
+DNF=$(command -v dnf 2>/dev/null)
+[ -n "$DNF" ] || exit 0
+
+CONFIG="${MK_CONFDIR:-/etc/check_mk}/dnf_update.cfg"
+VETO_FILE=""
+if [ -r "$CONFIG" ]; then
+    VETO_FILE=$(sed -n 's/^[[:space:]]*VETO_FILE=//p' "$CONFIG" | tail -n 1 | tr -d '"')
+fi
+VETO_FILE=${VETO_FILE:-/etc/dnf.veto}
+
+export LC_ALL=C LANG=C
+
+to_epoch() {
+    # systemd prints "Tue 2026-10-20 04:08:12 CEST", the zone is the local one
+    set -- $1
+    [ $# -ge 3 ] || return 0
+    date -d "$2 $3" +%s 2>/dev/null
+}
+
+echo "<<<dnf_update:sep(0)>>>"
+echo "[[[info]]]"
+echo "now=$(date +%s)"
+echo "today=$(date +%F)"
+echo "iso_week=$(date +%V)"
+echo "veto_file=$VETO_FILE"
+if [ -e "$VETO_FILE" ]; then
+    echo "veto=1"
+else
+    echo "veto=0"
+fi
+
+if command -v systemctl >/dev/null 2>&1; then
+    for timer in dnf-automatic.timer dnf-automatic-install.timer dnf-automatic-download.timer dnf-automatic-notifyonly.timer; do
+        last=$(systemctl show "$timer" -p LastTriggerUSec --value 2>/dev/null)
+        next=$(systemctl show "$timer" -p NextElapseUSecRealtime --value 2>/dev/null)
+        last_epoch=$(to_epoch "$last")
+        next_epoch=$(to_epoch "$next")
+        if [ -n "$last_epoch" ] || [ -n "$next_epoch" ]; then
+            echo "timer=$timer"
+            [ -n "$last_epoch" ] && echo "last_run=$last_epoch" && echo "last_run_day=$(date -d "@$last_epoch" +%F)"
+            [ -n "$next_epoch" ] && echo "next_run=$next_epoch"
+            [ -n "$last_epoch" ] && break
+        fi
+    done
+fi
+
+ERR=$(mktemp 2>/dev/null || echo "/tmp/dnf_update.$$")
+trap 'rm -f "$ERR"' EXIT
+
+echo "[[[check_update]]]"
+out=$("$DNF" check-update 2>"$ERR")
+echo "exit=$?"
+printf '%s\n' "$out"
+echo "[[[check_update_stderr]]]"
+sed 's#\(://[^:/@ ]*:\)[^@/ ]*@#\1***@#g' "$ERR"
+
+echo "[[[security]]]"
+out=$("$DNF" -q -C --security check-update 2>/dev/null)
+echo "exit=$?"
+printf '%s\n' "$out"
+
+if "$DNF" needs-restarting --help >/dev/null 2>&1; then
+    echo "[[[needs_restarting]]]"
+    out=$("$DNF" -q -C needs-restarting -r 2>&1)
+    echo "exit=$?"
+    printf '%s\n' "$out"
+fi
+
+echo "[[[kernel]]]"
+echo "running=$(uname -r)"
+rpm -q --last kernel-core kernel 2>/dev/null | awk '$1 != "package" {sub(/^kernel(-core)?-/, "", $1); print "latest=" $1; exit}'

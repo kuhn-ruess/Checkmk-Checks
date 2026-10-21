@@ -1,0 +1,33 @@
+<<<dnf_update:sep(0)>>>
+[[[info]]]
+now=1792569345
+today=2026-10-21
+iso_week=43
+veto_file=/etc/dnf.veto
+veto=1
+timer=dnf-automatic-install.timer
+last_run=1792469280
+last_run_day=2026-10-20
+next_run=1794889260
+[[[check_update]]]
+exit=1
+example updates                                 0.0  B/s |   0  B     00:12    
+[[[check_update_stderr]]]
+Errors during downloading metadata for repository 'example-updates':
+  - Curl error (28): Timeout was reached for https://user:***@192.0.2.10/repo/el9/repodata/repomd.xml [Connection timed out after 3004 milliseconds]
+  - Curl error (28): Timeout was reached for https://user:***@192.0.2.10/repo/el9/repodata/repomd.xml [Connection timed out after 3002 milliseconds]
+  - Curl error (28): Timeout was reached for https://user:***@192.0.2.10/repo/el9/repodata/repomd.xml [Connection timed out after 3003 milliseconds]
+  - Curl error (28): Timeout was reached for https://user:***@192.0.2.10/repo/el9/repodata/repomd.xml [Connection timed out after 3001 milliseconds]
+Error: Failed to download metadata for repo 'example-updates': Cannot download repomd.xml: Cannot download repodata/repomd.xml: All mirrors were tried
+[[[security]]]
+exit=1
+
+[[[needs_restarting]]]
+exit=1
+Core libraries or services have been updated since boot-up:
+  * glibc
+
+Reboot is required to fully utilize these updates.
+More information: https://access.redhat.com/solutions/27943
+[[[kernel]]]
+running=5.14.0-570.el9.aarch64

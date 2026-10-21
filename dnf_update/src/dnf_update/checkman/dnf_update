@@ -1,0 +1,41 @@
+title: DNF: Pending Updates
+agents: linux
+catalog: os/linux
+license: GPLv2
+distribution: kuhn-ruess
+description:
+ Monitors pending package updates on RHEL compatible hosts with dnf. The
+ agent plug-in {dnf_update} runs {dnf check-update} with and without
+ {--security}, {dnf needs-restarting -r} if available, checks for the veto
+ file and reads the last and next run of the dnf-automatic timer. It should
+ run asynchronously, for example every two hours.
+
+ The checks run in this order, the first one that applies decides:
+
+ 1. A repository is not reachable: CRIT by default, the details list the
+ affected URLs (passwords masked by the agent plug-in).
+
+ 2. The veto file (default {/etc/dnf.veto}) exists: automatic updates are
+ disabled, CRIT by default.
+
+ 3. An update week is configured (even or odd ISO calendar week) and the
+ current week of the host does not match: OK, updates are not checked.
+
+ 4. The dnf-automatic timer ran today, or its last run is longer ago than
+ the configured number of days (default 3): OK, updates are not checked.
+
+ 5. Otherwise pending updates are counted: security updates are CRIT and
+ non-security updates WARN by default. A required reboot is CRIT by
+ default. Without {dnf needs-restarting} the running kernel is compared
+ with the newest installed one.
+
+ The last and next run of the timer are always shown in the details.
+ All states, the number of days and the update week can be set in the rule
+ {DNF updates}. The veto path and the deployment are set in the agent rule
+ {DNF updates (Linux)}.
+
+perfdata:
+ The number of security and of non-security updates.
+
+discovery:
+ One service on each host that runs the agent plug-in.
