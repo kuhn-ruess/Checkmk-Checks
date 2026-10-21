@@ -1,0 +1,30 @@
+#!/bin/sh
+# XFS project quotas for Checkmk
+#
+# Kuhn & Rueß GmbH
+# Consulting and Development
+# https://kuhn-ruess.de
+#
+# Reports every project quota of the mounted XFS filesystems with project
+# quota accounting (mount option prjquota or pquota). One line per project:
+# mountpoint:device:project:used:soft:hard:inodes_used:inodes_soft:inodes_hard
+# Block values are in KiB. Must run as root.
+
+XFS_QUOTA=$(command -v xfs_quota 2>/dev/null || echo /usr/sbin/xfs_quota)
+[ -x "$XFS_QUOTA" ] || exit 0
+
+MOUNTS=$(awk '$3 == "xfs" && $4 ~ /(^|,)(prjquota|pquota|pqnoenforce)(,|$)/ {print $2 " " $1}' /proc/mounts)
+[ -n "$MOUNTS" ] || exit 0
+
+echo '<<<xfs_quota>>>'
+echo "$MOUNTS" | while read -r MOUNT DEVICE; do
+    MOUNT=$(printf '%b' "$MOUNT")
+    "$XFS_QUOTA" -x -c 'report -p -b -i -N' "$MOUNT" 2>/dev/null | awk -v m="$MOUNT" -v d="$DEVICE" '
+        $2 ~ /^[0-9]+$/ {
+            i = 6
+            while (i <= NF && $i !~ /\]$/) i++
+            i++
+            if (i + 2 <= NF)
+                print m ":" d ":" $1 ":" $2 ":" $3 ":" $4 ":" $i ":" $(i + 1) ":" $(i + 2)
+        }'
+done

@@ -1,0 +1,12 @@
+<<<check_mk>>>
+Version: 2.4.0p19
+AgentOS: linux
+Hostname: srv01
+<<<xfs_quota>>>
+/:/dev/mapper/vg0-root:#0:18000:0:0:1500:0:0
+/srv:/dev/mapper/vg0-srv:data:171000:524288:524288:4200:0:0
+/srv:/dev/mapper/vg0-srv:app:450000:524288:524288:812:0:0
+/srv:/dev/mapper/vg0-srv:logs:1048576:1048576:1048576:900:0:0
+/srv:/dev/mapper/vg0-srv:cache:300000:262144:524288:300:0:0
+/srv:/dev/mapper/vg0-srv:backup:0:6291456:6291456:950:0:1000
+/srv:/dev/mapper/vg0-srv:web:3900000:12582912:12582912:61000:0:0

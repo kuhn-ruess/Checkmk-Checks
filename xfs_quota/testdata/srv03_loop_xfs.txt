@@ -1,0 +1,9 @@
+<<<check_mk>>>
+Version: 2.4.0p19
+AgentOS: linux
+Hostname: srv03
+<<<xfs_quota>>>
+/srv:/dev/loop0:#0:0:0:0:3:0:0
+/srv:/dev/loop0:data:46080:40960:51200:2:0:0
+/srv:/dev/loop0:app:20480:0:20480:2:0:100
+/srv:/dev/loop0:logs:0:5120:10240:1:0:0

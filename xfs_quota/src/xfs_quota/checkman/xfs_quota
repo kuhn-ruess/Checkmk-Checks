@@ -1,0 +1,40 @@
+title: XFS: Project Quotas
+agents: linux
+catalog: os/storage
+license: GPLv2
+distribution: kuhn-ruess
+description:
+ Monitors XFS project (directory) quotas. The agent plug-in {xfs_quota}
+ runs {xfs_quota -x -c 'report -p -b -i -N'} for every mounted XFS
+ filesystem with project quota accounting and reports used blocks and
+ inodes together with their soft and hard limits.
+
+ The used space is evaluated relative to the hard limit (or the soft
+ limit, configurable; if only one is set, that one is used), in the same
+ way as the filesystem check: levels on used or free space in percent or
+ as absolute size, default WARN at 80% and CRIT at 90% used. Percentage
+ levels can be adapted to the quota size by the magic factor.
+
+ Independent of the levels, a reached hard limit is CRIT and an exceeded
+ soft limit WARN by default. Inodes are evaluated in percent of the inode
+ limit (default 80%/90%) if one is set.
+
+ The growth of the used space is averaged over a time range (default 24
+ hours). Optional levels apply to the growth per time range and to the
+ time left until the quota is full.
+
+ All parameters are set in the rule {XFS project quotas}. The agent
+ plug-in is deployed by the rule {XFS project quotas (Linux)}. The agent
+ has to run as root.
+
+item:
+ The name of the project, as defined in {/etc/projid}, or {#<id>}. If the
+ same project name appears on more than one filesystem, the mount point
+ is added in brackets.
+
+discovery:
+ One service is created for each project with a block or inode limit.
+
+perfdata:
+ Used, free and total space, used space in percent, used inodes, growth,
+ trend and time left until full (same metrics as the filesystem check).

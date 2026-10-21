@@ -1,0 +1,19 @@
+{'author': 'Kuhn & Rueß GmbH',
+ 'description': 'XFS project (directory) quotas as agent plug-in, check and '
+                'agent bakery rule. Evaluates used space against the hard or '
+                'soft limit with levels like the filesystem check (used or '
+                'free space in percent or absolute, optional magic factor), '
+                'reached hard limits and exceeded soft limits, used inodes, '
+                'growth trend and time left until the quota is full.\n',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
+ 'files': {'agents': ['plugins/xfs_quota'],
+           'cmk_addons_plugins': ['xfs_quota/agent_based/xfs_quota.py',
+                                  'xfs_quota/checkman/xfs_quota',
+                                  'xfs_quota/rulesets/bakery.py',
+                                  'xfs_quota/rulesets/xfs_quota.py'],
+           'lib': ['python3/cmk/base/cee/plugins/bakery/xfs_quota.py']},
+ 'name': 'xfs_quota',
+ 'title': 'XFS Project Quotas',
+ 'version': '1.0.0',
+ 'version.min_required': '2.3.0',
+ 'version.packaged': '2.4.0p19'}
