@@ -1,0 +1,20 @@
+title: Bachmann BlueNet2: PDU state
+agents: snmp
+catalog: hw/power/bachmann
+license: GPLv2
+distribution: kuhn-ruess
+description:
+ Monitors the state of every PDU (master and slaves) of a Bachmann BlueNet2
+ daisy chain, as reported by the master in its device table.
+
+ {on}, {ok} are {OK}. {expected} (the master knows the PDU, but cannot
+ reach it), {off}, {lost}, the alarm and error states are {CRIT}, the
+ warning states are {WARN}, unknown states are {UNKNOWN}. A PDU that
+ vanished from the device table is {CRIT} as well.
+
+item:
+ The name of the PDU, e.g. {Master} or {Slave-1}.
+
+discovery:
+ One service per PDU. The service label {device_friendly_name} holds the
+ friendly name of the PDU.

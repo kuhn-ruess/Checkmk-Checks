@@ -10,7 +10,6 @@ from cmk.agent_based.v2 import (
         Service,
         SNMPTree,
         State,
-        Metric,
         Result,
         startswith,
         all_of,
@@ -55,8 +54,26 @@ def discover_bluenet_ema(section):
         if data[0] in ['2', '6']:
             yield Service(item=sensor)
 
+# Contact states stay OK, except armed and the states of a missing or broken entity
+FAILURE_STATES = {
+    '0': State.CRIT,
+    '1': State.UNKNOWN,
+    '3': State.CRIT,
+    '4': State.CRIT,
+    '7': State.CRIT,
+    '27': State.CRIT,
+    '37': State.CRIT,
+    '39': State.CRIT,
+}
+
+
 def check_bluenet_ema(item, section):
+    """ Check Function """
     state = State.OK
+    if item not in section:
+        yield Result(state=State.CRIT,
+                     summary="GPIO not found, the PDU it belongs to is not reachable")
+        return
     mode, switch, entity_state = section[item]
     gpio_mode = {
         '0': 'disabled',
@@ -67,7 +84,7 @@ def check_bluenet_ema(item, section):
     # Mode and switch stay out of the summary: the service output is rendered in
     # NagVis/OrbVis hover menus, where only the status is wanted. As a notice
     # they remain visible in the service details.
-    yield Result(state=state, notice=f"Mode: {gpio_mode[mode]}")
+    yield Result(state=state, notice=f"Mode: {gpio_mode.get(mode, mode)}")
     gpio_switch = {
         '0': 'undefined',
         '3': 'switchable',
@@ -75,7 +92,7 @@ def check_bluenet_ema(item, section):
         '1': 'on',
         '2': 'off',
     }
-    yield Result(state=state, notice=f"Switch: {gpio_switch[switch]}")
+    yield Result(state=state, notice=f"Switch: {gpio_switch.get(switch, switch)}")
 
     entity_states = {
        '0': 'expected',
@@ -118,10 +135,9 @@ def check_bluenet_ema(item, section):
        '45': 'fwVersionTooNew',
     }
 
-    if entity_state == '39':
-        state = State.CRIT
-
-    yield Result(state=state, summary=f"Status: {entity_states[entity_state]}")
+    state = FAILURE_STATES.get(entity_state, State.OK)
+    status = entity_states.get(entity_state, f"unknown ({entity_state})")
+    yield Result(state=state, summary=f"Status: {status}")
 
 
 check_plugin_bluenet_ema = CheckPlugin(

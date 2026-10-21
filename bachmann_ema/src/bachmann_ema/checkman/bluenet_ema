@@ -1,0 +1,22 @@
+title: Bachmann BlueNet2: EMA GPIO contacts
+agents: snmp
+catalog: hw/power/bachmann
+license: GPLv2
+distribution: kuhn-ruess
+description:
+ Monitors the single GPIO contacts of the EMA modules on the master of a
+ Bachmann BlueNet2 PDU chain.
+
+ The summary shows the BlueNet2 entity state of the contact only, mode and
+ switch are in the details. The service is {CRIT} when the contact is
+ {armed}, and when the contact reports a state of a missing or broken entity
+ ({expected}, {lost}, {lostChild}, {errorHigh}, {errorLow}, {updateError}).
+ It is {UNKNOWN} for {undefined} and {CRIT} when the contact vanished from
+ the SNMP data. All other states are {OK}.
+
+item:
+ The name of the input followed by {/1} or {/2} for the first or the
+ second GPIO module.
+
+discovery:
+ One service per GPIO contact whose mode is {enabled} or {s0}.

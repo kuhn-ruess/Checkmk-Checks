@@ -1,23 +1,23 @@
 # Bachmann EMA Monitoring
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0p1-2f4f4f) ![packaged](https://img.shields.io/badge/packaged-2.3.0p25-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0p1-2f4f4f) ![packaged](https://img.shields.io/badge/packaged-2.4.0p19-blue)
 <!-- compatibility-badges:end -->
 
-SNMP checks for Bachmann BlueNet2 PDUs: the EMA (Environmental Monitoring Adapter) GPIO ports and the overall state of the attached GPIO sensors.
+SNMP checks for Bachmann BlueNet2 PDUs: the EMA (Environmental Monitoring Adapter) GPIO ports, the overall state of the attached GPIO sensors and the state of every PDU (master and slaves) of the daisy chain.
 
 ## How it works
 
 The plugin [`bachmann_ema.py`](src/bachmann_ema/agent_based/bachmann_ema.py) registers an SNMP section `bluenet_ema` that triggers on devices whose `sysDescr` starts with `Linux` and whose `sysLocation` starts with `Bachmann`. It walks `.1.3.6.1.4.1.31770.2.2.5.3.1` (BlueNet2 GPIO MIB) and collects, per GPIO pair:
 
-- `5.1.4` / `5.1.5` — GPIO input IDs
-- `8.1.4` / `8.1.5` — GPIO mode (`BlueNet2GPIOMode`)
-- `10.1.4` / `10.1.5` — GPIO state
-- `9.1.4` / `9.1.5` — GPIO switch
+- `5.1.4` / `5.1.5`: GPIO input IDs
+- `8.1.4` / `8.1.5`: GPIO mode (`BlueNet2GPIOMode`)
+- `10.1.4` / `10.1.5`: GPIO state
+- `9.1.4` / `9.1.5`: GPIO switch
 
-Services are discovered only where the mode is `enabled` (2) or `s0` (6). The check maps raw integer modes to human readable strings (`disabled`, `enabled`, `s0`, `undefined`), likewise for switch state (`on`, `off`, `switchable`, ...) and entity state (`ok`, `alarm`, `warning`, `armed`, `disarmed`, ...). An entity state of `39` (`armed`) is reported as CRIT; all other states are reported as OK.
+Services are discovered only where the mode is `enabled` (2) or `s0` (6). The check maps raw integer modes to human readable strings (`disabled`, `enabled`, `s0`, `undefined`), likewise for switch state (`on`, `off`, `switchable`, ...) and entity state (`ok`, `alarm`, `warning`, `armed`, `disarmed`, ...). An entity state of `39` (`armed`) is reported as CRIT, and so are the states of a missing or broken entity: `expected`, `lost`, `lostChild`, `errorHigh`, `errorLow`, `updateError`. `undefined` is UNKNOWN, a contact that vanished from the SNMP data is CRIT. All other states are OK.
 
-The summary holds the status only (`Status: armed`); mode and switch are emitted as notices and therefore show up in the service details, not in the one-line output. That keeps the text short where it is rendered small — NagVis / OrbVis hover menus and map captions — without dropping the information.
+The summary holds the status only (`Status: armed`); mode and switch are emitted as notices and therefore show up in the service details, not in the one-line output. That keeps the text short where it is rendered small (NagVis / OrbVis hover menus and map captions) without dropping the information.
 
 ## GPIO sensor state
 
@@ -25,14 +25,20 @@ The plugin [`bachmann_gpio_sensor.py`](src/bachmann_ema/agent_based/bachmann_gpi
 
 It joins two tables:
 
-- `.1.3.6.1.4.1.31770.2.2.4.2.1` (device table) — `3` name (`Master`, `Slave-1`, ...) and `4` friendly name (the rack position / "Stellplatz")
-- `.1.3.6.1.4.1.31770.2.2.5.2.1` (sensor table) — `4` name, `5` friendly name, `7` sensor type OID, `8` state
+- `.1.3.6.1.4.1.31770.2.2.4.2.1` (device table): `3` name (`Master`, `Slave-1`, ...) and `4` friendly name (the rack position / "Stellplatz")
+- `.1.3.6.1.4.1.31770.2.2.5.2.1` (sensor table): `4` name, `5` friendly name, `7` sensor type OID, `8` state
 
 Sensors are recognised as GPIO by their type OID (`.1.3.6.1.4.1.31770.2.1.8.3` external, `.1.3.6.1.4.1.31770.2.1.8.16` internal), with a fallback on a name starting with `GPIO`. Internal and external sensors are separate services; the type is part of the item name and of the check output.
 
 Each service carries the service label `device_friendly_name:<friendly name of the PDU>`, so the rack position is available for filtering, views and NagVis/Orbvis hover menus.
 
-State mapping (BlueNet2 `EntityState`): `on`, `ok`, `expected` are OK; `off`, `lost`, `alarm`, `errorHigh/Low`, `updateError` and the child alarm states are CRIT; the warning states, `disabled` and `updateInProgress` are WARN; anything unmapped is UNKNOWN.
+State mapping (BlueNet2 `EntityState`): `on` and `ok` are OK; `expected`, `off`, `lost`, `alarm`, `errorHigh/Low`, `updateError` and the child alarm states are CRIT; the warning states, `disabled` and `updateInProgress` are WARN; anything unmapped is UNKNOWN. A sensor that vanished from the SNMP data is CRIT.
+
+`expected` is what the master reports for an entity it knows from its configuration but cannot reach, e.g. all sensors of a slave PDU that is switched off or whose daisy chain link is broken. Up to version 1.2.1 this was OK, so failed slave PDUs went unnoticed.
+
+## PDU state
+
+The plugin [`bachmann_device.py`](src/bachmann_ema/agent_based/bachmann_device.py) registers an SNMP section `bluenet_device` (same detection as `bluenet_gpio_sensor`) on the device table `.1.3.6.1.4.1.31770.2.2.4.2.1`: `3` name, `4` friendly name, `7` state, `11` part number. It creates one service `PDU <name>` per PDU of the chain (`PDU Master`, `PDU Slave-1`, ...), with the same state mapping as above. A failed slave PDU shows up as `Status: expected` and is CRIT; a PDU that vanished from the device table is CRIT as well. Each service carries the label `device_friendly_name`.
 
 ## Package contents
 
@@ -40,6 +46,9 @@ State mapping (BlueNet2 `EntityState`): `on`, `ok`, `expected` are OK; `off`, `l
 | --- | --- |
 | `src/bachmann_ema/agent_based/bachmann_ema.py` | SNMP section parser, discovery and check for the single GPIO contacts. |
 | `src/bachmann_ema/agent_based/bachmann_gpio_sensor.py` | SNMP section parser, discovery and check for the overall GPIO sensor state. |
+| `src/bachmann_ema/agent_based/bachmann_device.py` | SNMP section parser, discovery and check for the state of each PDU of the chain. |
+| `src/bachmann_ema/checkman/` | Check manual pages. |
+| `testdata/` | Anonymized example walks (normal, with two failed slaves and with three lost slaves); not part of the MKP. |
 
 ## Installation
 
@@ -50,9 +59,13 @@ State mapping (BlueNet2 `EntityState`): `on`, `ok`, `expected` are OK; `off`, `l
 
 - **Service:** `EMA %s` (GPIO pair)
 - **Summary:** `Status: <entity state>`; mode and switch are in the service details.
-- **State logic:** CRIT when the entity state is `armed` (39); otherwise OK.
+- **State logic:** CRIT when the entity state is `armed` (39) or a missing/broken entity state; otherwise OK.
 - **Metrics:** none.
 - **Service:** `GPIO Sensor %s` (item: `<device> <sensor>`, e.g. `Master GPIO S1`, `Slave-2 GPIO Internal`)
+- **Service label:** `device_friendly_name:<friendly name of the PDU>`
+- **State logic:** see the state mapping above.
+- **Metrics:** none.
+- **Service:** `PDU %s` (item: `Master`, `Slave-1`, ...)
 - **Service label:** `device_friendly_name:<friendly name of the PDU>`
 - **State logic:** see the state mapping above.
 - **Metrics:** none.
@@ -60,5 +73,6 @@ State mapping (BlueNet2 `EntityState`): `on`, `ok`, `expected` are OK; `off`, `l
 ## Known limitations
 
 - Only GPIOs whose mode is `enabled` or `s0` are discovered; disabled inputs are skipped silently.
-- State mapping is hardcoded; only `armed` triggers CRIT, even though the MIB also exposes `alarm`, `errorHigh`, `lost`, `updateError` etc. These currently all surface as OK.
-- `GPIO Sensor` has no ruleset either: the mapping from BlueNet2 state to monitoring state cannot be changed without editing the plugin.
+- `EMA` only covers the two GPIO modules of the master (device 1, sensor 4 and 5); GPIO contacts on slave PDUs are covered by `GPIO Sensor` and `PDU` only.
+- `EMA` keeps `alarm` and `warning` contact states OK; only `armed` and the missing/broken entity states change the state.
+- No ruleset: the mapping from BlueNet2 state to monitoring state cannot be changed without editing the plugin.

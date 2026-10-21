@@ -22,8 +22,9 @@ GPIO_TYPES = {
     ".1.3.6.1.4.1.31770.2.1.8.16": "internal",
 }
 
+# 'expected' means configured but not present, e.g. the PDU behind it is down
 ENTITY_STATES = {
-    '0': ('expected', State.OK),
+    '0': ('expected', State.CRIT),
     '1': ('undefined', State.UNKNOWN),
     '2': ('ok', State.OK),
     '3': ('errorHigh', State.CRIT),
@@ -124,6 +125,8 @@ def discover_bluenet_gpio_sensor(section):
 def check_bluenet_gpio_sensor(item, section):
     """ Check Function """
     if not (data := section.get(item)):
+        yield Result(state=State.CRIT,
+                     summary="Sensor not found, the PDU it is attached to is not reachable")
         return
 
     state_name, state = ENTITY_STATES.get(data['state'], (f"unknown ({data['state']})",

@@ -1,0 +1,22 @@
+title: Bachmann BlueNet2: GPIO sensor state
+agents: snmp
+catalog: hw/power/bachmann
+license: GPLv2
+distribution: kuhn-ruess
+description:
+ Monitors the state of the GPIO sensor modules (internal and external) of
+ all PDUs of a Bachmann BlueNet2 chain, as reported by the master.
+
+ {on}, {ok} are {OK}. {expected} (configured, but not present, e.g. because
+ the PDU it is attached to is down), {off}, {lost}, the alarm and error
+ states are {CRIT}, the warning states, {disabled} and {updateInProgress}
+ are {WARN}, unknown states are {UNKNOWN}. A sensor that vanished from the
+ SNMP data is {CRIT}.
+
+item:
+ The name of the PDU followed by the name of the sensor, e.g.
+ {Slave-2 GPIO Internal}.
+
+discovery:
+ One service per GPIO sensor. The service label {device_friendly_name}
+ holds the friendly name of the PDU.
