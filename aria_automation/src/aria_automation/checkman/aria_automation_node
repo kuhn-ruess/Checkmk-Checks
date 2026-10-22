@@ -1,0 +1,19 @@
+title: VMware Aria Automation: Node
+agents: aria_automation
+catalog: app/vmware
+license: GPLv2
+distribution: kuhn-ruess
+description:
+ The special agent queries '/api/v1/services/cluster' on an Aria Automation
+ node. Every node answers with all services of the cluster and the instances
+ on all nodes. The agent finds the queried node in this data by its node name
+ (host name by default, compared case insensitive, in full or by the first
+ label) and only keeps the service instances of that node for this host.
+
+ This service shows which node of the cluster data belongs to the host and
+ how many service instances run on it. It is {CRIT} if the node name is not
+ found in the cluster data; the details list the node names reported by the
+ cluster, so the node name can be set in the special agent rule.
+
+discovery:
+ One service per host with the special agent.

@@ -1,0 +1,2174 @@
+[
+  {
+    "category": "infra",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "kube-dns",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "infra",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "health-reporting-service",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "infra",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "kube-flannel-ds",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "infra",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "kubelet-rubber-stamp",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "infra",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "predictable-pod-scheduler",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "abx-service",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 78587,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 78587,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 78587,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "adapter-host-service",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "approval-service",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "ui",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "catalog-service",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "ccs-gateway",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "ccs-infra-eas",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "ccs-k3s",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "ccs-webhook-authentication",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "cgs-service",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "cmx-service",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "codestream",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "infra",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "docker-artifactory",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "ebs",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "form-service",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "hcmp-service",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "idem-resources-provider",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "idem-service",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "idem-service-event-ingestion",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "idem-service-task-manager",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "idem-service-worker",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "identity-service",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "migration-service",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "no-license",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "infra",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "postgres",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 15763859103,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 15445878347,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 7611753136,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "stopped"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "project-service",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "provisioning-service",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "infra",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "proxy-service",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "infra",
+    "health": {
+      "msgKey": "",
+      "msgText": "1 of 3 instances not ready",
+      "value": "degraded"
+    },
+    "name": "rabbitmq-ha",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 550582385,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "Readiness probe failed",
+          "value": "unhealthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 159089544,
+          "memoryBytes": 0
+        },
+        "state": "pending"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 549811185,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "relocation-service",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "tango-blueprint-service",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "tango-vro",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "terraform-service",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "user-profile-service",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 0,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  },
+  {
+    "category": "app",
+    "health": {
+      "msgKey": "",
+      "msgText": "",
+      "value": "healthy"
+    },
+    "name": "vco",
+    "scope": "cluster",
+    "serviceInstances": [
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node3.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 2807545732,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node2.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 2852774793,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      },
+      {
+        "health": {
+          "msgKey": "",
+          "msgText": "",
+          "value": "healthy"
+        },
+        "nodeName": "node1.example.com",
+        "resources": {
+          "cpuPercents": 0,
+          "diskBytes": 3179883079,
+          "memoryBytes": 0
+        },
+        "state": "running"
+      }
+    ],
+    "state": "started"
+  }
+]

@@ -1,0 +1,22 @@
+title: VMware Aria Automation: Cluster wide service
+agents: aria_automation
+catalog: app/vmware
+license: GPLv2
+distribution: kuhn-ruess
+description:
+ Monitors the cluster wide state of an Aria Automation service, taken from
+ '/api/v1/services/cluster'. The special agent sends these services as
+ piggyback data to the host set in the rule, or creates them on each node
+ host without that option.
+
+ The state is {OK} if the service is "started", {CRIT} otherwise. The health
+ is mapped like for the node services ("healthy" {OK}, "degraded"/"warning"
+ {WARN}, "unknown" {UNKN}, anything else {CRIT}). The number of instances and
+ their nodes are shown; every instance that is not "running" or not
+ "healthy" adds a {WARN} with its node. No instance at all is {CRIT}.
+
+item:
+ The name of the Aria Automation service.
+
+discovery:
+ One service per service of the cluster.

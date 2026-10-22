@@ -1,0 +1,133 @@
+#!/usr/bin/env python3
+
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+
+import argparse
+import sys
+from json import dumps
+
+import requests
+
+
+def parse_arguments(argv):
+    """Parse the command line."""
+    parser = argparse.ArgumentParser(description="Checkmk special agent for VMware Aria Automation")
+    parser.add_argument("--url", required=True, help="URL of /api/v1/services/cluster")
+    parser.add_argument("--node-name", required=True, help="Node name of the queried host")
+    parser.add_argument("--cluster-host", default="", help="Piggyback host for the cluster wide services")
+    parser.add_argument("--timeout", type=int, default=30)
+    parser.add_argument("--no-cert-check", action="store_true")
+    parser.add_argument("--debug", action="store_true")
+    return parser.parse_args(argv)
+
+
+def fetch_services(url, timeout, verify):
+    """Query the cluster services endpoint and return the parsed JSON list."""
+    response = requests.get(url, timeout=timeout, verify=verify, headers={"Accept": "application/json"})
+    response.raise_for_status()
+    data = response.json()
+    if not isinstance(data, list):
+        raise ValueError(f"Unexpected answer, expected a list of services: {str(data)[:200]}")
+    return data
+
+
+def match_node(node_name, node_names):
+    """Return the node name of the cluster data that belongs to node_name, or None."""
+    wanted = node_name.lower()
+    for name in node_names:
+        if name.lower() == wanted:
+            return name
+    short = wanted.split(".")[0]
+    for name in node_names:
+        if name.lower().split(".")[0] == short:
+            return name
+    return None
+
+
+def health_of(obj):
+    """Return health value and message of a service or instance."""
+    health = obj.get("health") or {}
+    return health.get("value", ""), health.get("msgText") or health.get("msgKey") or ""
+
+
+def build_sections(services, node_name):
+    """Split the cluster data into the node view and the cluster view."""
+    node_names = sorted({inst.get("nodeName", "") for svc in services for inst in svc.get("serviceInstances") or []} - {""})
+    matched = match_node(node_name, node_names)
+
+    node_services = {}
+    elsewhere = {}
+    cluster = []
+    for svc in services:
+        name = svc.get("name", "")
+        health, message = health_of(svc)
+        instances = []
+        for inst in svc.get("serviceInstances") or []:
+            inst_health, inst_message = health_of(inst)
+            instances.append({
+                "node": inst.get("nodeName", ""),
+                "state": inst.get("state", ""),
+                "health": inst_health,
+                "message": inst_message,
+            })
+            if matched and inst.get("nodeName") == matched:
+                node_services[name] = {
+                    "category": svc.get("category", ""),
+                    "state": inst.get("state", ""),
+                    "health": inst_health,
+                    "message": inst_message,
+                    "resources": inst.get("resources") or {},
+                }
+        if name not in node_services:
+            elsewhere[name] = sorted(inst["node"] for inst in instances)
+        cluster.append({
+            "name": name,
+            "category": svc.get("category", ""),
+            "scope": svc.get("scope", ""),
+            "state": svc.get("state", ""),
+            "health": health,
+            "message": message,
+            "instances": sorted(instances, key=lambda inst: inst["node"]),
+        })
+
+    node = {
+        "node": node_name,
+        "matched": matched,
+        "nodes": node_names,
+        "services": node_services,
+        "elsewhere": elsewhere,
+    }
+    return node, cluster
+
+
+def main(argv=None):
+    """Run the agent."""
+    args = parse_arguments(sys.argv[1:] if argv is None else argv)
+    try:
+        services = fetch_services(args.url, args.timeout, not args.no_cert_check)
+    except Exception as error:  # pylint: disable=broad-except
+        if args.debug:
+            raise
+        sys.stderr.write(f"Cannot query {args.url}: {error}\n")
+        return 1
+
+    node, cluster = build_sections(services, args.node_name)
+
+    out = sys.stdout
+    out.write("<<<aria_automation_node:sep(0)>>>\n")
+    out.write(dumps(node, separators=(",", ":")) + "\n")
+    if args.cluster_host:
+        out.write(f"<<<<{args.cluster_host}>>>>\n")
+    out.write("<<<aria_automation_cluster:sep(0)>>>\n")
+    out.write(dumps(cluster, separators=(",", ":")) + "\n")
+    if args.cluster_host:
+        out.write("<<<<>>>>\n")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,0 +1,26 @@
+title: VMware Aria Automation: Service instance on a node
+agents: aria_automation
+catalog: app/vmware
+license: GPLv2
+distribution: kuhn-ruess
+description:
+ Monitors the instance of an Aria Automation service (pod) on the queried
+ node, taken from '/api/v1/services/cluster'.
+
+ The state is {OK} if the instance is "running", {CRIT} otherwise. The health
+ "healthy" is {OK}, "degraded" and "warning" are {WARN}, "unknown" is {UNKN},
+ every other value is {CRIT}. The health message is shown if set.
+
+ If the service still exists in the cluster but has no instance on this node
+ any more (a single instance service moved to another node), the service goes
+ {WARN} and names the nodes it runs on. The state is set in the rule
+ "VMware Aria Automation node service".
+
+ CPU, memory and disk usage as reported by Aria are shown and stored as
+ metrics.
+
+item:
+ The name of the Aria Automation service, for example "rabbitmq-ha".
+
+discovery:
+ One service per service instance running on the node.

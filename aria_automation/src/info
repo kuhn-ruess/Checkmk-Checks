@@ -1,0 +1,19 @@
+{'author': 'Kuhn & Rueß GmbH',
+ 'description': 'Special agent for VMware Aria Automation: queries the cluster '
+                'services API on each node, monitors the service instances of '
+                'that node on its own host and sends the cluster wide service '
+                'states as piggyback data to a cluster host.\n',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
+ 'files': {'cmk_addons_plugins': ['aria_automation/libexec/agent_aria_automation',
+                                  'aria_automation/agent_based/aria_automation.py',
+                                  'aria_automation/rulesets/aria_automation.py',
+                                  'aria_automation/server_side_calls/aria_automation.py',
+                                  'aria_automation/graphing/aria_automation.py',
+                                  'aria_automation/checkman/aria_automation_node',
+                                  'aria_automation/checkman/aria_automation_service',
+                                  'aria_automation/checkman/aria_automation_cluster']},
+ 'name': 'aria_automation',
+ 'title': 'VMware Aria Automation cluster services',
+ 'version': '1.0.0',
+ 'version.min_required': '2.3.0',
+ 'version.packaged': '2.5.0p16'}
