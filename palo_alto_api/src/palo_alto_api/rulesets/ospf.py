@@ -29,6 +29,7 @@ def _parameter_form():
                 required=True,
             ),
         },
+        ignored_elements=("discovered_state",),
     )
 
 
