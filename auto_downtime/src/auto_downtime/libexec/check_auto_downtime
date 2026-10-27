@@ -1,0 +1,237 @@
+#!/usr/bin/env python3
+# Automatic downtime and acknowledgement
+
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+
+import argparse
+import base64
+import json
+import os
+import re
+import sys
+from datetime import datetime, timedelta, timezone
+
+import requests
+
+COLUMNS = [
+    "host_name",
+    "description",
+    "state",
+    "plugin_output",
+    "scheduled_downtime_depth",
+    "acknowledged",
+]
+
+
+def parse_arguments(argv):
+    """Parse the command line."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--url", help="Base URL of the Checkmk site, default: local site")
+    parser.add_argument("--user", required=True, help="Automation user")
+    secret = parser.add_mutually_exclusive_group(required=True)
+    secret.add_argument("--secret", help="Automation secret (debugging only)")
+    secret.add_argument("--secret-id", help="Password store reference <id>:<file>")
+    parser.add_argument("--host-name", default="", help="Host of this check, its service is skipped")
+    parser.add_argument("--service-name", default="", help="Name of this check, skipped")
+    parser.add_argument("--rules", required=True, help="Rules as base64 encoded JSON")
+    parser.add_argument("--no-verify-ssl", action="store_true")
+    parser.add_argument("--timeout", type=float, default=30.0)
+    parser.add_argument("--debug", action="store_true")
+    return parser.parse_args(argv)
+
+
+def resolve_secret(args):
+    """Return the automation secret, from the password store if referenced."""
+    if args.secret:
+        return args.secret
+    try:
+        from cmk.password_store.v1_unstable import dereference_secret
+        return dereference_secret(args.secret_id).reveal()
+    except ImportError:
+        from pathlib import Path
+        from cmk.utils.password_store import lookup
+        pw_id, pw_file = args.secret_id.split(":", 1)
+        return lookup(Path(pw_file), pw_id)
+
+
+def local_site_url():
+    """Return the URL of the local site from its Apache configuration."""
+    config = {}
+    with open(f"{os.environ['OMD_ROOT']}/etc/omd/site.conf", encoding="utf-8") as site_conf:
+        for line in site_conf:
+            key, _, value = line.strip().partition("=")
+            config[key] = value.strip("'")
+    address = config.get("CONFIG_APACHE_TCP_ADDR", "127.0.0.1")
+    if address in ("", "0.0.0.0", "::"):
+        address = "127.0.0.1"
+    elif ":" in address:
+        address = f"[{address}]"
+    return f"http://{address}:{config.get('CONFIG_APACHE_TCP_PORT', '5000')}/{os.environ['OMD_SITE']}"
+
+
+def compile_rules(rules):
+    """Compile the regular expressions of the rules."""
+    for nr, rule in enumerate(rules, start=1):
+        rule["nr"] = nr
+        rule["host_match"] = re.compile(rule["host_regex"]) if rule.get("host_regex") else None
+        rule["service_match"] = re.compile(rule["service_regex"])
+        rule["output_match"] = re.compile(rule["output_regex"])
+    return rules
+
+
+def find_rule(rules, service):
+    """Return the first rule matching host, service name and summary."""
+    for rule in rules:
+        if rule["host_match"] and not rule["host_match"].match(service["host_name"]):
+            continue
+        if rule["service_match"].match(service["description"]) and rule["output_match"].search(
+            service["plugin_output"]
+        ):
+            return rule
+    return None
+
+
+class Api:
+    """Minimal client for the Checkmk REST API."""
+
+    def __init__(self, url, user, secret, verify, timeout):
+        self.url = f"{url.rstrip('/')}/check_mk/api/1.0"
+        self.timeout = timeout
+        self.session = requests.Session()
+        self.session.verify = verify
+        self.session.headers["Authorization"] = f"Bearer {user} {secret}"
+        self.session.headers["Accept"] = "application/json"
+
+    def post(self, path, payload):
+        """Send a POST request and raise on errors."""
+        response = self.session.post(f"{self.url}{path}", json=payload, timeout=self.timeout)
+        if response.status_code not in (200, 204):
+            try:
+                detail = response.json().get("detail") or response.json().get("title")
+            except ValueError:
+                detail = response.text[:200]
+            raise RuntimeError(f"HTTP {response.status_code}: {re.sub('<[^>]+>', '', str(detail))}")
+        return response
+
+    def services(self):
+        """Return all monitored services."""
+        response = self.post("/domain-types/service/collections/all", {"columns": COLUMNS})
+        return [entry["extensions"] for entry in response.json()["value"]]
+
+    def downtime(self, service, duration, comment):
+        """Schedule a fixed downtime starting now."""
+        start = datetime.now(timezone.utc)
+        self.post("/domain-types/downtime/collections/service", {
+            "downtime_type": "service",
+            "host_name": service["host_name"],
+            "service_descriptions": [service["description"]],
+            "start_time": start.isoformat(),
+            "end_time": (start + timedelta(seconds=duration)).isoformat(),
+            "comment": comment,
+        })
+        return start + timedelta(seconds=duration)
+
+    def acknowledge(self, service, options, comment):
+        """Acknowledge the problem of the service."""
+        payload = {
+            "acknowledge_type": "service",
+            "host_name": service["host_name"],
+            "service_description": service["description"],
+            "sticky": options["sticky"],
+            "persistent": options["persistent"],
+            "notify": options["notify"],
+            "comment": comment,
+        }
+        if options.get("expire"):
+            payload["expire_on"] = (
+                datetime.now(timezone.utc) + timedelta(seconds=options["expire"])
+            ).isoformat()
+        self.post("/domain-types/acknowledge/collections/service", payload)
+
+
+def handle(api, rule, service, counters):
+    """Apply the actions of the rule to the service and return result lines."""
+    name = f"{service['host_name']}/{service['description']}"
+    comment = rule.get("comment") or f"Automatic: summary matches '{rule['output_regex']}'"
+    lines = []
+    actions = (
+        ("downtime", "downtime", lambda: api.downtime(service, rule["downtime"]["duration"], comment)),
+        ("acknowledge", "acknowledgement", lambda: api.acknowledge(service, rule["acknowledge"], comment)),
+    )
+    for key, label, action in actions:
+        if key not in rule:
+            continue
+        if key == "downtime" and service["scheduled_downtime_depth"]:
+            counters["handled"] += 1
+            lines.append(f"{name}: already in downtime")
+            continue
+        if key == "acknowledge" and service["state"] == 0:
+            lines.append(f"{name}: OK, nothing to acknowledge")
+            continue
+        if key == "acknowledge" and service["acknowledged"]:
+            counters["handled"] += 1
+            lines.append(f"{name}: already acknowledged")
+            continue
+        try:
+            result = action()
+        except (requests.RequestException, RuntimeError) as error:
+            counters["errors"] += 1
+            lines.append(f"{name}: {label} failed: {error}(!!)")
+            continue
+        if key == "downtime":
+            counters["downtimes"] += 1
+            lines.append(f"{name}: downtime until {result.astimezone():%Y-%m-%d %H:%M} (rule {rule['nr']})")
+        else:
+            counters["acknowledged"] += 1
+            lines.append(f"{name}: acknowledged (rule {rule['nr']})")
+    return lines
+
+
+def main(argv=None):
+    """Run the check and return the Nagios exit code."""
+    args = parse_arguments(argv if argv is not None else sys.argv[1:])
+    try:
+        rules = compile_rules(json.loads(base64.b64decode(args.rules)))
+        api = Api(
+            args.url or local_site_url(),
+            args.user,
+            resolve_secret(args),
+            not args.no_verify_ssl,
+            args.timeout,
+        )
+        services = api.services()
+    except Exception as error:  # pylint: disable=broad-except
+        if args.debug:
+            raise
+        print(f"Cannot query the services: {error}")
+        return 3
+
+    counters = {"matched": 0, "downtimes": 0, "acknowledged": 0, "handled": 0, "errors": 0}
+    details = []
+    for service in services:
+        if service["host_name"] == args.host_name and service["description"] == args.service_name:
+            continue
+        rule = find_rule(rules, service)
+        if rule:
+            counters["matched"] += 1
+            details += handle(api, rule, service, counters)
+
+    summary = (
+        f"{counters['matched']} matching services, {counters['downtimes']} downtimes set, "
+        f"{counters['acknowledged']} acknowledged, {counters['handled']} already handled"
+    )
+    if counters["errors"]:
+        summary += f", {counters['errors']} actions failed(!!)"
+    perfdata = " ".join(f"{key}={value}" for key, value in counters.items())
+    print(f"{summary} | {perfdata}")
+    for line in details:
+        print(line)
+    return 2 if counters["errors"] else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

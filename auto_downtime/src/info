@@ -1,0 +1,17 @@
+{'author': 'Kuhn & Rueß GmbH',
+ 'description': 'Active check that queries the services of a Checkmk site via '
+                'the REST API and schedules a downtime, acknowledges the '
+                'problem or both for every service whose name and summary '
+                'match configured regular expressions. Downtime duration and '
+                'acknowledgement options (sticky, persistent, notification, '
+                'expiry) are configurable per rule. The automation secret '
+                'comes from the password store.\n',
+ 'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
+ 'files': {'cmk_addons_plugins': ['auto_downtime/libexec/check_auto_downtime',
+                                  'auto_downtime/rulesets/active_check.py',
+                                  'auto_downtime/server_side_calls/active_check.py']},
+ 'name': 'auto_downtime',
+ 'title': 'Automatic downtime and acknowledgement by plugin output',
+ 'version': '1.0.0',
+ 'version.min_required': '2.4.0',
+ 'version.packaged': '2.5.0p16'}
