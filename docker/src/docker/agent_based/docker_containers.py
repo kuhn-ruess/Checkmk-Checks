@@ -88,7 +88,7 @@ def check_docker_containers(item, section):
     except KeyError:
         yield Result(state=State.UNKNOWN, summary="State = missing")
         return
- 
+
     if 'State' in container.keys():
         if container['State'] == 'running':
             yield Result(state=State.OK, summary="State = running")
