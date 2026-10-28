@@ -6,7 +6,7 @@
 
 Looks at the summary (plugin output) of services. When service name and a text in the
 summary match a configured rule, it schedules a downtime for the service, acknowledges
-its problem, removes its existing downtimes, or combines these. The downtime duration,
+its problem, removes its existing downtimes or acknowledgement, or combines these. The downtime duration,
 the acknowledgement options and a comment filter for the downtimes to remove are set
 per rule.
 
@@ -36,18 +36,21 @@ API with an automation user:
 
 1. `POST /domain-types/service/collections/all` reads host name, service name, state,
    summary, downtime depth, downtimes and acknowledgement state of all services.
-2. For each service the rules are checked in order, the first one wins where
+2. For each service all rules are checked where
    * the host name matches *Host name* (optional, match from the start),
    * the service name matches *Service name* (match from the start, like service
      conditions in Checkmk) and
    * the *Text in the summary* regular expression is found anywhere in the summary.
-3. The actions of the matching rule:
+3. All matching rules apply. If several of them have the same action, or opposite
+   actions (schedule and remove a downtime, acknowledge and remove the acknowledgement),
+   the first of them wins. The actions:
 
 | Action | REST endpoint | Skipped when |
 | --- | --- | --- |
 | Downtime | `POST /domain-types/downtime/collections/service`, fixed, from now for the configured duration | the service is already in a downtime |
 | Remove downtimes | `POST /domain-types/downtime/actions/delete/invoke` with the IDs of the downtimes whose comment matches the filter | the service has no such downtime |
 | Acknowledgement | `POST /domain-types/acknowledge/collections/service`, sticky, persistent comment, notification, optional expiry | the service is OK or already acknowledged |
+| Remove acknowledgement | `POST /domain-types/acknowledge/actions/delete/invoke` | the service is not acknowledged |
 
 So nothing is set twice on the next check interval. When a downtime has ended and the
 summary still matches, a new downtime is set.
@@ -70,7 +73,8 @@ Metrics: `matched`, `downtimes`, `removed`, `acknowledged`, `handled`, `errors`.
 
 The script `auto_downtime` handles service notifications of type `PROBLEM` only, host
 notifications and other types are ignored. It matches service name and summary of the
-notified service against the rules, the first matching rule wins, and sends the commands
+notified service against the rules, all matching rules apply like in the active check
+(without *Remove acknowledgement*, a problem notification is not acknowledged), and sends the commands
 to the local Livestatus: `SCHEDULE_SVC_DOWNTIME`, `ACKNOWLEDGE_SVC_PROBLEM`,
 `DEL_SVC_DOWNTIME`. Like the active check it skips a downtime when the service is already
 in one and an acknowledgement when it is already acknowledged. The result is written to
@@ -124,17 +128,26 @@ Per rule:
 | Schedule a downtime | Enables the downtime. *Duration of the downtime* (minimum one minute). |
 | Remove downtimes | Removes the downtimes of the service. *Only downtimes with comment*: regular expression searched in the downtime comment, empty removes all downtimes of the service. |
 | Acknowledge the problem | Enables the acknowledgement. *Sticky*, *Persistent comment*, *Send acknowledgement notification*, *Expire after*. |
+| Remove the acknowledgement | Active check only. Removes the acknowledgement of the service, for example when the summary reports that the acknowledged problem is gone. |
 | Comment | Comment of downtime and acknowledgement. Default: names the matching regular expression. |
 
 At least one action must be enabled. *Schedule a downtime* and *Remove downtimes* exclude
-each other within one rule, every other combination is fine. Author of downtimes and
+each other within one rule, as do *Acknowledge the problem* and *Remove the
+acknowledgement*; every other combination is fine. Author of downtimes and
 acknowledgements is the automation user.
 
 Example: rule 1 with service name `Application `, text in the summary
 `maintenance finished` and *Remove downtimes* with comment filter `^Automatic`; rule 2 with
 the same service name, text `maintenance (planned|active)`, downtime of 2 hours,
-acknowledgement sticky. Put the more specific rule first, the first match wins. With the
+acknowledgement sticky. Both rules may match the same service, then both apply. With the
 comment filter, downtimes set by hand stay untouched.
+
+Example for Checkmk BI aggregations, whose summary reads `In downtime: yes/no,
+Acknowledged: yes/no`: one rule each for `In downtime: yes` (downtime),
+`In downtime: no` (remove downtimes with the comment of the first rule),
+`Acknowledged: yes` (acknowledge) and `Acknowledged: no` (remove the acknowledgement).
+Every aggregation matches two of them, so downtime and acknowledgement follow the
+aggregation in both directions.
 
 ### Notification plugin
 

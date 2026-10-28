@@ -46,15 +46,25 @@ def get_rules():
     return rules
 
 
-def find_rule(rules, service, output):
-    """Return the first rule matching service name and plugin output."""
+def find_actions(rules, service, output):
+    """Return action -> rule of all rules matching service name and plugin output.
+
+    The first matching rule wins per action, and a downtime action is skipped if an
+    earlier rule already chose the opposite one.
+    """
+    opposites = {"downtime": "remove_downtime", "remove_downtime": "downtime", "acknowledge": None}
+    actions = {}
     for rule in rules:
         try:
-            if re.match(rule["service_regex"], service) and re.search(rule["output_regex"], output):
-                return rule
+            if not re.match(rule["service_regex"], service) or not re.search(rule["output_regex"], output):
+                continue
         except re.error as error:
             print(f"Rule {rule['nr']}: invalid regular expression: {error}")
-    return None
+            continue
+        for key, opposite in opposites.items():
+            if rule[key] is not None and key not in actions and opposite not in actions:
+                actions[key] = rule
+    return actions
 
 
 def livestatus(query):
@@ -85,8 +95,13 @@ def clean(text):
     return text.replace("\n", " ").replace(";", ",")
 
 
+def rule_comment(rule):
+    """Return the comment of the downtime or acknowledgement of a rule."""
+    return clean(rule["comment"] or f"Automatic: summary matches '{rule['output_regex']}'")
+
+
 def main():
-    """Apply the actions of the first matching rule to the notified service."""
+    """Apply the actions of all matching rules to the notified service."""
     if environ.get("NOTIFY_WHAT") != "SERVICE":
         print("Host notification, nothing to do")
         return 0
@@ -99,18 +114,18 @@ def main():
     output = environ.get("NOTIFY_SERVICEOUTPUT", "")
     target = f"{host}/{service}"
 
-    rule = find_rule(get_rules(), service, output)
-    if not rule:
+    actions = find_actions(get_rules(), service, output)
+    if not actions:
         print(f"{target}: no rule matches")
         return 0
 
     author = clean(environ.get("NOTIFY_PARAMETER_AUTHOR") or "auto_downtime")
-    comment = clean(rule["comment"] or f"Automatic: summary matches '{rule['output_regex']}'")
     now = int(time.time())
     fields = f"{clean(host)};{clean(service)}"
     try:
         downtime_depth, acknowledged, downtimes = service_status(host, service)
-        if rule["downtime"] is not None:
+        if rule := actions.get("downtime"):
+            comment = rule_comment(rule)
             if downtime_depth:
                 print(f"{target}: rule {rule['nr']}: already in downtime")
             else:
@@ -121,7 +136,7 @@ def main():
                 )
                 print(f"{target}: rule {rule['nr']}: downtime until "
                       f"{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(end))}")
-        if rule["remove_downtime"] is not None:
+        if rule := actions.get("remove_downtime"):
             downtime_ids = [
                 downtime_id
                 for downtime_id, _author, downtime_comment in downtimes
@@ -133,7 +148,8 @@ def main():
                 print(f"{target}: rule {rule['nr']}: {len(downtime_ids)} downtimes removed")
             else:
                 print(f"{target}: rule {rule['nr']}: no downtime to remove")
-        if rule["acknowledge"] is not None:
+        if rule := actions.get("acknowledge"):
+            comment = rule_comment(rule)
             ack = rule["acknowledge"]
             flags = f"{2 if ack['sticky'] else 0};{int(ack['notify'])};{int(ack['persistent'])}"
             if acknowledged:

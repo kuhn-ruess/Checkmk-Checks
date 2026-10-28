@@ -25,14 +25,20 @@ from cmk.rulesets.v1.rule_specs import ActiveCheck, Topic
 
 
 def _validate_action(value):
-    """Require at least one action and no conflicting downtime actions."""
-    if not any(key in value for key in ("downtime", "acknowledge", "remove_downtime")):
+    """Require at least one action and no conflicting actions."""
+    if not any(
+        key in value for key in ("downtime", "acknowledge", "remove_downtime", "remove_acknowledge")
+    ):
         raise validators.ValidationError(
-            Message("Enable a downtime, an acknowledgement or the removal of downtimes.")
+            Message("Enable at least one action: a downtime, an acknowledgement or their removal.")
         )
     if "downtime" in value and "remove_downtime" in value:
         raise validators.ValidationError(
             Message("A rule cannot schedule and remove downtimes at the same time.")
+        )
+    if "acknowledge" in value and "remove_acknowledge" in value:
+        raise validators.ValidationError(
+            Message("A rule cannot acknowledge and remove acknowledgements at the same time.")
         )
 
 
@@ -162,6 +168,17 @@ def _rule_element():
                     },
                 ),
             ),
+            "remove_acknowledge": DictElement(
+                parameter_form=Dictionary(
+                    title=Title("Remove the acknowledgement"),
+                    help_text=Help(
+                        "Removes the acknowledgement of the service, for example when its "
+                        "summary reports that the acknowledged problem is gone while the "
+                        "service stays in a problem state for another reason."
+                    ),
+                    elements={},
+                ),
+            ),
             "comment": DictElement(
                 parameter_form=String(
                     title=Title("Comment"),
@@ -181,7 +198,10 @@ def _parameters_auto_downtime():
         help_text=Help(
             "Queries the services of the Checkmk site via the REST API on every check interval. "
             "For each service whose name and summary match a rule, a downtime is scheduled, the "
-            "problem is acknowledged, or both. The first matching rule wins per service."
+            "problem is acknowledged, or downtimes and acknowledgements are removed. All matching "
+            "rules apply. If several rules match with the same action, or with the opposite "
+            "action (schedule and remove a downtime, acknowledge and remove the acknowledgement), "
+            "the first of them wins."
         ),
         elements={
             "description": DictElement(

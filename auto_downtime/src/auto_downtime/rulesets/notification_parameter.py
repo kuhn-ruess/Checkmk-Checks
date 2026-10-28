@@ -179,8 +179,10 @@ def _parameters_auto_downtime():
         title=Title("Automatic downtime and acknowledgement"),
         help_text=Help(
             "Schedules a downtime for a service, acknowledges its problem or both, when its "
-            "name and the text in its summary match one of the rules. The first matching "
-            "rule wins. Only service problem notifications are handled."
+            "name and the text in its summary match one of the rules. All matching rules "
+            "apply. If several rules match with the same action, or one schedules and another "
+            "removes a downtime, the first of them wins. Only service problem notifications "
+            "are handled."
         ),
         elements={
             "rules": DictElement(

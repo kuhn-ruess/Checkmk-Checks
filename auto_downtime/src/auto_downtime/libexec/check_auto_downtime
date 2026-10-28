@@ -84,16 +84,32 @@ def compile_rules(rules):
     return rules
 
 
-def find_rule(rules, service):
-    """Return the first rule matching host, service name and summary."""
+OPPOSITES = {
+    "downtime": "remove_downtime",
+    "remove_downtime": "downtime",
+    "acknowledge": "remove_acknowledge",
+    "remove_acknowledge": "acknowledge",
+}
+
+
+def find_actions(rules, service):
+    """Return action -> rule of all rules matching host, service name and summary.
+
+    The first matching rule wins per action, and an action is skipped if an earlier
+    rule already chose its opposite.
+    """
+    actions = {}
     for rule in rules:
         if rule["host_match"] and not rule["host_match"].match(service["host_name"]):
             continue
-        if rule["service_match"].match(service["description"]) and rule["output_match"].search(
+        if not rule["service_match"].match(service["description"]) or not rule["output_match"].search(
             service["plugin_output"]
         ):
-            return rule
-    return None
+            continue
+        for key in OPPOSITES:
+            if key in rule and key not in actions and OPPOSITES[key] not in actions:
+                actions[key] = rule
+    return actions
 
 
 class Api:
@@ -166,6 +182,14 @@ class Api:
             ).isoformat()
         self.post("/domain-types/acknowledge/collections/service", payload)
 
+    def remove_acknowledgement(self, service):
+        """Remove the acknowledgement of the service."""
+        self.post("/domain-types/acknowledge/actions/delete/invoke", {
+            "acknowledge_type": "service",
+            "host_name": service["host_name"],
+            "service_description": service["description"],
+        })
+
 
 def removable_downtimes(rule, service):
     """Return the IDs of the downtimes the rule removes from the service."""
@@ -177,34 +201,38 @@ def removable_downtimes(rule, service):
     ]
 
 
-def handle(api, rule, service, counters):
-    """Apply the actions of the rule to the service and return result lines."""
+def handle(api, actions, service, counters):
+    """Apply the matching actions to the service and return result lines."""
     name = f"{service['host_name']}/{service['description']}"
-    comment = rule.get("comment") or f"Automatic: summary matches '{rule['output_regex']}'"
     lines = []
-    downtime_ids = removable_downtimes(rule, service) if "remove_downtime" in rule else []
-    actions = (
-        ("downtime", "downtime", lambda: api.downtime(service, rule["downtime"]["duration"], comment)),
-        ("remove_downtime", "downtime removal", lambda: api.delete_downtimes(service, downtime_ids)),
-        ("acknowledge", "acknowledgement", lambda: api.acknowledge(service, rule["acknowledge"], comment)),
-    )
-    for key, label, action in actions:
-        if key not in rule:
-            continue
-        if key == "downtime" and service["scheduled_downtime_depth"]:
-            counters["handled"] += 1
-            lines.append(f"{name}: already in downtime")
-            continue
-        if key == "remove_downtime" and not downtime_ids:
-            lines.append(f"{name}: no downtime to remove")
-            continue
-        if key == "acknowledge" and service["state"] == 0:
-            lines.append(f"{name}: OK, nothing to acknowledge")
-            continue
-        if key == "acknowledge" and service["acknowledged"]:
-            counters["handled"] += 1
-            lines.append(f"{name}: already acknowledged")
-            continue
+    for key, rule in actions.items():
+        comment = rule.get("comment") or f"Automatic: summary matches '{rule['output_regex']}'"
+        if key == "downtime":
+            if service["scheduled_downtime_depth"]:
+                counters["handled"] += 1
+                lines.append(f"{name}: already in downtime")
+                continue
+            label, action = "downtime", lambda: api.downtime(service, rule["downtime"]["duration"], comment)
+        elif key == "remove_downtime":
+            downtime_ids = removable_downtimes(rule, service)
+            if not downtime_ids:
+                lines.append(f"{name}: no downtime to remove")
+                continue
+            label, action = "downtime removal", lambda: api.delete_downtimes(service, downtime_ids)
+        elif key == "acknowledge":
+            if service["state"] == 0:
+                lines.append(f"{name}: OK, nothing to acknowledge")
+                continue
+            if service["acknowledged"]:
+                counters["handled"] += 1
+                lines.append(f"{name}: already acknowledged")
+                continue
+            label, action = "acknowledgement", lambda: api.acknowledge(service, rule["acknowledge"], comment)
+        else:
+            if not service["acknowledged"]:
+                lines.append(f"{name}: no acknowledgement to remove")
+                continue
+            label, action = "acknowledgement removal", lambda: api.remove_acknowledgement(service)
         try:
             result = action()
         except (requests.RequestException, RuntimeError) as error:
@@ -217,9 +245,12 @@ def handle(api, rule, service, counters):
         elif key == "remove_downtime":
             counters["removed"] += len(downtime_ids)
             lines.append(f"{name}: {len(downtime_ids)} downtimes removed (rule {rule['nr']})")
-        else:
+        elif key == "acknowledge":
             counters["acknowledged"] += 1
             lines.append(f"{name}: acknowledged (rule {rule['nr']})")
+        else:
+            counters["ack_removed"] += 1
+            lines.append(f"{name}: acknowledgement removed (rule {rule['nr']})")
     return lines
 
 
@@ -242,20 +273,21 @@ def main(argv=None):
         print(f"Cannot query the services: {error}")
         return 3
 
-    counters = {"matched": 0, "downtimes": 0, "removed": 0, "acknowledged": 0, "handled": 0, "errors": 0}
+    counters = {"matched": 0, "downtimes": 0, "removed": 0, "acknowledged": 0, "ack_removed": 0, "handled": 0, "errors": 0}
     details = []
     for service in services:
         if service["host_name"] == args.host_name and service["description"] == args.service_name:
             continue
-        rule = find_rule(rules, service)
-        if rule:
+        actions = find_actions(rules, service)
+        if actions:
             counters["matched"] += 1
-            details += handle(api, rule, service, counters)
+            details += handle(api, actions, service, counters)
 
     summary = (
         f"{counters['matched']} matching services, {counters['downtimes']} downtimes set, "
         f"{counters['removed']} downtimes removed, "
-        f"{counters['acknowledged']} acknowledged, {counters['handled']} already handled"
+        f"{counters['acknowledged']} acknowledged, {counters['ack_removed']} acknowledgements removed, "
+        f"{counters['handled']} already handled"
     )
     if counters["errors"]:
         summary += f", {counters['errors']} actions failed(!!)"
