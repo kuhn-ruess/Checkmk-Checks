@@ -12,6 +12,11 @@ description:
  check becomes CRIT if the job reports an error and WARN if the job has
  never started.
 
+ Cron groups that are disabled or deleted in the CMDB Syncer are not
+ discovered. A service of such a group that already exists stays OK and
+ says so until the next service discovery removes it. This needs CMDB
+ Syncer 4.5 or later, older versions report every cron group.
+
  Upper levels on the time since the last start can be configured via the
  rule "CMDB Syncer Cronjobs". By default no levels are applied.
 

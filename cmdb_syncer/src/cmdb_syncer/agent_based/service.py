@@ -87,10 +87,11 @@ def parse_cmdb_syncer_cron(string_table):
 
 def discover_cmdb_syncer_cron(section):
     """
-    Discover one Service per Cron
+    Discover one Service per enabled Cron
     """
-    for cron_name in section:
-        yield Service(item=cron_name)
+    for cron_name, data in section.items():
+        if data.get('enabled', True):
+            yield Service(item=cron_name)
 
 def check_cmdb_syncer_cron(item, params, section):
     """
@@ -100,6 +101,9 @@ def check_cmdb_syncer_cron(item, params, section):
     data = section[item]
     if error := data.get('error'):
         yield Result(state=State.CRIT, summary=error)
+        return
+    if not data.get('enabled', True):
+        yield Result(state=State.OK, summary="Cron group is disabled or deleted in the Syncer")
         return
     yield Result(state=state, summary=f"Last Message: {data['last_message']}")
     yield Result(state=state, summary=f"Is running: {data['is_running']}")
