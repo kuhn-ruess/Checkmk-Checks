@@ -176,7 +176,19 @@ def _rule_element():
                         "summary reports that the acknowledged problem is gone while the "
                         "service stays in a problem state for another reason."
                     ),
-                    elements={},
+                    elements={
+                        "comment_regex": DictElement(
+                            parameter_form=RegularExpression(
+                                title=Title("Only acknowledgements with comment"),
+                                help_text=Help(
+                                    "Regular expression searched in the comment of the current "
+                                    "acknowledgement. Without it every acknowledgement of the "
+                                    "service is removed."
+                                ),
+                                predefined_help_text=MatchingScope.INFIX,
+                            ),
+                        ),
+                    },
                 ),
             ),
             "comment": DictElement(

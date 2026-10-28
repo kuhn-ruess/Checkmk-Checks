@@ -25,6 +25,7 @@ COLUMNS = [
     "scheduled_downtime_depth",
     "acknowledged",
     "downtimes_with_info",
+    "comments_with_extra_info",
 ]
 
 
@@ -201,6 +202,17 @@ def removable_downtimes(rule, service):
     ]
 
 
+def removable_acknowledgement(rule, service):
+    """Return whether the rule removes the acknowledgement of the service."""
+    comment_regex = rule["remove_acknowledge"].get("comment_regex")
+    if not comment_regex:
+        return True
+    ack_comments = [entry for entry in service["comments_with_extra_info"] if entry[3] == 4]
+    if not ack_comments:
+        return False
+    return bool(re.search(comment_regex, max(ack_comments, key=lambda entry: entry[4])[2]))
+
+
 def handle(api, actions, service, counters):
     """Apply the matching actions to the service and return result lines."""
     name = f"{service['host_name']}/{service['description']}"
@@ -231,6 +243,9 @@ def handle(api, actions, service, counters):
         else:
             if not service["acknowledged"]:
                 lines.append(f"{name}: no acknowledgement to remove")
+                continue
+            if not removable_acknowledgement(rule, service):
+                lines.append(f"{name}: acknowledgement comment does not match")
                 continue
             label, action = "acknowledgement removal", lambda: api.remove_acknowledgement(service)
         try:

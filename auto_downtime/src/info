@@ -11,8 +11,8 @@
                 'the problem notification is created. All matching rules '
                 'apply, the first one wins per action. Downtime duration, '
                 'acknowledgement options (sticky, persistent, notification, '
-                'expiry) and a comment filter for the downtimes to remove are '
-                'configurable per rule.\n',
+                'expiry) and comment filters for the downtimes and '
+                'acknowledgements to remove are configurable per rule.\n',
  'download_url': 'https://github.com/kuhn-ruess/Checkmk-Checks/',
  'files': {'cmk_addons_plugins': ['auto_downtime/libexec/check_auto_downtime',
                                   'auto_downtime/rulesets/active_check.py',
@@ -21,6 +21,6 @@
            'notifications': ['auto_downtime']},
  'name': 'auto_downtime',
  'title': 'Automatic downtime and acknowledgement by plugin output',
- 'version': '1.2.0',
+ 'version': '1.3.0',
  'version.min_required': '2.4.0',
  'version.packaged': '2.5.0p16'}
