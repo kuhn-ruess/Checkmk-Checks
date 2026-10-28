@@ -24,6 +24,7 @@ COLUMNS = [
     "plugin_output",
     "scheduled_downtime_depth",
     "acknowledged",
+    "downtimes_with_info",
 ]
 
 
@@ -135,6 +136,19 @@ class Api:
         })
         return start + timedelta(seconds=duration)
 
+    def delete_downtimes(self, service, downtime_ids):
+        """Delete the given downtimes of the service."""
+        self.post("/domain-types/downtime/actions/delete/invoke", {
+            "delete_type": "query",
+            "query": {"op": "and", "expr": [
+                {"op": "=", "left": "host_name", "right": service["host_name"]},
+                {"op": "=", "left": "service_description", "right": service["description"]},
+                {"op": "or", "expr": [
+                    {"op": "=", "left": "id", "right": str(downtime_id)} for downtime_id in downtime_ids
+                ]},
+            ]},
+        })
+
     def acknowledge(self, service, options, comment):
         """Acknowledge the problem of the service."""
         payload = {
@@ -153,13 +167,25 @@ class Api:
         self.post("/domain-types/acknowledge/collections/service", payload)
 
 
+def removable_downtimes(rule, service):
+    """Return the IDs of the downtimes the rule removes from the service."""
+    comment_regex = rule["remove_downtime"]["comment_regex"]
+    return [
+        downtime_id
+        for downtime_id, _author, downtime_comment in service["downtimes_with_info"]
+        if not comment_regex or re.search(comment_regex, downtime_comment)
+    ]
+
+
 def handle(api, rule, service, counters):
     """Apply the actions of the rule to the service and return result lines."""
     name = f"{service['host_name']}/{service['description']}"
     comment = rule.get("comment") or f"Automatic: summary matches '{rule['output_regex']}'"
     lines = []
+    downtime_ids = removable_downtimes(rule, service) if "remove_downtime" in rule else []
     actions = (
         ("downtime", "downtime", lambda: api.downtime(service, rule["downtime"]["duration"], comment)),
+        ("remove_downtime", "downtime removal", lambda: api.delete_downtimes(service, downtime_ids)),
         ("acknowledge", "acknowledgement", lambda: api.acknowledge(service, rule["acknowledge"], comment)),
     )
     for key, label, action in actions:
@@ -168,6 +194,9 @@ def handle(api, rule, service, counters):
         if key == "downtime" and service["scheduled_downtime_depth"]:
             counters["handled"] += 1
             lines.append(f"{name}: already in downtime")
+            continue
+        if key == "remove_downtime" and not downtime_ids:
+            lines.append(f"{name}: no downtime to remove")
             continue
         if key == "acknowledge" and service["state"] == 0:
             lines.append(f"{name}: OK, nothing to acknowledge")
@@ -185,6 +214,9 @@ def handle(api, rule, service, counters):
         if key == "downtime":
             counters["downtimes"] += 1
             lines.append(f"{name}: downtime until {result.astimezone():%Y-%m-%d %H:%M} (rule {rule['nr']})")
+        elif key == "remove_downtime":
+            counters["removed"] += len(downtime_ids)
+            lines.append(f"{name}: {len(downtime_ids)} downtimes removed (rule {rule['nr']})")
         else:
             counters["acknowledged"] += 1
             lines.append(f"{name}: acknowledged (rule {rule['nr']})")
@@ -210,7 +242,7 @@ def main(argv=None):
         print(f"Cannot query the services: {error}")
         return 3
 
-    counters = {"matched": 0, "downtimes": 0, "acknowledged": 0, "handled": 0, "errors": 0}
+    counters = {"matched": 0, "downtimes": 0, "removed": 0, "acknowledged": 0, "handled": 0, "errors": 0}
     details = []
     for service in services:
         if service["host_name"] == args.host_name and service["description"] == args.service_name:
@@ -222,6 +254,7 @@ def main(argv=None):
 
     summary = (
         f"{counters['matched']} matching services, {counters['downtimes']} downtimes set, "
+        f"{counters['removed']} downtimes removed, "
         f"{counters['acknowledged']} acknowledged, {counters['handled']} already handled"
     )
     if counters["errors"]:

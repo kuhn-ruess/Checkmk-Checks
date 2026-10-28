@@ -1,0 +1,158 @@
+#!/usr/bin/env python3
+# Automatic downtime
+
+"""
+Kuhn & Rueß GmbH
+Consulting and Development
+https://kuhn-ruess.de
+"""
+
+import json
+import re
+import socket
+import sys
+import time
+from os import environ
+
+PREFIX = "NOTIFY_PARAMETER_RULES_"
+
+
+def get_rules():
+    """Read the configured rules from the notification context."""
+    rules = []
+    nr = 1
+    while f"{PREFIX}{nr}_SERVICE_REGEX" in environ:
+        base = f"{PREFIX}{nr}_"
+        rule = {
+            "nr": nr,
+            "service_regex": environ[f"{base}SERVICE_REGEX"],
+            "output_regex": environ.get(f"{base}OUTPUT_REGEX", ""),
+            "comment": environ.get(f"{base}COMMENT", ""),
+            "downtime": None,
+            "acknowledge": None,
+            "remove_downtime": environ.get(f"{base}REMOVE_DOWNTIME_COMMENT_REGEX"),
+        }
+        if f"{base}DOWNTIME_DURATION" in environ:
+            rule["downtime"] = float(environ[f"{base}DOWNTIME_DURATION"])
+        if any(key.startswith(f"{base}ACKNOWLEDGE") for key in environ):
+            rule["acknowledge"] = {
+                "sticky": environ.get(f"{base}ACKNOWLEDGE_STICKY") == "True",
+                "persistent": environ.get(f"{base}ACKNOWLEDGE_PERSISTENT") == "True",
+                "notify": environ.get(f"{base}ACKNOWLEDGE_NOTIFY") == "True",
+                "expire": float(environ.get(f"{base}ACKNOWLEDGE_EXPIRE", "0")),
+            }
+        rules.append(rule)
+        nr += 1
+    return rules
+
+
+def find_rule(rules, service, output):
+    """Return the first rule matching service name and plugin output."""
+    for rule in rules:
+        try:
+            if re.match(rule["service_regex"], service) and re.search(rule["output_regex"], output):
+                return rule
+        except re.error as error:
+            print(f"Rule {rule['nr']}: invalid regular expression: {error}")
+    return None
+
+
+def livestatus(query):
+    """Send a query or command to the local Livestatus socket."""
+    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    sock.connect(f"{environ['OMD_ROOT']}/tmp/run/live")
+    sock.sendall(query.encode("utf-8"))
+    sock.shutdown(socket.SHUT_WR)
+    answer = b""
+    while chunk := sock.recv(4096):
+        answer += chunk
+    sock.close()
+    return answer.decode("utf-8")
+
+
+def service_status(host, service):
+    """Return downtime depth, acknowledgement state and downtimes of the service."""
+    answer = livestatus(
+        "GET services\nColumns: scheduled_downtime_depth acknowledged downtimes_with_info\n"
+        f"Filter: host_name = {host}\nFilter: description = {service}\nOutputFormat: json\n"
+    )
+    rows = json.loads(answer or "[]")
+    return rows[0] if rows else [0, 0, []]
+
+
+def clean(text):
+    """Make a value safe for a Livestatus command field."""
+    return text.replace("\n", " ").replace(";", ",")
+
+
+def main():
+    """Apply the actions of the first matching rule to the notified service."""
+    if environ.get("NOTIFY_WHAT") != "SERVICE":
+        print("Host notification, nothing to do")
+        return 0
+    if environ.get("NOTIFY_NOTIFICATIONTYPE") != "PROBLEM":
+        print(f"Notification type {environ.get('NOTIFY_NOTIFICATIONTYPE')}, nothing to do")
+        return 0
+
+    host = environ.get("NOTIFY_HOSTNAME", "")
+    service = environ.get("NOTIFY_SERVICEDESC", "")
+    output = environ.get("NOTIFY_SERVICEOUTPUT", "")
+    target = f"{host}/{service}"
+
+    rule = find_rule(get_rules(), service, output)
+    if not rule:
+        print(f"{target}: no rule matches")
+        return 0
+
+    author = clean(environ.get("NOTIFY_PARAMETER_AUTHOR") or "auto_downtime")
+    comment = clean(rule["comment"] or f"Automatic: summary matches '{rule['output_regex']}'")
+    now = int(time.time())
+    fields = f"{clean(host)};{clean(service)}"
+    try:
+        downtime_depth, acknowledged, downtimes = service_status(host, service)
+        if rule["downtime"] is not None:
+            if downtime_depth:
+                print(f"{target}: rule {rule['nr']}: already in downtime")
+            else:
+                end = now + int(rule["downtime"])
+                livestatus(
+                    f"COMMAND [{now}] SCHEDULE_SVC_DOWNTIME;{fields};{now};{end};1;0;"
+                    f"{end - now};{author};{comment}\n"
+                )
+                print(f"{target}: rule {rule['nr']}: downtime until "
+                      f"{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(end))}")
+        if rule["remove_downtime"] is not None:
+            downtime_ids = [
+                downtime_id
+                for downtime_id, _author, downtime_comment in downtimes
+                if re.search(rule["remove_downtime"], downtime_comment)
+            ]
+            for downtime_id in downtime_ids:
+                livestatus(f"COMMAND [{now}] DEL_SVC_DOWNTIME;{downtime_id}\n")
+            if downtime_ids:
+                print(f"{target}: rule {rule['nr']}: {len(downtime_ids)} downtimes removed")
+            else:
+                print(f"{target}: rule {rule['nr']}: no downtime to remove")
+        if rule["acknowledge"] is not None:
+            ack = rule["acknowledge"]
+            flags = f"{2 if ack['sticky'] else 0};{int(ack['notify'])};{int(ack['persistent'])}"
+            if acknowledged:
+                print(f"{target}: rule {rule['nr']}: already acknowledged")
+            else:
+                command = f"COMMAND [{now}] ACKNOWLEDGE_SVC_PROBLEM;{fields};{flags};{author};{comment}"
+                if ack["expire"]:
+                    end = now + int(ack["expire"])
+                    livestatus(f"{command};{end}\n")
+                    print(f"{target}: rule {rule['nr']}: acknowledged until "
+                          f"{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(end))}")
+                else:
+                    livestatus(f"{command}\n")
+                    print(f"{target}: rule {rule['nr']}: acknowledged")
+    except (OSError, ValueError, re.error) as error:
+        print(f"{target}: Livestatus failed: {error}")
+        return 2
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

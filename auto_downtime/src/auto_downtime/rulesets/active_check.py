@@ -25,10 +25,14 @@ from cmk.rulesets.v1.rule_specs import ActiveCheck, Topic
 
 
 def _validate_action(value):
-    """Require a downtime, an acknowledgement or both."""
-    if "downtime" not in value and "acknowledge" not in value:
+    """Require at least one action and no conflicting downtime actions."""
+    if not any(key in value for key in ("downtime", "acknowledge", "remove_downtime")):
         raise validators.ValidationError(
-            Message("Enable a downtime, an acknowledgement or both.")
+            Message("Enable a downtime, an acknowledgement or the removal of downtimes.")
+        )
+    if "downtime" in value and "remove_downtime" in value:
+        raise validators.ValidationError(
+            Message("A rule cannot schedule and remove downtimes at the same time.")
         )
 
 
@@ -68,7 +72,8 @@ def _rule_element():
                     title=Title("Text in the summary"),
                     help_text=Help(
                         "Regular expression searched in the summary (plugin output) of the "
-                        "service. The rule only applies if it is found."
+                        "service. The rule only applies if it is found. Case-sensitive, "
+                        "prefix it with <tt>(?i)</tt> to ignore the case."
                     ),
                     predefined_help_text=MatchingScope.INFIX,
                     custom_validate=(validators.LengthInRange(min_value=1),),
@@ -84,6 +89,29 @@ def _rule_element():
                     elements={
                         "duration": DictElement(
                             parameter_form=_time_span(Title("Duration of the downtime"), None, 3600.0),
+                            required=True,
+                        ),
+                    },
+                ),
+            ),
+            "remove_downtime": DictElement(
+                parameter_form=Dictionary(
+                    title=Title("Remove downtimes"),
+                    help_text=Help(
+                        "Removes the downtimes of the service, for example when its summary "
+                        "reports the end of a maintenance."
+                    ),
+                    elements={
+                        "comment_regex": DictElement(
+                            parameter_form=RegularExpression(
+                                title=Title("Only downtimes with comment"),
+                                help_text=Help(
+                                    "Regular expression searched in the comment of the "
+                                    "downtime. Leave it empty to remove all downtimes of the "
+                                    "service."
+                                ),
+                                predefined_help_text=MatchingScope.INFIX,
+                            ),
                             required=True,
                         ),
                     },

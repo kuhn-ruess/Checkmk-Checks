@@ -4,22 +4,38 @@
 ![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0-2f4f4f) ![packaged](https://img.shields.io/badge/packaged-2.5.0p16-blue)
 <!-- compatibility-badges:end -->
 
-Active check that looks at the summary (plugin output) of the services of a Checkmk
-site. When host name, service name and a text in the summary match a configured rule,
-it schedules a downtime for the service, acknowledges its problem, or does both. The
-downtime duration and the acknowledgement options are set per rule.
+Looks at the summary (plugin output) of services. When service name and a text in the
+summary match a configured rule, it schedules a downtime for the service, acknowledges
+its problem, removes its existing downtimes, or combines these. The downtime duration,
+the acknowledgement options and a comment filter for the downtimes to remove are set
+per rule.
 
 Typical use: a check reports a known, harmless condition (for example a planned
 maintenance message of an application) and the service should be silenced for a while
-without anyone touching it.
+without anyone touching it. When the application reports the end of the maintenance,
+the downtime is removed again.
 
-## How it works
+The package offers two ways to run it, both with the same rules:
+
+| Mode | Rule | Acts | Talks to |
+| --- | --- | --- | --- |
+| Active check | *Setup > Services > Other services > Automatic downtime and acknowledgement by plugin output* | on all services of the site, on every check interval | REST API, automation user |
+| Notification plugin (action handler) | *Setup > Notifications > Parameters for notification methods > Automatic downtime and acknowledgement*, used as method in a notification rule | on the notified service, right when the problem notification is created | local Livestatus |
+
+The notification plugin acts the moment the problem is notified, without waiting for a
+check interval. Other notifications of that same event (for example mails) still go out,
+later ones are suppressed by the downtime or acknowledgement. The active check also finds
+services that do not notify, can end running downtimes and can filter by host name.
+
+## Active check
+
+### How it works
 
 On every check interval the active check `check_auto_downtime` uses the Checkmk REST
 API with an automation user:
 
 1. `POST /domain-types/service/collections/all` reads host name, service name, state,
-   summary, downtime depth and acknowledgement state of all services.
+   summary, downtime depth, downtimes and acknowledgement state of all services.
 2. For each service the rules are checked in order, the first one wins where
    * the host name matches *Host name* (optional, match from the start),
    * the service name matches *Service name* (match from the start, like service
@@ -30,6 +46,7 @@ API with an automation user:
 | Action | REST endpoint | Skipped when |
 | --- | --- | --- |
 | Downtime | `POST /domain-types/downtime/collections/service`, fixed, from now for the configured duration | the service is already in a downtime |
+| Remove downtimes | `POST /domain-types/downtime/actions/delete/invoke` with the IDs of the downtimes whose comment matches the filter | the service has no such downtime |
 | Acknowledgement | `POST /domain-types/acknowledge/collections/service`, sticky, persistent comment, notification, optional expiry | the service is OK or already acknowledged |
 
 So nothing is set twice on the next check interval. When a downtime has ended and the
@@ -37,7 +54,7 @@ summary still matches, a new downtime is set.
 
 The service of the active check itself is skipped.
 
-## Service state
+### Service state
 
 | Situation | State |
 | --- | --- |
@@ -45,9 +62,24 @@ The service of the active check itself is skipped.
 | At least one downtime or acknowledgement failed (for example missing permission) | CRIT |
 | Services cannot be queried (URL, login, secret, regular expression) | UNKNOWN |
 
-Summary: `5 matching services, 2 downtimes set, 2 acknowledged, 3 already handled`.
-The details list every matching service and what happened to it. Metrics: `matched`,
-`downtimes`, `acknowledged`, `handled`, `errors`.
+Summary: `5 matching services, 2 downtimes set, 1 downtimes removed, 2 acknowledged,
+3 already handled`. The details list every matching service and what happened to it.
+Metrics: `matched`, `downtimes`, `removed`, `acknowledged`, `handled`, `errors`.
+
+## Notification plugin
+
+The script `auto_downtime` handles service notifications of type `PROBLEM` only, host
+notifications and other types are ignored. It matches service name and summary of the
+notified service against the rules, the first matching rule wins, and sends the commands
+to the local Livestatus: `SCHEDULE_SVC_DOWNTIME`, `ACKNOWLEDGE_SVC_PROBLEM`,
+`DEL_SVC_DOWNTIME`. Like the active check it skips a downtime when the service is already
+in one and an acknowledgement when it is already acknowledged. The result is written to
+the notification log (`var/log/notify.log`) and the notification history of the service.
+
+Checkmk sends no notifications while a service is in a downtime. *Remove downtimes* in a
+notification rule therefore only removes downtimes that have not started yet, for
+example a planned maintenance window that is no longer needed. To end a running downtime
+when the summary changes, use the active check.
 
 ## Package contents
 
@@ -56,8 +88,12 @@ The details list every matching service and what happened to it. Metrics: `match
 | `src/auto_downtime/libexec/check_auto_downtime` | Active check executable. |
 | `src/auto_downtime/server_side_calls/active_check.py` | Builds the command line. |
 | `src/auto_downtime/rulesets/active_check.py` | Rule *Automatic downtime and acknowledgement by plugin output*. |
+| `src/notifications/auto_downtime` | Notification plugin. |
+| `src/auto_downtime/rulesets/notification_parameter.py` | Notification parameters *Automatic downtime and acknowledgement*. |
 
 ## Configuration
+
+### Active check
 
 1. Install the MKP.
 2. Create an automation user, for example `auto_downtime`, with permission to see all
@@ -84,23 +120,42 @@ Per rule:
 | --- | --- |
 | Host name | Optional regular expression for the host name, prefix match. |
 | Service name | Regular expression for the service name, prefix match. `.*` matches all services. |
-| Text in the summary | Regular expression searched in the summary of the service. |
+| Text in the summary | Regular expression searched in the summary of the service, case-sensitive. `(?i)` in front ignores the case. |
 | Schedule a downtime | Enables the downtime. *Duration of the downtime* (minimum one minute). |
+| Remove downtimes | Removes the downtimes of the service. *Only downtimes with comment*: regular expression searched in the downtime comment, empty removes all downtimes of the service. |
 | Acknowledge the problem | Enables the acknowledgement. *Sticky*, *Persistent comment*, *Send acknowledgement notification*, *Expire after*. |
 | Comment | Comment of downtime and acknowledgement. Default: names the matching regular expression. |
 
-At least one of *Schedule a downtime* and *Acknowledge the problem* must be enabled,
-both together are fine. Author of downtimes and acknowledgements is the automation user.
+At least one action must be enabled. *Schedule a downtime* and *Remove downtimes* exclude
+each other within one rule, every other combination is fine. Author of downtimes and
+acknowledgements is the automation user.
 
-Example: service name `Application `, text in the summary `maintenance (planned|active)`,
-downtime of 2 hours, acknowledgement sticky.
+Example: rule 1 with service name `Application `, text in the summary
+`maintenance finished` and *Remove downtimes* with comment filter `^Automatic`; rule 2 with
+the same service name, text `maintenance (planned|active)`, downtime of 2 hours,
+acknowledgement sticky. Put the more specific rule first, the first match wins. With the
+comment filter, downtimes set by hand stay untouched.
+
+### Notification plugin
+
+1. Install the MKP.
+2. *Setup > Notifications > Parameters for notification methods > Automatic downtime and
+   acknowledgement*: create a parameter set with the rules. Same rule options as above,
+   without *Host name*; use the conditions of the notification rule for that. Optional
+   *Author of downtime and acknowledgement*, default `auto_downtime`.
+3. Create a notification rule with this method and parameter set, conditions for the
+   services, and a contact (for example a single admin user), since notification
+   plugins only run for a contact. Put it before the rules that send mails.
+4. Activate the changes.
 
 ## Known limitations
 
-* The check acts on its own interval. Between the state change of a service and the next
+* The active check acts on its own interval. Between the state change of a service and the next
   run of the check, notifications for that service can still go out. Delay the
   notification rules for these services (condition *Delay execution for n minutes*) or
   run the check more often.
 * Only the summary is searched, not the long output (details).
 * Expiring acknowledgements need the Checkmk Micro Core (commercial editions).
-* In a distributed setup, point *Checkmk URL* to the central site to cover all sites.
+* In a distributed setup, point *Checkmk URL* to the central site to cover all sites. The
+  notification plugin acts on the site that creates the notification.
+* The notification plugin handles service problems only, no host notifications.
