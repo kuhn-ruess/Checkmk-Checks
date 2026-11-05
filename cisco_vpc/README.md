@@ -1,7 +1,7 @@
 # Cisco VPC
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0-2f4f4f) ![packaged](https://img.shields.io/badge/packaged-2.4.0p18-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.4.0-2f4f4f) ![packaged](https://img.shields.io/badge/packaged-2.5.0p16-blue)
 <!-- compatibility-badges:end -->
 
 Suite of SNMP-based checks for Cisco virtual Port Channel (vPC) redundancy pairs (Nexus). It creates three services per device covering the vPC role / dual-active detection, the peer-keepalive link status and the consistency of host-facing vPC links.
@@ -10,7 +10,7 @@ Suite of SNMP-based checks for Cisco virtual Port Channel (vPC) redundancy pairs
 
 All three sections detect Nexus hardware via a regex match on sysObjectID `.1.3.6.1.4.1.9.12.3.1.3.<4 digits>` and walk `CISCO-VPC-MIB` under `.1.3.6.1.4.1.9.9.807`:
 
-- `cisco_vpc_role` (`.1.2.1.1`) — `cVpcRoleStatus` and `cVpcDualActiveDetectionStatus`. OK when no dual active is detected, optionally WARN if the role differs from the configured expectation.
+- `cisco_vpc_role` (`.1.2.1.1`) — `cVpcRoleStatus` and `cVpcDualActiveDetectionStatus`. Dual active status `1` is CRIT, `2` and the undocumented `0` that some switches report are OK, any other value is UNKNOWN. Optionally WARN if the role differs from the configured expectation.
 - `cisco_vpc_status` (`.1.1.2.1`) — `cVpcPeerKeepAliveStatus`. OK only for status `alive` (2), CRIT otherwise.
 - `cisco_vpc_host_link` (`.1.4.2.1`) — host-link consistency per ifIndex; OK when all entries report `success`, otherwise CRIT per bad interface. Names are resolved against the `if64` section.
 

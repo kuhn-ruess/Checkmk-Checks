@@ -64,10 +64,13 @@ def check_cisco_vpc_role(params, section: StringTable):
         yield Result(state=State.WARN, summary=role_name + " (expected " + expected_role_name + ")")
     else:
         yield Result(state=State.OK, summary=role_name)
-    if len(section[0]) > 1 and section[0][1] == "2":
+    dual_active = section[0][1] if len(section[0]) > 1 else ""
+    if dual_active == "1":
+        yield Result(state=State.CRIT, summary="dual active detected")
+    elif dual_active in ("0", "2"):
         yield Result(state=State.OK, summary="no dual active detected")
     else:
-        yield Result(state=State.CRIT, summary="dual active detected")
+        yield Result(state=State.UNKNOWN, summary=f"unknown dual active status: '{dual_active}'")
 
 
 check_plugin_cisco_vpc_role = CheckPlugin(
