@@ -181,8 +181,12 @@ def _rule_element():
                             parameter_form=RegularExpression(
                                 title=Title("Only acknowledgements with comment"),
                                 help_text=Help(
-                                    "Regular expression searched in the comment of the current "
-                                    "acknowledgement. Without it every acknowledgement of the "
+                                    "Regular expression searched in the acknowledgement comments. "
+                                    "If the newest comment matches, the acknowledgement is "
+                                    "removed. If only older comments match, for example because "
+                                    "someone acknowledged the service by hand afterwards, only "
+                                    "these comments are deleted and the service stays "
+                                    "acknowledged. Without it every acknowledgement of the "
                                     "service is removed."
                                 ),
                                 predefined_help_text=MatchingScope.INFIX,
@@ -256,6 +260,19 @@ def _parameters_auto_downtime():
                     prefill=DefaultValue(True),
                 ),
                 required=True,
+            ),
+            "timeout": DictElement(
+                parameter_form=TimeSpan(
+                    title=Title("Timeout of the REST API requests"),
+                    help_text=Help(
+                        "Applies to each single request. Without it 30 seconds are used. The "
+                        "core ends the whole check when its own check timeout is reached, "
+                        "raise that one too if needed."
+                    ),
+                    displayed_magnitudes=[TimeMagnitude.MINUTE, TimeMagnitude.SECOND],
+                    prefill=DefaultValue(30.0),
+                    custom_validate=(validators.NumberInRange(min_value=1),),
+                ),
             ),
             "rules": DictElement(
                 parameter_form=List(

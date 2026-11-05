@@ -50,7 +50,7 @@ API with an automation user:
 | Downtime | `POST /domain-types/downtime/collections/service`, fixed, from now for the configured duration | the service is already in a downtime |
 | Remove downtimes | `POST /domain-types/downtime/actions/delete/invoke` with the IDs of the downtimes whose comment matches the filter | the service has no such downtime |
 | Acknowledgement | `POST /domain-types/acknowledge/collections/service`, sticky, persistent comment, notification, optional expiry | the service is OK or already acknowledged |
-| Remove acknowledgement | `POST /domain-types/acknowledge/actions/delete/invoke`, only if the comment of the current acknowledgement matches the filter | the service is not acknowledged or the comment does not match |
+| Remove acknowledgement | `POST /domain-types/acknowledge/actions/delete/invoke` if the newest acknowledgement comment matches the filter, `POST /domain-types/comment/actions/delete/invoke` if only older ones match | the service is not acknowledged or no comment matches |
 
 So nothing is set twice on the next check interval. When a downtime has ended and the
 summary still matches, a new downtime is set.
@@ -116,6 +116,7 @@ when the summary changes, use the active check.
 | Automation user | User for the REST API. |
 | Automation secret | Secret of the user, best from the password store. It is passed as password store reference, never in plain text on the command line. |
 | Verify the SSL certificate | Default on. |
+| Timeout of the REST API requests | Per request, default 30 seconds. The check timeout of the core still limits the whole run. |
 | Rules | List of rules, see below. |
 
 Per rule:
@@ -128,7 +129,7 @@ Per rule:
 | Schedule a downtime | Enables the downtime. *Duration of the downtime* (minimum one minute). |
 | Remove downtimes | Removes the downtimes of the service. *Only downtimes with comment*: regular expression searched in the downtime comment, empty removes all downtimes of the service. |
 | Acknowledge the problem | Enables the acknowledgement. *Sticky*, *Persistent comment*, *Send acknowledgement notification*, *Expire after*. |
-| Remove the acknowledgement | Active check only. Removes the acknowledgement of the service, for example when the summary reports that the acknowledged problem is gone. *Only acknowledgements with comment*: regular expression searched in the comment of the current (newest) acknowledgement; not set removes every acknowledgement. A service has only one acknowledgement, so it is removed completely or not at all. |
+| Remove the acknowledgement | Active check only. Removes the acknowledgement of the service, for example when the summary reports that the acknowledged problem is gone. *Only acknowledgements with comment*: regular expression searched in the acknowledgement comments; not set removes every acknowledgement. If the newest comment matches, the acknowledgement is removed completely. If only older comments match, for example because someone acknowledged the service by hand after the automatic acknowledgement, only these comments are deleted and the service stays acknowledged. |
 | Comment | Comment of downtime and acknowledgement. Default: names the matching regular expression. |
 
 At least one action must be enabled. *Schedule a downtime* and *Remove downtimes* exclude

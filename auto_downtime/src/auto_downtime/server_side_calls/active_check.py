@@ -28,6 +28,8 @@ def auto_downtime_commands(params, host_config):
     ]
     if params.get("url"):
         args += ["--url", params["url"]]
+    if params.get("timeout"):
+        args += ["--timeout", str(params["timeout"])]
     if not params["verify_ssl"]:
         args.append("--no-verify-ssl")
     yield ActiveCheckCommand(service_description=params["description"], command_arguments=args)

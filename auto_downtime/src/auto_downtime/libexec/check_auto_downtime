@@ -191,6 +191,15 @@ class Api:
             "service_description": service["description"],
         })
 
+    def delete_comments(self, comment_ids):
+        """Delete the given comments, the acknowledgement of the service stays."""
+        self.post("/domain-types/comment/actions/delete/invoke", {
+            "delete_type": "query",
+            "query": {"op": "or", "expr": [
+                {"op": "=", "left": "id", "right": str(comment_id)} for comment_id in comment_ids
+            ]},
+        })
+
 
 def removable_downtimes(rule, service):
     """Return the IDs of the downtimes the rule removes from the service."""
@@ -203,14 +212,18 @@ def removable_downtimes(rule, service):
 
 
 def removable_acknowledgement(rule, service):
-    """Return whether the rule removes the acknowledgement of the service."""
+    """Return whether the whole acknowledgement goes, else the IDs of the older comments to delete."""
     comment_regex = rule["remove_acknowledge"].get("comment_regex")
     if not comment_regex:
-        return True
-    ack_comments = [entry for entry in service["comments_with_extra_info"] if entry[3] == 4]
-    if not ack_comments:
-        return False
-    return bool(re.search(comment_regex, max(ack_comments, key=lambda entry: entry[4])[2]))
+        return True, []
+    ack_comments = sorted(
+        (entry for entry in service["comments_with_extra_info"] if entry[3] == 4),
+        key=lambda entry: entry[4],
+    )
+    matching = [entry for entry in ack_comments if re.search(comment_regex, entry[2])]
+    if matching and matching[-1] is ack_comments[-1]:
+        return True, []
+    return False, [entry[0] for entry in matching]
 
 
 def handle(api, actions, service, counters):
@@ -244,10 +257,14 @@ def handle(api, actions, service, counters):
             if not service["acknowledged"]:
                 lines.append(f"{name}: no acknowledgement to remove")
                 continue
-            if not removable_acknowledgement(rule, service):
+            remove_whole, comment_ids = removable_acknowledgement(rule, service)
+            if remove_whole:
+                label, action = "acknowledgement removal", lambda: api.remove_acknowledgement(service)
+            elif comment_ids:
+                label, action = "acknowledgement comment removal", lambda: api.delete_comments(comment_ids)
+            else:
                 lines.append(f"{name}: acknowledgement comment does not match")
                 continue
-            label, action = "acknowledgement removal", lambda: api.remove_acknowledgement(service)
         try:
             result = action()
         except (requests.RequestException, RuntimeError) as error:
@@ -265,7 +282,13 @@ def handle(api, actions, service, counters):
             lines.append(f"{name}: acknowledged (rule {rule['nr']})")
         else:
             counters["ack_removed"] += 1
-            lines.append(f"{name}: acknowledgement removed (rule {rule['nr']})")
+            if comment_ids:
+                lines.append(
+                    f"{name}: {len(comment_ids)} older acknowledgement comments removed, "
+                    f"newer acknowledgement stays (rule {rule['nr']})"
+                )
+            else:
+                lines.append(f"{name}: acknowledgement removed (rule {rule['nr']})")
     return lines
 
 
