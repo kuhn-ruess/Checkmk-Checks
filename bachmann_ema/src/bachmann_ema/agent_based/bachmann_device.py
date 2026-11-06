@@ -52,7 +52,7 @@ def discover_bluenet_device(section):
     for name, data in section.items():
         labels = []
         if data['friendly_name']:
-            labels.append(ServiceLabel("device_friendly_name", data['friendly_name']))
+            labels.append(ServiceLabel("device_raw_name", data['friendly_name']))
         yield Service(item=name, labels=labels)
 
 

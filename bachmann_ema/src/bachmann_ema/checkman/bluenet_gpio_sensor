@@ -18,5 +18,5 @@ item:
  {Slave-2 GPIO Internal}.
 
 discovery:
- One service per GPIO sensor. The service label {device_friendly_name}
+ One service per GPIO sensor. The service label {device_raw_name}
  holds the friendly name of the PDU.

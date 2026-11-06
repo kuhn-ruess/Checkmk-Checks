@@ -30,7 +30,7 @@ It joins two tables:
 
 Sensors are recognised as GPIO by their type OID (`.1.3.6.1.4.1.31770.2.1.8.3` external, `.1.3.6.1.4.1.31770.2.1.8.16` internal), with a fallback on a name starting with `GPIO`. Internal and external sensors are separate services; the type is part of the item name and of the check output.
 
-Each service carries the service label `device_friendly_name:<friendly name of the PDU>`, so the rack position is available for filtering, views and NagVis/Orbvis hover menus.
+Each service carries the service label `device_raw_name:<friendly name of the PDU>`, so the rack position is available for filtering, views and NagVis/Orbvis hover menus.
 
 State mapping (BlueNet2 `EntityState`): `on` and `ok` are OK; `expected`, `off`, `lost`, `alarm`, `errorHigh/Low`, `updateError` and the child alarm states are CRIT; the warning states, `disabled` and `updateInProgress` are WARN; anything unmapped is UNKNOWN. A sensor that vanished from the SNMP data is CRIT.
 
@@ -38,7 +38,7 @@ State mapping (BlueNet2 `EntityState`): `on` and `ok` are OK; `expected`, `off`,
 
 ## PDU state
 
-The plugin [`bachmann_device.py`](src/bachmann_ema/agent_based/bachmann_device.py) registers an SNMP section `bluenet_device` (same detection as `bluenet_gpio_sensor`) on the device table `.1.3.6.1.4.1.31770.2.2.4.2.1`: `3` name, `4` friendly name, `7` state, `11` part number. It creates one service `PDU <name>` per PDU of the chain (`PDU Master`, `PDU Slave-1`, ...), with the same state mapping as above. A failed slave PDU shows up as `Status: expected` and is CRIT; a PDU that vanished from the device table is CRIT as well. Each service carries the label `device_friendly_name`.
+The plugin [`bachmann_device.py`](src/bachmann_ema/agent_based/bachmann_device.py) registers an SNMP section `bluenet_device` (same detection as `bluenet_gpio_sensor`) on the device table `.1.3.6.1.4.1.31770.2.2.4.2.1`: `3` name, `4` friendly name, `7` state, `11` part number. It creates one service `PDU <name>` per PDU of the chain (`PDU Master`, `PDU Slave-1`, ...), with the same state mapping as above. A failed slave PDU shows up as `Status: expected` and is CRIT; a PDU that vanished from the device table is CRIT as well. Each service carries the label `device_raw_name`.
 
 ## Package contents
 
@@ -62,11 +62,11 @@ The plugin [`bachmann_device.py`](src/bachmann_ema/agent_based/bachmann_device.p
 - **State logic:** CRIT when the entity state is `armed` (39) or a missing/broken entity state; otherwise OK.
 - **Metrics:** none.
 - **Service:** `GPIO Sensor %s` (item: `<device> <sensor>`, e.g. `Master GPIO S1`, `Slave-2 GPIO Internal`)
-- **Service label:** `device_friendly_name:<friendly name of the PDU>`
+- **Service label:** `device_raw_name:<friendly name of the PDU>`
 - **State logic:** see the state mapping above.
 - **Metrics:** none.
 - **Service:** `PDU %s` (item: `Master`, `Slave-1`, ...)
-- **Service label:** `device_friendly_name:<friendly name of the PDU>`
+- **Service label:** `device_raw_name:<friendly name of the PDU>`
 - **State logic:** see the state mapping above.
 - **Metrics:** none.
 

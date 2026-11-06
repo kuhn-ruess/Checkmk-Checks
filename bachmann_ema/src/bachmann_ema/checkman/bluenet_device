@@ -16,5 +16,5 @@ item:
  The name of the PDU, e.g. {Master} or {Slave-1}.
 
 discovery:
- One service per PDU. The service label {device_friendly_name} holds the
+ One service per PDU. The service label {device_raw_name} holds the
  friendly name of the PDU.

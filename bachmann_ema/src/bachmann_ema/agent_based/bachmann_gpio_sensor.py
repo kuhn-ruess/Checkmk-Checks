@@ -118,7 +118,7 @@ def discover_bluenet_gpio_sensor(section):
     for sensor, data in section.items():
         labels = []
         if data['device_friendly_name']:
-            labels.append(ServiceLabel("device_friendly_name", data['device_friendly_name']))
+            labels.append(ServiceLabel("device_raw_name", data['device_friendly_name']))
         yield Service(item=sensor, labels=labels)
 
 

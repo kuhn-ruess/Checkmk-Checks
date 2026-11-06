@@ -9,6 +9,6 @@
                                  'bachmann_ema/checkman/bluenet_gpio_sensor']},
  'name': 'bachmann_ema',
  'title': 'Bachmann Ema Monitoring',
- 'version': '1.3.0',
+ 'version': '2.0.0',
  'version.min_required': '2.3.0p1',
  'version.packaged': '2.4.0p19'}
