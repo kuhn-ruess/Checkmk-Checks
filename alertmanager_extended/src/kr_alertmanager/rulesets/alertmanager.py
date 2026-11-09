@@ -156,13 +156,13 @@ def form_severity_state():
             ),
         },
         title=Title("Use the severity states to remap alerts."),
-        help_text=Help("Severity levels map automatically fireing rules to the configured Severity."),
+        help_text=Help("Severity levels map firing rules automatically to the configured Severity."),
 
     )
 
 def _check_parameters_form_alertmanager():
     return Dictionary(
-        title=Title("Alert manager rule state"),
+        title=Title("Alertmanager rule state"),
         elements={
             "alert_remapping": DictElement(parameter_form=form_alert_remapping()),
             "severity_remapping": DictElement(parameter_form=form_severity_remapping()),
@@ -185,6 +185,6 @@ rule_spec_alertmanager_rule_state_summary = CheckParameters(
     name="alertmanager_rule_state_summary_custom",
     topic=Topic.APPLICATIONS,
     parameter_form=_check_parameters_form_alertmanager,
-    title=Title("Alertmanager rule states (Summary) (extened)"),
+    title=Title("Alertmanager rule states (summary, extended)"),
     condition=HostCondition(),
 )

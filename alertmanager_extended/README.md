@@ -1,7 +1,7 @@
 # Alertmanager with Severity Mapping
 
 <!-- compatibility-badges:start -->
-![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0-2f4f4f) ![packaged](https://img.shields.io/badge/packaged-2.4.0-blue)
+![Checkmk min](https://img.shields.io/badge/Checkmk%20min-2.3.0-2f4f4f) ![packaged](https://img.shields.io/badge/packaged-2.5.0-blue)
 <!-- compatibility-badges:end -->
 
 Drop-in replacement for the built-in Checkmk Alertmanager check that adds severity remapping and lets you drive service state from the alert severity instead of only the `firing` state. Works for both alert rules and alert groups from version 1.4 of the plugin onwards.
@@ -40,9 +40,9 @@ The shipped Alertmanager plugin must be removed manually, because the package on
       become: true
 ```
 
-### Checkmk 2.4
+### Checkmk 2.4 and 2.5
 
-No manual cleanup required. The overrides from the MKP take precedence out of the box.
+No manual cleanup required. The overrides from the MKP take precedence out of the box. Checkmk 2.5 still ships no severity remapping, so the package is still needed there.
 
 ## Known limitations
 

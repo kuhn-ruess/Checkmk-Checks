@@ -5,8 +5,8 @@
 """Alertmanager Check"""
 
 import json
-from enum import StrEnum # type: ignore
-from typing import NamedTuple, TypedDict # type: ignore
+from enum import StrEnum
+from typing import NamedTuple, TypedDict
 
 from cmk.agent_based.v2 import (
     AgentSection,
@@ -119,12 +119,24 @@ def _get_mapping(rule: Rule, params: CheckParams) -> StateMapping | None:
             return mapping["map"]
     return None
 
+
 def _get_severity(params: CheckParams, severity: str) -> str:
-    """ Get individual Severity """
+    """Translate a custom severity name to the Checkmk severity"""
     if mapping := params.get("severity_remapping"):
-        severities = {y:x for x,y in mapping.items()}
-        return Severity(severities.get(severity, 'uknown')).value
+        severities = {custom: name for name, custom in mapping.items()}
+        severity = severities.get(severity, Severity.NA)
     return Severity(severity).value
+
+
+def _severity_state(params: CheckParams, severity: str, status: State) -> State:
+    """Derive the state of an active alert from its severity, if enabled"""
+    if status == State.OK or not params.get("severity_state", {}).get("sev_state"):
+        return status
+    if severity in (Severity.CRITICAL, Severity.ALERT):
+        return State.CRIT
+    if severity in (Severity.WARNING, Severity.ERROR):
+        return State.WARN
+    return State.OK
 
 
 def _create_group_service(group_name: str, group: Group, params: DiscoveryParams) -> bool:
@@ -188,27 +200,14 @@ def check_alertmanager_rules(item: str, params: CheckParams, section: Section) -
         rule = group.get(item)
         if rule:
             status = _get_rule_state(rule, params)
-            if severity := _get_severity(params, rule.severity):
-                if status != State.OK:
-                    # Overwrite Severity if is firing
-                    if severity_state := params.get("severity_state",{}):
-                        if severity_state['sev_state']:
-                            if severity == 'critical' or severity == 'alert':
-                                status = State.CRIT
-                            elif severity == 'warning' or severity == 'error':
-                                status = State.WARN
-                            else:
-                                status = State.OK
-                if severity != 'not_applicable':
-                    yield Result(
-                        state=State.OK,
-                        summary="Severity: %s" % severity,
-                    )
+            severity = _get_severity(params, rule.severity)
+            status = _severity_state(params, severity, status)
+            if severity != Severity.NA:
+                yield Result(state=State.OK, summary=f"Severity: {severity}")
             yield Result(
                 state=State.OK,
                 summary="Group name: %s" % rule.group_name,
             )
-
             if status != State.OK:
                 yield Result(
                     state=status,
@@ -252,22 +251,10 @@ def check_alertmanager_groups(item: str, params: CheckParams, section: Section) 
         yield Result(state=State.OK, summary="Number of rules: %s" % len(group))
         for rule in group.values():
             status = _get_rule_state(rule, params)
-            if severity := _get_severity(params, rule.severity):
-                if status != State.OK:
-                    # Overwrite Severity if is firing
-                    if severity_state := params.get("severity_state",{}):
-                        if severity_state['sev_state']:
-                            if severity == 'critical' or severity == 'alert':
-                                status = State.CRIT
-                            elif severity == 'warning' or severity == 'error':
-                                status = State.WARN
-                            else:
-                                status = State.OK
-                if severity != 'not_applicable':
-                    yield Result(
-                        state=State.OK,
-                        summary="Severity: %s" % severity,
-                    )
+            severity = _get_severity(params, rule.severity)
+            status = _severity_state(params, severity, status)
+            if severity != Severity.NA:
+                yield Result(state=State.OK, summary=f"Severity: {severity}")
             if status != State.OK:
                 yield Result(
                     state=status,
@@ -311,21 +298,8 @@ def check_alertmanager_summary(params: CheckParams, section: Section) -> CheckRe
     for rules in section.values():
         for rule in rules.values():
             status = _get_rule_state(rule, params)
-            if severity := _get_severity(params, rule.severity):
-                print("got severity: %s" % severity)
-                if status != State.OK:
-                    # Overwrite Severity if is firing
-                    if severity_state := params.get("severity_state",{}):
-                        if severity_state['sev_state']:
-                            if severity == 'critical' or severity == 'alert':
-                                status = State.CRIT
-                                print("set status to CRIT")
-                            elif severity == 'warning' or severity == 'error':
-                                status = State.WARN
-                                print("set status to WARN")
-                            else:
-                                status = State.OK
-                                print("set status to OK")
+            severity = _get_severity(params, rule.severity)
+            status = _severity_state(params, severity, status)
             if status != State.OK:
                 yield Result(
                     state=status,

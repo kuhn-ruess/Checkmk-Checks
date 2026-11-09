@@ -15,7 +15,7 @@
  'files': {'cmk_addons_plugins': ['kr_alertmanager/rulesets/alertmanager.py'],
            'cmk_plugins': ['collection/agent_based/alertmanager.py']},
  'name': 'alertmanager_extended',
- 'title': 'Alertmanager with Severtiy Mapping',
- 'version': '1.4.3',
+ 'title': 'Alertmanager with Severity Mapping',
+ 'version': '1.4.4',
  'version.min_required': '2.3.0',
- 'version.packaged': '2.4.0'}
+ 'version.packaged': '2.5.0'}
