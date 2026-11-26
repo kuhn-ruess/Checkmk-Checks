@@ -1,0 +1,19 @@
+title: APC NetBotz: Cameras
+agents: snmp
+catalog: hw/environment
+license: GPLv2
+distribution: kuhn-ruess
+description:
+ This check monitors cameras connected to APC NetBotz appliances via SNMP
+ (NetBotz50-MIB, cameraTable). The summary shows label, model and IP
+ address of the camera.
+
+ The service is {OK} if the camera is connected, {CRIT} if it is
+ disconnected and {UNKNOWN} if the status is unknown. An error status of
+ the camera adds {WARN} (warning) or {CRIT} (error, critical, failure).
+
+item:
+ The camera id as reported by the device.
+
+discovery:
+ One service is created for each camera.

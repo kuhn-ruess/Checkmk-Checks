@@ -1,0 +1,19 @@
+title: APC NetBotz: Motion sensors
+agents: snmp
+catalog: hw/environment
+license: GPLv2
+distribution: kuhn-ruess
+description:
+ This check monitors motion sensors of APC NetBotz cameras via SNMP
+ (NetBotz50-MIB, motionSensorTable).
+
+ The service is {OK} if no motion is detected. Detected motion is {OK} by
+ default, the state can be set with the rule "APC NetBotz motion sensors".
+ An undefined value is {UNKNOWN}. An error status of the sensor adds
+ {WARN} (warning) or {CRIT} (error, critical, failure).
+
+item:
+ The sensor id as reported by the device.
+
+discovery:
+ One service is created for each motion sensor.

@@ -1,0 +1,18 @@
+title: APC NetBotz: Smoke sensors
+agents: snmp
+catalog: hw/environment
+license: GPLv2
+distribution: kuhn-ruess
+description:
+ This check monitors smoke sensors of APC NetBotz appliances via SNMP
+ (NetBotz50-MIB, smokeSensorTable).
+
+ The service is {OK} if no smoke is detected, {CRIT} if smoke is detected
+ and {UNKNOWN} if the value is undefined. An error status of the sensor
+ adds {WARN} (warning) or {CRIT} (error, critical, failure).
+
+item:
+ The sensor id as reported by the device.
+
+discovery:
+ One service is created for each smoke sensor.

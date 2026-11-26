@@ -1,0 +1,21 @@
+title: APC NetBotz: Enclosures
+agents: snmp
+catalog: hw/environment
+license: GPLv2
+distribution: kuhn-ruess
+description:
+ This check monitors the enclosures of APC NetBotz appliances via SNMP
+ (NetBotz50-MIB, enclosureTable): the appliance itself, sensor pods,
+ probes and wireless coordinators. The details show serial number, parent
+ enclosure and, where available, model, hardware revision and firmware.
+
+ The service is {OK} if the enclosure status is normal and {CRIT} if it is
+ disconnected or in error. An error status of the enclosure adds {WARN}
+ (warning) or {CRIT} (error, critical, failure). The appliance enclosure
+ also evaluates the global NetBotz error status the same way.
+
+item:
+ The enclosure id as reported by the device.
+
+discovery:
+ One service is created for each enclosure.
