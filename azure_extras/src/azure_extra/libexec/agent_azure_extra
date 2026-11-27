@@ -143,6 +143,8 @@ class AzureExtraAgent:
         print(f"<<<azure_extra_{resource_type_display}:sep(0)>>>")
         
         properties = resource.get("properties", {}).copy()
+        if resource_type_key == "azurefirewalls":
+            self.add_public_ip_addresses(properties)
         properties["_resource_name"] = resource_name
         properties["_resource_id"] = resource.get("id", "")
         properties["_resource_group"] = resource.get("id", "").split("/resourceGroups/")[1].split("/")[0] if "/resourceGroups/" in resource.get("id", "") else ""
@@ -234,6 +236,34 @@ class AzureExtraAgent:
             except Exception as e:
                 self._log(f"Error getting metric {metric_name} for {resource_name}: {e}")
     
+    def get_public_ip_address(self, resource_id):
+        """Return the IP address of a public IP address resource, or None."""
+        url = f"https://management.azure.com{resource_id}"
+        headers = {
+            "Authorization": f"Bearer {self.access_token}",
+            "Content-Type": "application/json",
+        }
+        proxies = {"http": self.proxy_url, "https": self.proxy_url} if self.proxy_url else None
+        try:
+            resp = requests.get(url, headers=headers, params={"api-version": "2023-05-01"}, proxies=proxies)
+            resp.raise_for_status()
+            return resp.json().get("properties", {}).get("ipAddress")
+        except Exception as e:
+            self._log(f"Error getting public IP address {resource_id}: {e}")
+            return None
+
+    def add_public_ip_addresses(self, properties):
+        """Add the address of each referenced public IP resource to the firewall IP configurations."""
+        ip_configs = list(properties.get("ipConfigurations", []))
+        if isinstance(properties.get("managementIpConfiguration"), dict):
+            ip_configs.append(properties["managementIpConfiguration"])
+        for ip_config in ip_configs:
+            public_ip = ip_config.get("properties", {}).get("publicIPAddress")
+            if isinstance(public_ip, dict) and public_ip.get("id"):
+                address = self.get_public_ip_address(public_ip["id"])
+                if address:
+                    public_ip["ipAddress"] = address
+
     def run(self):
         """Main execution method to process all Azure resources."""
         self.get_token()

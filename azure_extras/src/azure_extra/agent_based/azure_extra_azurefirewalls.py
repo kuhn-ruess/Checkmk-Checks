@@ -13,7 +13,8 @@ from cmk.agent_based.v2 import (
     Service,
     State,
     Result,
-    Metric,
+    check_levels,
+    render,
 )
 
 
@@ -136,13 +137,26 @@ def discover_firewalls(section):
         yield Service(item=name)
 
 
+def ip_addresses(data):
+    """
+    Return the private IP, public IP address and public IP resource of an IP configuration.
+    """
+    public_ip = data.get('publicIPAddress', {})
+    return {
+        'private_ip': data.get('privateIPAddress'),
+        'public_ip': public_ip.get('ipAddress'),
+        'public_ip_resource': short_id(public_ip.get('id')),
+    }
+
+
 def discover_ip_configs(section):
     """
-    Discover Azure Firewall IP Configurations
+    Discover Azure Firewall IP Configurations and remember their addresses
     """
     ip_configs = section.get('ip_configs', {})
-    for name in ip_configs:
-        yield Service(item=name)
+    for name, data in ip_configs.items():
+        discovered = {key: value for key, value in ip_addresses(data).items() if value}
+        yield Service(item=name, parameters={'discovered_addresses': discovered})
 
 
 def discover_rule_collections(section):
@@ -212,7 +226,7 @@ def check_firewall(item, section):
     )
 
 
-def check_ip_config(item, section):
+def check_ip_config(item, params, section):
     """
     Check Azure Firewall IP Configuration
     """
@@ -233,15 +247,21 @@ def check_ip_config(item, section):
     
     kind = data.get('kind', 'data')
     config_type = 'Management' if kind == 'management' else 'Data plane'
-    private_ip = data.get('privateIPAddress')
+    addresses = ip_addresses(data)
+    private_ip = addresses['private_ip']
     allocation_method = data.get('privateIPAllocationMethod')
-    public_ip = short_id(data.get('publicIPAddress', {}).get('id'))
+    public_ip = addresses['public_ip']
+    public_ip_resource = addresses['public_ip_resource']
     subnet = short_id(data.get('subnet', {}).get('id'))
+
+    public_ip_text = public_ip or public_ip_resource or 'None'
+    if public_ip and public_ip_resource:
+        public_ip_text = f"{public_ip} ({public_ip_resource})"
 
     summary_parts = [f"State: {provisioning_state}", f"Type: {config_type}"]
     if private_ip:
         summary_parts.append(f"Private IP: {private_ip}")
-    summary_parts.append(f"Public IP: {public_ip if public_ip else 'None'}")
+    summary_parts.append(f"Public IP: {public_ip_text}")
 
     private_ip_text = None
     if private_ip:
@@ -252,6 +272,7 @@ def check_ip_config(item, section):
         ("Configuration Type", config_type),
         ("Private IP", private_ip_text),
         ("Public IP", public_ip),
+        ("Public IP Resource", public_ip_resource),
         ("Subnet", subnet),
     ])
 
@@ -260,6 +281,30 @@ def check_ip_config(item, section):
         summary="; ".join(summary_parts),
         details=details,
     )
+
+    discovered = params.get('discovered_addresses')
+    if discovered is None:
+        yield Result(
+            state=State.OK,
+            notice="No addresses stored at discovery, rediscover the service to enable change detection",
+        )
+        return
+
+    labels = {
+        'private_ip': "Private IP",
+        'public_ip': "Public IP",
+        'public_ip_resource': "Public IP resource",
+    }
+    change_state = State(params.get('state_changed', State.CRIT.value))
+    for key, label in labels.items():
+        expected = discovered.get(key)
+        current = addresses[key]
+        if expected and current != expected:
+            yield Result(
+                state=change_state,
+                summary=f"{label} changed from {expected} to {current or 'None'} "
+                        "(rediscover the service to accept)",
+            )
 
 
 def check_rule_collection(item, section):
@@ -364,7 +409,24 @@ def discover_firewall_metrics(section):
         yield Service(item=resource_name)
 
 
-def check_firewall_metrics(item, section):
+def render_bits_per_second(value):
+    """
+    Render a bit rate given in bits per second.
+    """
+    return render.networkbandwidth(value / 8)
+
+
+def mbit_levels(levels):
+    """
+    Convert levels configured in Mbit/s to bits per second.
+    """
+    if not levels or levels[0] != "fixed":
+        return levels
+    warn, crit = levels[1]
+    return ("fixed", (warn * 1000000, crit * 1000000))
+
+
+def check_firewall_metrics(item, params, section):
     """
     Check Azure Firewall Metrics (FirewallHealth, NetworkRuleHit, Throughput)
     """
@@ -373,22 +435,40 @@ def check_firewall_metrics(item, section):
         yield Result(state=State.UNKNOWN, summary=f"No metrics for {item}")
         return
 
-    firewall_health = metrics.get('FirewallHealth')
-    if firewall_health is not None:
-        value = firewall_health.get('value')
-        if value is not None:
-            health_state = State.OK if value >= 90 else (State.WARN if value >= 50 else State.CRIT)
-            yield Result(state=health_state, summary=f"Firewall Health: {value:.1f}%")
-            yield Metric("firewall_health", value)
+    def value_of(metric_name):
+        """Return the value of an Azure metric or None."""
+        return (metrics.get(metric_name) or {}).get('value')
 
-    for metric_name in ('NetworkRuleHit', 'Throughput'):
-        metric_data = metrics.get(metric_name)
-        if metric_data is not None:
-            value = metric_data.get('value')
-            if value is not None:
-                unit = metric_data.get('unit', '')
-                yield Result(state=State.OK, summary=f"{metric_name}: {value:.2f} {unit}".strip())
-                yield Metric(metric_name.lower(), value)
+    health = value_of('FirewallHealth')
+    if health is not None:
+        yield from check_levels(
+            health,
+            levels_lower=params.get('firewall_health'),
+            metric_name="firewall_health",
+            render_func=render.percent,
+            label="Firewall health",
+        )
+
+    rule_hits = value_of('NetworkRuleHit')
+    if rule_hits is not None:
+        yield from check_levels(
+            rule_hits,
+            levels_upper=params.get('network_rule_hits'),
+            metric_name="networkrulehit",
+            render_func=lambda v: f"{v:.0f}/min",
+            label="Network rule hits",
+        )
+
+    throughput = value_of('Throughput')
+    if throughput is not None:
+        yield from check_levels(
+            throughput,
+            levels_upper=mbit_levels(params.get('throughput_upper')),
+            levels_lower=mbit_levels(params.get('throughput_lower')),
+            metric_name="throughput",
+            render_func=render_bits_per_second,
+            label="Throughput",
+        )
 
 
 agent_section_azure_extra_azurefirewalls = AgentSection(
@@ -416,6 +496,8 @@ check_plugin_azure_firewall_ipconfig = CheckPlugin(
     service_name="Azure Firewall IP Config %s",
     discovery_function=discover_ip_configs,
     check_function=check_ip_config,
+    check_ruleset_name="azure_firewall_ipconfig",
+    check_default_parameters={'state_changed': State.CRIT.value},
 )
 
 check_plugin_azure_firewall_rules = CheckPlugin(
@@ -440,4 +522,11 @@ check_plugin_azure_firewall_metrics = CheckPlugin(
     service_name="Azure Firewall Metrics %s",
     discovery_function=discover_firewall_metrics,
     check_function=check_firewall_metrics,
+    check_ruleset_name="azure_firewall_metrics",
+    check_default_parameters={
+        'firewall_health': ("fixed", (90.0, 50.0)),
+        'network_rule_hits': ("no_levels", None),
+        'throughput_upper': ("no_levels", None),
+        'throughput_lower': ("no_levels", None),
+    },
 )

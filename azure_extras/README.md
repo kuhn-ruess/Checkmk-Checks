@@ -59,9 +59,16 @@ Examples of service name patterns created by the check plugins:
 - `Azure VNet Gateway %s`, `Azure VNet Gateway BGP %s`, `Azure VNet Gateway VPN Client %s`, `Azure VNet Gateway Remote Peering %s`
 - `Azure Connection %s`
 
-State is derived from `provisioningState` and resource specific fields; these checks currently do not report numeric metrics.
+State is derived from `provisioningState` and resource specific fields.
+
+`Azure Firewall Metrics %s` shows the firewall health, the network rule hits per minute and the throughput (as bit rate) from Azure Monitor. Levels are set with the rule *Azure Extra: Firewall metrics* (health defaults to WARN below 90%, CRIT below 50%).
+
+`Azure Firewall IP Config %s` stores the private IP, the public IP address and the public IP resource at discovery. A change is CRIT until the service is discovered again; the state is set with the rule *Azure Extra: Firewall IP configuration*.
+
+## Changelog
+
+- 1.4.0: firewall metrics with readable units, graph definitions and levels by rule; firewall IP configuration shows the public IP address and alerts when an address changes.
 
 ## Known limitations
 
-- Metric collection (`microsoft.insights/metrics`) is defined in the agent but commented out; only ARM property data is shipped.
 - Hosts are identified via piggyback using Azure resource names, so they must exist as Checkmk hosts (or be auto-created) for services to appear.

@@ -1,0 +1,23 @@
+title: Azure Firewall: IP Configuration
+agents: azure
+catalog: cloud/azure
+license: GPLv2
+distribution: kuhn-ruess
+description:
+ This check monitors an IP configuration (data plane or management) of an
+ Azure Firewall. It shows the provisioning state, the private IP, the public
+ IP address and the name of the public IP resource. {Succeeded} is {OK},
+ {Failed} and {Canceled} are {CRIT}, every other state is {WARN}.
+
+ The private IP, the public IP address and the public IP resource are stored
+ when the service is discovered. If one of them changes, the service is
+ {CRIT} until the service is discovered again, which accepts the new
+ addresses. The state can be changed with the rule "Azure Extra: Firewall IP
+ configuration". Services discovered with an older version of the plugin have
+ no stored addresses and need one rediscovery to enable the change detection.
+
+item:
+ The firewall name and the IP configuration name, joined by "_".
+
+discovery:
+ One service is created for each IP configuration of a firewall.

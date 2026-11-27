@@ -1,0 +1,25 @@
+title: Azure Firewall: Metrics
+agents: azure
+catalog: cloud/azure
+license: GPLv2
+distribution: kuhn-ruess
+description:
+ This check evaluates the Azure Monitor metrics of an Azure Firewall that the
+ Azure Extra special agent collects: the firewall health in percent, the
+ network rule hits within the last minute and the average throughput of the
+ last minute.
+
+ The firewall health is {WARN} below 90% and {CRIT} below 50% by default.
+ Upper levels for the network rule hits and upper and lower levels for the
+ throughput (in Mbit/s) can be set with the rule "Azure Extra: Firewall
+ metrics". They have no levels by default.
+
+item:
+ The name of the firewall.
+
+discovery:
+ One service is created for each firewall that reports metrics.
+
+perfdata:
+ firewall_health (percent), networkrulehit (hits per minute) and
+ throughput (bits per second).
