@@ -10,6 +10,9 @@ behind. Uploads go to the Exchange review queue (not instantly live).
 Credentials come from the environment (never hard-coded, never committed):
     EXCHANGE_USER      e-mail / login
     EXCHANGE_PASSWORD  password  (if unset, you are prompted with getpass)
+    EXCHANGE_SESSION   value of the checkmk_exchange_session cookie of a browser
+                       login; used instead of user/password, because the login
+                       form now requires a CAPTCHA
 
 Usage:
     EXCHANGE_USER=you@example.com EXCHANGE_PASSWORD=... \
@@ -86,6 +89,26 @@ class Exchange:
             "Referer": BASE + "/login",
         })
         # verify
+        code, html, _ = self._req("GET", "/", follow=True)
+        m = re.search(r'data-page="([^"]+)"', html.decode("utf-8", "replace"))
+        who = None
+        if m:
+            page = json.loads(__import__("html").unescape(m.group(1)))
+            who = ((page.get("props", {}).get("auth") or {}).get("user") or {}).get("username")
+        if not who:
+            raise RuntimeError("login failed (no authenticated user in session)")
+        return who
+
+    def use_session(self, session_cookie):
+        """Reuse a browser session (login needs a CAPTCHA) and verify it."""
+        self.cj.set_cookie(http.cookiejar.Cookie(
+            0, "checkmk_exchange_session", session_cookie, None, False,
+            "exchange.checkmk.com", False, False, "/", True, True, None, False,
+            None, None, {}))
+        return self.whoami()
+
+    def whoami(self):
+        """Username of the logged in session, raises if not logged in."""
         code, html, _ = self._req("GET", "/", follow=True)
         m = re.search(r'data-page="([^"]+)"', html.decode("utf-8", "replace"))
         who = None
@@ -181,11 +204,14 @@ def main():
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
-    user = os.environ.get("EXCHANGE_USER") or input("Exchange e-mail: ").strip()
-    pw = os.environ.get("EXCHANGE_PASSWORD") or getpass.getpass("Exchange password: ")
-
     ex = Exchange()
-    who = ex.login(user, pw)
+    session = os.environ.get("EXCHANGE_SESSION")
+    if session:
+        who = ex.use_session(session)
+    else:
+        user = os.environ.get("EXCHANGE_USER") or input("Exchange e-mail: ").strip()
+        pw = os.environ.get("EXCHANGE_PASSWORD") or getpass.getpass("Exchange password: ")
+        who = ex.login(user, pw)
     print(f"logged in as: {who}", file=sys.stderr)
 
     pub = ex.published()

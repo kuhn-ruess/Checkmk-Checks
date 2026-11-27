@@ -22,6 +22,9 @@ package that is behind. Uploads go to the Exchange review queue (not instantly l
 
 Credentials come from the environment (never hard-coded): `EXCHANGE_USER` and
 `EXCHANGE_PASSWORD`. If `EXCHANGE_PASSWORD` is unset you are prompted with getpass.
+The login form now requires a CAPTCHA, so log in with the browser and pass the value of
+the `checkmk_exchange_session` cookie as `EXCHANGE_SESSION` instead. From the repo root:
+`make exchange-dry PLUGIN=<name>` and `make exchange PLUGIN=<name> DESC="..."`.
 
 ```
 EXCHANGE_USER=you@example.com python3 exchange_publish.py \
